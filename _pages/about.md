@@ -4,22 +4,19 @@ title: About
 permalink: /about/
 ---
 
-Reverie is a Jekyll theme which is simple and opinionated. It's actually a fork of [jekyll-now](https://github.com/barryclark/jekyll-now) with some additional features and personal touches which I've implemented to suit my needs for [my blog](https://www.amitmerchant.com).
+![Philipp Flenker standing in front of a tree.]({{ site.baseurl }}/images/avatar_full.png "Philipp Flenker")
 
-This is a plug-and-play Jekyll theme which you can use on GitHub Pages without even setting up a local environment.
 
-## Features
+Hallo und Hi There, thanks for stopping by! I'm Philipp, a Software Engineering Manager residing in Luedinghausen, North-Rhine Westphalia, Germany, with a focus on optimizing for productivity and happiness.
 
-- Command-line free fork-first workflow, using GitHub.com to create, customize and post to your blog
-- Fully responsive and mobile optimized base theme (Theme Demo)
-- Sass/Coffeescript support using Jekyll 2.0
-- Free hosting on your GitHub Pages user site
-- Markdown blogging
-- Syntax highlighting using Pygments
-    - Dracula syntax theme included
-- Disqus commenting
-- Google Analytics integration
-- Categorize posts out-of-the box
-- A home widget to show recent GitHub commit
-- RSS Feed
-- SEO friendly
+I obtained my Master's Degree in Computer Science from the [Westfaelische Wilhelms-Universität Münster](https://www.uni-muenster.de) in 2011. Since then, I have mainly worked as a Product Owner, Product Manager, Dev Lead, Agile Coach or a combination.
+
+I love technology, and one of my ealier childhood memories is feeding long rows of `DATA` from a computer magazine into my Commodore 64 - only to be rewarded with `?SYNTAX ERROR IN LINE 2342`. But during my first job as a graduate, I started to discover that while a talented developer can save more than just the project, a focussed team of engineers is nigh unstoppable.
+
+So I have dedicated most of my professional career to figuring out how to bring people together, focus them as teams toward a common goal and remove all unnecessary hindrances along the way.
+
+In that regard, I am usually favoring agile approaches, but I am not opinionated in that regard - the client or customer will praise you for a product well done, and not for a process well executed.
+
+In my spare time, I code stuff to make sure I stay up to date with current tech trends. These days, I dabble with React, React Native and NodeJS. And if you want me to build your next app, form your next team or kickstart your next product, you can also hire me!
+
+You can contact me at `hello@philippflenker.com` if you want to get in touch, start a discussion or simply say hi!
