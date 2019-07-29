@@ -22,7 +22,7 @@ html {
 
 body {
   background: #fff;
-  font-family: 'FuturaPTLight';
+  font-family: 'LatoLight';
   color: #555;
   line-height: 1.7;
   font-weight: bold;
@@ -38,7 +38,7 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'FuturaPTLight';
+  font-family: 'LatoLight';
   color: $darkerGray;
   font-weight: bold;
 
@@ -148,7 +148,7 @@ table tr td :last-child {
   border-radius: 4px;
   box-sizing: border-box;
   font-size: 18px;
-  background-color: #dbfffd;
+  background-color: #faffff;
 }
 
 .share-box {
@@ -187,18 +187,20 @@ ul ul, ol ul {
 }
 
 em, i {
+  font-family: 'LatoLightItalic';
   font-style: italic;
 }
 
 strong, b {
   font-weight: bold;
+  font-family: 'LatoBold';
 }
 
 strong>em,
 em>strong,
 b>i,
 i>b {    
-    text-decoration:underline;
+  font-family: 'LatoBoldItalic';
 }
 
 img {
@@ -405,24 +407,22 @@ footer {
   text-align: center;
 }
 
-body:after {
-    background: linear-gradient(to right, #ffffff   0, #2196F3   33%, #E91E63   66%, #000 100%);
-    width: 100%;
-    height: 5px;
-    top: 0;
-    position: absolute;
-    left: 0;
-    content: '';
+@font-face {
+    font-family: LatoLight;
+    src: url(fonts/LatoLatin-light.woff2);
 }
 
 @font-face {
-    font-family: EBGaramond;
-    src: url(fonts/EBGaramond-Regular.ttf);
+  font-family: LatoLightItalic;
+  src: url(fonts/LatoLatin-LightItalic.woff2);
 }
-
 @font-face {
-    font-family: FuturaPTLight;
-    src: url(fonts/FuturaPTLight.otf);
+  font-family: LatoBold;
+  src: url(fonts/LatoLatin-Bold.woff2);
+}
+@font-face {
+  font-family: LatoBoldItalic;
+  src: url(fonts/LatoLatin-BoldItalic.woff2);
 }
 
 #bar {
@@ -438,7 +438,7 @@ body:after {
 }
 
 .post h1{
-  font-family: 'FuturaPTLight';
+  font-family: 'LatoLight';
   text-align: center;
   font-weight: bold;
   font-kerning: auto;
@@ -447,7 +447,7 @@ body:after {
 }
 
 .page h1{
-  font-family: 'FuturaPTLight';
+  font-family: 'LatoLight';
   text-align: center;
   font-weight: bold;
   font-kerning: auto;
