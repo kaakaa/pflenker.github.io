@@ -35,7 +35,7 @@ Apart from the questionable benefit of said pressure, this way of "motivating" e
 
 The arguments in favor of pessimistic estimates mostly boil down to "If the team has more time, they can deliver better work", which is (hopefully) a no-brainer. The arguments against that stem from the assumption that the team will fill up the unused time with unnecessary gold-plating or slacking off, which could both be countered with better task management.
 
-> Overestimated features are still predictable - underestimated features are not
+> Overestimated features are still predictable - underestimated features are not.
 
 There is also another factor in favor of the pessimistic estimates, which is not self-evident:
 Suppose you have estimated Feature A pessimistically, and Feature B optimistically - and both estimates are wrong, so Feature B takes longer than expected, Feature A will be implemented quicker than expected. When will they be done?
