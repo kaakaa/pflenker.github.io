@@ -194,6 +194,13 @@ strong, b {
   font-weight: bold;
 }
 
+strong>em,
+em>strong,
+b>i,
+i>b {    
+    text-decoration:underline;
+}
+
 img {
   max-width: 100%;
 }
