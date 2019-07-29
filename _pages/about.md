@@ -17,6 +17,8 @@ So I have dedicated most of my professional career to figuring out how to bring 
 
 In that regard, I am usually favoring agile approaches, but I am not opinionated in that regard - the client or customer will praise you for a product well done, and not for a process well executed.
 
+If you are interested, you can find my CV on [LinkedIn (English)](https://www.linkedin.com/in/pflenker/) or [Xing (German)](https://www.xing.com/profile/Philipp_Flenker/).
+
 In my spare time, I code stuff to make sure I stay up to date with current tech trends. These days, I dabble with React, React Native and NodeJS. And if you want me to build your next app, form your next team or kickstart your next product, you can also hire me!
 
 You can contact me at [hello@philippflenker.com](mailto:hello@philippflenker.com) if you want to get in touch, start a discussion or simply say hi!
