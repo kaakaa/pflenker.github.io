@@ -4,7 +4,7 @@ layout: post
 categories: Estimates
 ---
 
-When being confronted with two alternatives - an estimate which feels optimistic and one which feels pessimistic,prefer the pessimistic approach over optimistic estimates to keep things predictable and avoid chaos. Here's why.
+When being confronted with two alternatives - an estimate which feels optimistic and one which feels pessimistic, prefer the pessimistic approach over optimistic estimates to keep things predictable and avoid chaos. Here's why.
 
 First of all, it should go without saying that you should always strive to make an accurate estimate, based on your current level of information. But then again, *estimation* does not mean *knowning*, and we all know the situation where we have to choose between an optimistic and a pessimistic estimate. For example, you might be using Story Points as an estimate and have to choose between an 8 and a 13 when it really feels like a 10. Or a task could be around 8 hours if everything goes well, or closer to 16 hours of (*insert unlikely event here*) happens.
 
