@@ -4,9 +4,9 @@ layout: post
 categories: Estimates
 ---
 
-When being confronted with two alternatives - an estimate which feels optimistic and one which feels pessimistic - prefer the pessimistic approach over optimistic estimates to keep things predictable and avoid chaos. Here's why.
+When being confronted with two alternatives - providing an estimate which feels optimistic or one which feels pessimistic - prefer the pessimistic approach over giving optimistic estimates to keep things predictable and avoid chaos. Here's why.
 
-First of all, it should go without saying that you should always strive to make an accurate estimate, based on your current level of information. But then again, *estimation* does not mean *knowning*, and we all know the situation where we have to choose between an optimistic and a pessimistic estimate. For example, you might be using Story Points as an estimate and have to choose between an 8 and a 13 when it really feels like a 10. Or a task could be around 8 hours if everything goes well, or closer to 16 hours if (*insert unlikely event here*) happens.
+First of all, it should go without saying that you should always strive to make an accurate estimate, based on your current level of information. But then again, *estimating* does not mean *knowning*, and we all know the situation where we have to choose between an optimistic and a pessimistic estimate. For example, you might be using Story Points as an estimate and have to choose between an 8 and a 13 when it really feels like a 10. Or a task could be around 8 hours if everything goes well, or closer to 16 hours if (*insert unlikely event here*) happens.
 
 What do you do? Do you give the optmistic or the pessimistic estimate?
 
@@ -35,7 +35,7 @@ Apart from the questionable benefit of said pressure, this way of "motivating" e
 
 The arguments in favor of pessimistic estimates mostly boil down to "If the team has more time, they can deliver better work", which is (hopefully) a no-brainer. The arguments against that stem from the assumption that the team will fill up the unused time with unnecessary gold-plating or slacking off, which could both be countered with better task management.
 
-> Overestimated features are still predictable - underestimated features are not
+> Overestimated features are still predictable - underestimated features are not.
 
 There is also another factor in favor of the pessimistic estimates, which is not self-evident:
 Suppose you have estimated Feature A pessimistically, and Feature B optimistically - and both estimates are wrong, so Feature B takes longer than expected, Feature A will be implemented quicker than expected. When will they be done?
