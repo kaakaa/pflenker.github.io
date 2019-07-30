@@ -4,7 +4,7 @@ title: About
 permalink: /about/
 ---
 
-![Philipp Flenker standing in front of a tree.]({{ site.baseurl }}/images/avatar_full.png "Philipp Flenker")
+![Philipp Flenker standing in front of a tree.]({{ site.baseurl }}/images/avatar_full.jpg "Philipp Flenker")
 
 
 Hallo und Hi There, thanks for stopping by! I'm Philipp, a Software Engineering Manager residing in Luedinghausen, North-Rhine Westphalia, Germany, with a focus on optimizing for productivity and happiness.
