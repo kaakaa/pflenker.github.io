@@ -3,7 +3,7 @@ layout: post
 title: Reloading on the Simulator without shaking the device 
 categories: React-Native
 ---
-I recently took the train to Munich, a 7-hour-ride, and I took the opportunity to working on a React Native project during the journey. Since I could not see me shaking my device every few minutes in front of strangers for the better part of the day, I researched a bit and found the following neat trick:
+I recently took the train to Munich, a 7-hour-ride, and I took the opportunity to working on a React Native project during the journey. Since I could not see myself shaking my phone every few minutes in front of strangers for the better part of the day, I researched a bit and found the following neat trick:
 
 ```sh
 adb shell input keyevent 82 && adb shell input keyevent 66 && adb shell input keyevent 66
