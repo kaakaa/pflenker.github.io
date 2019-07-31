@@ -54,8 +54,6 @@ enforce_ssl: https://www.philippflenker.com
 # then add in the baseurl here, like this: "/repository-name"
 baseurl:
 
-# Philipp's own additions
-future: false
 
 #
 # !! You don't need to change any of the configuration flags below !!
