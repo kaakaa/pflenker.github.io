@@ -128,13 +128,6 @@ table tr td :last-child {
 	margin-bottom: 0;
 }
 
-/*.detailed .entry p:first-of-type:first-letter {
-    float: left;
-    margin: 0.13em 0.05em 0 -0.05em;
-    font-size: 3.333em;
-    line-height: 0.75em;
-}*/
-
 #search-container {
   text-align: center;
 }
@@ -205,6 +198,8 @@ i>b {
 
 img {
   max-width: 100%;
+  display: block;
+  margin: auto;
 }
 
 p > img {
@@ -383,6 +378,8 @@ nav {
     text-transform: uppercase;
     font-size: 13px;
   }
+
+ 
 }
 
 .wrapper-container {
@@ -469,20 +466,6 @@ footer {
   color: #939aa1;
 }
 
-.cd-container a {
-  color: #30434e;
-  text-decoration: none;
-  font-family: "Open Sans", sans-serif;
-}
-
-.cd-container img {
-  max-width: 100%;
-}
-
-.cd-container h1, .cd-container h2 {
-  font-family: "Open Sans", sans-serif;
-  font-weight: bold;
-}
 
 /* --------------------------------
 
@@ -615,76 +598,6 @@ Modules - reusable parts of our design
     border-bottom: 1px dotted #000;
 }
 
-//carbon ads
-#carbonads {
-  --width: 180px;
-  --font-size: 14px;
-}
-
-#carbonads {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", Helvetica, Arial, sans-serif;
-  display: inline-block;
-  overflow: hidden;
-  max-width: 270px;
-  border-radius: 4px;
-  text-align: center;
-  border: dashed 1px #e6e6e6;
-  background-color: hsl(0, 0%, 98%);
-  font-size: var(--font-size);
-  line-height: 1.5;
-  width: 100%;
-}
-
-#carbonads a {
-  color: inherit;
-  text-decoration: none;
-}
-
-#carbonads a:hover {
-  color: inherit;
-}
-
-#carbonads span {
-  position: relative;
-  display: block;
-  overflow: hidden;
-}
-
-.carbon-img {
-  display: block;
-  margin-bottom: 8px;
-  max-width: var(--width);
-  line-height: 1;
-}
-
-.carbon-img img {
-  display: block;
-  margin: 0 auto;
-  max-width: 130px !important;
-  width: var(--width);
-  height: auto;
-  float: left;
-  margin: 0;
-}
-
-.carbon-text {
-  display: block;
-  padding: 0 1em 8px;
-  max-width: 138px;
-  float: left;
-  text-align: left;
-}
-
-.carbon-poweredby {
-  display: block;
-  padding: 10px var(--font-size);
-  background: repeating-linear-gradient(-45deg, transparent, transparent 5px, hsla(0, 0%, 0%, .025) 5px, hsla(0, 0%, 0%, .025) 10px) hsla(203, 11%, 95%, .4);
-  text-transform: uppercase;
-  letter-spacing: .5px;
-  font-weight: 600;
-  font-size: 9px;
-  line-height: 0;
-}
 
 .post-tags {
   text-align: center;
@@ -718,98 +631,7 @@ Modules - reusable parts of our design
 
 .pagination {
   text-align: center;
-}
-
-@media only screen and (min-width: 320px) and (max-width: 759px) {
-  #carbonads {
-    float: none;
-    margin: 0 auto;
-    max-width: 330px;
-  }
-  #carbonads span {
-    position: relative;
-  }
-  #carbonads > span {
-    max-width: none;
-  }
-  .carbon-img {
-    float: left;
-    margin: 0;
-  }
-
-  .carbon-img img {
-    max-width: 130px !important;
-  }
-  .carbon-text {
-    float: left;
-    margin-bottom: 0;
-    padding: 8px 20px;
-    text-align: left;
-    max-width: calc(100% - 130px - 3em);
-  }
-  .carbon-poweredby {
-    left: 130px;
-    bottom: 0;
-    display: block;
-    width: 100%;
-  }
-}
-
-.tlemail {
-  width: 80%;
-  padding: 12px 20px;
-  margin: 8px 0;
-  display: inline-block;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-}
-
-.subscribeBtn {
-  width: 30%;
-  background-color: #4CAF50;
-  color: white;
-  padding: 14px 20px;
-  margin: 8px 0;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 11pt;
-}
-
-.tinyletterForm {
-  border: 1px solid #ccc;
-  padding: 3px;
-  text-align: center;
-  background: #ececec;
-  margin: 8px;
-  border-radius: 5px;
-}
-
-.btn-subscribe {
-  line-height: 20px;
-  text-decoration: none;
-  background: #00000015;
-  border: none;
-  font-size: 12px;
-  padding: 0px 7px;
-  display: inline-block;
-  border-radius: 4px;
-  position: relative;
-  top: -1px;
-  margin-left: 5px;
-  color: black;
-}
-
-.btn-subscribe:hover {
-  color: black;
-}
-
-.btn-subscribe > svg {
-  width: 21px;
-  height: 21px;
-  vertical-align: bottom;
-  margin: 0 -2px 0 -5px;
+  padding-top: 1em;
 }
 
 @media only screen and (min-width: 1170px) {

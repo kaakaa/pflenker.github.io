@@ -5,13 +5,19 @@ layout: default
 <div class="posts">
   {% for post in paginator.posts %}
     <article class="post">
-
-      <h1><a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a></h1>
-
-      <div>
-        <p class="post_date">{{ post.date | date: "%B %e, %Y" }}</p>
+        <a href="{{ site.baseurl }}{{ post.url }}">
+          {%  if post.title != "" %}
+            <h1>{{ post.title }}</h1>
+          {%  endif %}
+          <div>
+            {% if post.image %}
+              <img src="{{site.baseurl}}{{post.image}}" alt="{{post.title}}"/>          
+            {% endif %}  
+          <p class="post_date">{{ post.date | date: "%B %e, %Y" }}</p>
+        </a>
       </div>
-
+      
+      
       <div class="entry">
         {{ post.excerpt }}
       </div>
