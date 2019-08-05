@@ -68,7 +68,7 @@ cargo init hecto
 ```
 `hecto` is the name of the text editor we will be building. Executing this command will create a folder called `hecto` which has already set up git (and therefore includes a folder called `.git` and a file called `.gitignore`). We are not going to use git for this tutorial, so you can ignore this for now.
 
-It also creates a file called `Cargo.toml`, which is pre-filled with some information like the author or application name. If you are familiar with JavaScript, the `Cargo.toml` is comparable to the `package.json`. It describes your package as well as its dependencies to other packages. When focussing on `hecto`, we can also ignore it.
+It also creates a file called `Cargo.toml`, which is pre-filled with some information like the author or application name. If you are familiar with JavaScript, the `Cargo.toml` is comparable to the `package.json`. It describes your package as well as its dependencies to other packages. 
 
 Finally, there is a file called `src/main.rs`. When you open it, it already contains the following code:
 ```rust
