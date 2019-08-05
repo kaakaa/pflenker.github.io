@@ -44,7 +44,7 @@ the process to terminate immediately.
 ## Press <kbd>q</kbd> to quit?
 
 To demonstrate how canonical mode works, we'll have the program exit when it
-reads a <kbd>q</kbd> keypress from the user. 
+reads a <kbd>q</kbd> keypress from the user.
 
 ```rust
 use std::io::{self, Read};
@@ -69,7 +69,7 @@ unread on the input queue, and you may see that input being fed into your shell
 after your program exits.
 
 ## Entering raw mode by using termion
-Open the `Cargo.toml` file. Change the `[dependencies]` section of that file to look like this: 
+Open the `Cargo.toml` file. Change the `[dependencies]` section of that file to look like this:
 ```toml
 [dependencies]
 termion = "*"
@@ -84,12 +84,12 @@ use termion::raw::{IntoRawMode, RawTerminal};
 
 
 fn enable_raw_mode() -> RawTerminal<Stdout>{
-    return stdout().into_raw_mode().expect("Could not enable raw mode")
+    return stdout().into_raw_mode().unwrap();
 }
 
 fn main() {
     let _stdout = enable_raw_mode();
-    
+
     for b in io::stdin().lock().bytes() {
         let c = b.unwrap() as char;
         println!("read char {}", c);
@@ -102,60 +102,57 @@ fn main() {
 
 There are a few things to note here. First, in `enable_raw_mode`, we are using `termion` to set the standard output into raw mode. But why are we modifying `stdout` to change how we read from `stdin`? The answer is that terminals have their states controlled by the writer, not the reader. The writer is used to draw on the screen or move the cursor, so it is also used to change the mode as well.
 
-Second, we are catching the error which might be passed to us from termion, and then we are returning the result to `main` - where we are not using it. Why? Because `into_raw_mode` returns a `RawTerminal` which, once it goes out of scope, will reset the terminal into canonical mode. You can try it out by removing `let _stdout =` - the terminal won't stay in raw mode. We are actually telling the rust compiler (and others reading our code) that we want to hold on to `_stdout` even though we are not using it by prefixing the variable with an underscore.
+Second, we are unwrapping the value retunred from termion, and then we are returning the result to `main` - where we are not using it. Why? Because `into_raw_mode` returns a `RawTerminal` which, once it goes out of scope, will reset the terminal into canonical mode, so we need to keep it around. You can try it out by removing `let _stdout =` - the terminal won't stay in raw mode. We are actually telling the rust compiler (and others reading our code) that we want to hold on to `_stdout` even though we are not using it by prefixing the variable with an underscore.
 
 ## Display keypresses
 
 To get a better idea of how input in raw mode works, let's improve on how we print out each byte
-that we read. 
+that we read.
 
 ```rust
-use std::io::{self,  stdout, Write, Stdout};
+use std::io::{self,  stdout, Read, Stdout};
 use termion::raw::{IntoRawMode, RawTerminal};
-use termion::input::TermRead;
-use termion::event::Key;
 
 
 fn enable_raw_mode() -> RawTerminal<Stdout>{
-    return stdout().into_raw_mode().expect("Could not enable raw mode")
+    return stdout().into_raw_mode().unwrap();
 }
 
 fn main() {
-    let mut stdout = enable_raw_mode();
-    
-    for k in io::stdin().lock().keys() {        
-        let key = k.unwrap();
-        match key {
-            Key::Char('q') => break,
-            Key::Char(c) => print!("{}\r\n", c),
-            _ => print!("{:?}\r\n", key)
+    let _stdout = enable_raw_mode();
+
+    for b in io::stdin().lock().bytes() {
+        let byte = b.unwrap();
+        let c = byte as char;
+        if c.is_control() {
+            print!("{:?} \r\n", byte);
+        } else {
+            print!("{:?} ({})\r\n", byte,c);
         }
-        stdout.flush().unwrap();
+        if c == 'q' {
+            break;
+        }
     }
 }
 ```
+`is_control()` tests whether a character is a control character. Control characters are nonprintable characters that we don't want to print to the screen. ASCII codes 0&ndash;31 are all control characters, and 127 is also a control character. ASCII codes 32&ndash;126 are all printable. (Check out the [ASCII table](http://asciitable.com) to see all of the characters.)
 
-That is a big change, so a few explanations are in order:
-- Now that we are using termion, we can iterate over `keys` instead of `bytes`. This helps us capture characters which are bigger than one byte.
-- `stdout` is no longer unused - we flush it after each iteration, which causes our program to display the characters right away. Try removing that line and see what happens!
-- We are using `match` instead of `if`. Match is an extremely useful operator, and it's worth checking out [the docs]((https://doc.rust-lang.org/book/ch06-02-match.html) ) if you haven't already.
-- Instead of using `println!`, we are using `print!`, and we are manually adding `\r\n`. This makes sure our output is neatly printed line by line without indendation.
+`print!()`, same as `println!` before, is a macro which prints something to the screen.
+`{}` and `{:?}` are placeholders which are filled with the remaining parameters to the macro. `{}` is a placeholer for elements for which a string representation is known, such as a `char`, and `{:?}` is a placeholder for elements for which a string representation is not known. To understand the difference, try running the code with `{}` instead of `{:?}`. Contrast it with the behaviour if you then use `{:?}` instead of `{}`, even for characters.
 
-This is a very useful program. It shows us how various keypresses translate
-into the characters we read. Most ordinary keys translate directly into the
-characters they represent. But try seeing what happens when you press the arrow
-keys, or <kbd>Escape</kbd>, or <kbd>Page Up</kbd>, or <kbd>Page Down</kbd>, or
-<kbd>Home</kbd>, or <kbd>End</kbd>, or <kbd>Backspace</kbd>, or
-<kbd>Delete</kbd>, or <kbd>Enter</kbd>. Try key combinations with
-<kbd>Ctrl</kbd>, like <kbd>Ctrl-A</kbd>, <kbd>Ctrl-B</kbd>, etc.
+Instead of using `println!`, which prints its parameters in a new line, we are now using `print!`, and we are manually adding `\r\n`. This makes sure our output is neatly printed line by line without indendation. The reason is that usually, terminals do some kind of output processing for us and convert a newline (`\n`) to carriage return and newline (`\r\n`). The carriage return moves the cursor back to the beginning of the current line, and the newline moves the cursor down a line, scrolling the screen if necessary. (These two distinct operations originated in the days of typewriters and [teletypes](https://en.wikipedia.org/wiki/Teleprinter).)
+
+By switching to Raw Mode, we have disabled this feature, and therefore a newline (as used by `println!`) only moves the cursor down, but not to the left. Try using `println!` without `\r\n` to see the difference!
+
+This is a very useful program. It shows us how various keypresses translate into the characters we read. Most ordinary keys translate directly into the characters they represent. But try seeing what happens when you press the arrow keys, or <kbd>Escape</kbd>, or <kbd>Page Up</kbd>, or <kbd>Page Down</kbd>, or <kbd>Home</kbd>, or <kbd>End</kbd>, or <kbd>Backspace</kbd>, or <kbd>Delete</kbd>, or <kbd>Enter</kbd>. Try key combinations with <kbd>Ctrl</kbd>, like <kbd>Ctrl-A</kbd>, <kbd>Ctrl-B</kbd>, etc.
 
 You'll notice a few interesting things:
-- Most characters show up as expected, as termion converts the bytes in their correct character counterparts
-- Nonstandard characters such as German umlauts work as well
-- <kbd>Ctrl-A</kbd> is `Ctrl('a')`, <kbd>Ctrl-B</kbd> is `Ctrl('b')`, <kbd>Ctrl-C</kbd> is ...`Ctrl('c')` and does not exit your program, as you might have expected
-- This is also true for other combinations, such as `<kbd>Ctrl-S</kbd>, <kbd>Ctrl-A</kbd> or <kbd>Ctrl-Z</kbd>. Interestingly, though, <kbd>Ctrl-V</kbd> still pastes in (and reads) the clipboard on Windows.
-- <kbd>Ctrl-Alt-A</kbd> translates into `Alt('\u{1}')`, and the other variants with <kbd>Ctrl</kbd>  and <kbd>Alt</kbd> behave similarily. This is just an issue on how the default logging for Keys works: `\u{1}` is representing the value for <kbd>Strg+A</kbd>
-- <kbd>Ctrl-M</kbd> and <kbd>Ctrl-J</kbd> both seem to produce nothing. However, with our new-found knowledge, we can press <kbd>Ctrl-Alt-M</kbd> to see the representation of <kbd>Ctrl-M</kbd>: it's `\r`, the carriage return. Likewise, <kbd>Ctrl-J</kbd> produces `\n`, a newline.
+-  Arrow keys, <kbd>Page Up</kbd>, <kbd>Page Down</kbd>, <kbd>Home</kbd>, and <kbd>End</kbd> all input 3 or 4 bytes to the terminal: `27`, `'['`, and then one or two other characters. This is known as an *escape sequence*. All escape sequences start with a `27` byte. Pressing <kbd>Escape</kbd> sends a single `27` byte as input, which explains either the name of the key or the sequence.
+- <kbd>Backspace</kbd> is byte `127`.
+- <kbd>Enter</kbd> is byte `13`, which is a carriage return character, also known as `'\r'` - and not, as you might expect, a newline, `'\n'`
+- Nonstandard characters such as German umlauts also produce multiple bytes.
+- <kbd>Ctrl-A</kbd> is `1`, <kbd>Ctrl-B</kbd> is `2`, <kbd>Ctrl-C</kbd> is... `3` and doesn't terminate the program as you might have expected. And the rest of the <kbd>Ctrl</kbd> key combinations  seem to map the letters A&ndash;Z to the codes 1&ndash;26.
+
 
 ## Sections
 
@@ -163,32 +160,32 @@ That just about concludes this chapter on entering raw mode. The last thing weâ€
 
 ```rust
 /*** includes ***/
-use std::io::{self,  stdout, Write, Stdout};
+use std::io::{self,  stdout, Read, Stdout};
 use termion::raw::{IntoRawMode, RawTerminal};
-use termion::input::TermRead;
-use termion::event::Key;
-
 
 /*** terminal***/
 fn enable_raw_mode() -> RawTerminal<Stdout>{
-    return stdout().into_raw_mode().expect("Could not enable raw mode")
+    return stdout().into_raw_mode().unwrap();
 }
 
 /*** init ***/
 fn main() {
-    let mut stdout = enable_raw_mode();
-    
-    for k in io::stdin().lock().keys() {        
-        let key = k.unwrap();
-        match key {
-            Key::Char('q') => break,
-            Key::Char(c) => print!("{}\r\n", c),
-            _ => print!("{:?}\r\n", key)
+    let _stdout = enable_raw_mode();
+
+    for b in io::stdin().lock().bytes() {
+        let byte = b.unwrap();
+        let c = byte as char;
+
+        if c.is_control() {
+            print!("{:?} \r\n", byte);
+        } else {
+            print!("{:?} ({})\r\n", byte,c);
         }
-        stdout.flush().unwrap();
+        if c == 'q' {
+            break;
+        }
     }
 }
 ```
 
 In the next chapter, we'll do some more terminal input/output handling, and use that to draw to the screen and allow the user to move the cursor around.
-
