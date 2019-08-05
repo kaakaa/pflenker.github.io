@@ -18,7 +18,7 @@ available to get Rust up and running.
 
 It's usually a bit easier to install and run rust on Linux environments than on Windows,
 and the easiest way to have a Linux environment *on* Linux is using the Windows Subsystem
-for Linux (WSL), which [is available for Windows 10](https://docs.microsoft.com/en-us/windows/wsl/install-win10). However, this is completely optional and you can run Rust on Windows just fine without it.
+for Linux (WSL), which [is available for Windows 10](https://docs.microsoft.com/en-us/windows/wsl/install-win10). This tutorial was written and tested on macOS and on Windows Subsystem for Linux, so you might run into issues when using it under Windows.
 
 The installation will use a terminal on Linux and `cmd` on Windows, which we will also use to run our programs later on.
 
