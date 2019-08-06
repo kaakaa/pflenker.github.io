@@ -153,6 +153,79 @@ You'll notice a few interesting things:
 - Nonstandard characters such as German umlauts also produce multiple bytes.
 - <kbd>Ctrl-A</kbd> is `1`, <kbd>Ctrl-B</kbd> is `2`, <kbd>Ctrl-C</kbd> is... `3` and doesn't terminate the program as you might have expected. And the rest of the <kbd>Ctrl</kbd> key combinations  seem to map the letters A&ndash;Z to the codes 1&ndash;26.
 
+## Error Handling
+It's time to think about how we handle errors. First, we add a `die()` function that prints an error message and exits the program.
+
+```rust
+use std::io::{self,  stdout, Read, Stdout};
+use termion::raw::{IntoRawMode, RawTerminal};
+
+fn die(e: std::io::Error) {
+    panic!(e);
+}
+
+fn enable_raw_mode() -> RawTerminal<Stdout>{
+    return stdout().into_raw_mode().unwrap();
+}
+
+fn main() {
+    let _stdout = enable_raw_mode();
+
+    for b in io::stdin().lock().bytes() {
+        let byte = b.unwrap();
+        let c = byte as char;
+        if c.is_control() {
+            print!("{:?} \r\n", byte);
+        } else {
+            print!("{:?} ({})\r\n", byte,c);
+        }
+        if c == 'q' {
+            break;
+        }
+    }
+}
+```
+`panic!` is a macro which crashes the program with an error message. This is the same as what happens if calls like `unwrap` go wrong, so our `die()` function is useless for now - but we want to do some more cleanup later in case of an error. so we start thinking about errors now. Unlike some other programming languages, Rust does not allow you to add some kind of `try..catch` block around the code to catch any error that might occur. Instead, we are propagating errors up alongside the function return values, which will allow us to treat errors at the highest level - in `main`. Let's implement that now.
+
+```rust
+use std::io::{self,  stdout, Read, Stdout};
+use termion::raw::{IntoRawMode, RawTerminal};
+
+fn die(e: std::io::Error) {
+    panic!(e);
+}
+
+fn enable_raw_mode() -> io::Result<RawTerminal<Stdout>>{
+    return stdout().into_raw_mode();
+}
+
+
+fn main() {
+    let mut _stdout = None;
+    match  enable_raw_mode() {
+        Ok(s) => _stdout = Some(s),
+        Err(err) => die(err)        
+    }
+
+    for byte in io::stdin().lock().bytes() {
+        match byte {
+            Ok(byte) => {
+                let c = byte as char;
+                if c.is_control() {
+                    print!("{:?} \r\n", byte);
+                } else {
+                    print!("{:?} ({})\r\n", byte,c);
+                }
+                if c == 'q' {
+                    break;
+                }
+            },
+            Err(err) => die(err)        
+        }
+    }
+}
+```
+We have converted `_stdout` to a variable which can hold either `None` or the Raw Terminal from before, and we are using `match` in two places to check against the return type and call `die` on error.
 
 ## Sections
 
@@ -164,28 +237,40 @@ use std::io::{self,  stdout, Read, Stdout};
 use termion::raw::{IntoRawMode, RawTerminal};
 
 /*** terminal***/
-fn enable_raw_mode() -> RawTerminal<Stdout>{
-    return stdout().into_raw_mode().unwrap();
+fn die(e: std::io::Error) {
+    panic!(e);
+}
+
+fn enable_raw_mode() -> io::Result<RawTerminal<Stdout>>{
+    return stdout().into_raw_mode();
 }
 
 /*** init ***/
 fn main() {
-    let _stdout = enable_raw_mode();
+    let mut _stdout = None;
+    match  enable_raw_mode() {
+        Ok(s) => _stdout = Some(s),
+        Err(err) => die(err)        
+    }
 
-    for b in io::stdin().lock().bytes() {
-        let byte = b.unwrap();
-        let c = byte as char;
-
-        if c.is_control() {
-            print!("{:?} \r\n", byte);
-        } else {
-            print!("{:?} ({})\r\n", byte,c);
-        }
-        if c == 'q' {
-            break;
+    for byte in io::stdin().lock().bytes() {
+        match byte {
+            Ok(byte) => {
+                let c = byte as char;
+                if c.is_control() {
+                    print!("{:?} \r\n", byte);
+                } else {
+                    print!("{:?} ({})\r\n", byte,c);
+                }
+                if c == 'q' {
+                    break;
+                }
+            },
+            Err(err) => die(err)        
         }
     }
 }
+
 ```
 
 In the next chapter, we'll do some more terminal input/output handling, and use that to draw to the screen and allow the user to move the cursor around.
