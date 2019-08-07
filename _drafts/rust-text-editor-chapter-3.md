@@ -665,3 +665,162 @@ We add `1` to `x` and `y` from `cursor_position()` to convert from `0`-indexed v
 At this point, you could try initializing `cursor_position` with a different value, to confirm that the code works as intended so far.
 
 Next, we'll allow the user to move the cursor using the arrow keys.
+
+```rust
+/*** includes ***/
+/*** structs & constants ***/
+/*** terminal***/
+/*** output ***/
+/*** input ***/
+fn editor_move_cursor(old_position: (u16,u16), key: &Key) -> (u16, u16) {
+    let (x,y) = old_position;
+    match key {
+        Key::Up => return (x, y-1),
+        Key::Down => return (x, y+1),
+        Key::Left => return (x-1, y),
+        Key::Right => return (x+1, y),
+        _ => ()
+    }
+}
+
+fn editor_process_keypress(state: &mut EditorState) -> Result<(), std::io::Error>{
+    let pressed_key = editor_read_key()?;
+    match pressed_key {
+        Key::Ctrl('q') => state.quit = true,
+        Key::Up |
+        Key::Down |
+        Key::Left |
+        Key::Right => {
+            state.cursor_position = editor_move_cursor(state.cursor_position, &pressed_key)
+        }
+        _ => ()
+    }
+    Ok(())
+}
+/*** init ***/
+```
+Now you should be able to move the cursor around with those keys.
+
+We should take a moment to appreciate what `termion` does for us. You might remember from earlier steps that Arrow Keys are emitting an Escape Charater, followed by `[` and then a character. We would have to do the handling of these multiple bytes manually, listening to the next bytes until we either know what we are dealing with or treating the input as an unknown key. With `termion`, we can simply use the `Key` type.
+
+## Prevent moving the cursor off screen
+
+Currently, you can cause the `cursor_position` values to go into the negatives, or go past the right and bottom edges of the screen. Let's prevent that by doing some bounds checking in `editor_move_cursor()`.
+
+```rust
+/*** includes ***/
+/*** structs & constants ***/
+/*** terminal***/
+/*** output ***/
+/*** input ***/
+fn editor_move_cursor(old_position: (u16,u16), terminal_size: (u16, u16), key: &Key) -> (u16, u16){
+    let (mut row, mut col) = old_position;
+    let (max_row, max_col) = terminal_size;
+    match key {
+        Key::Up => {
+            if col > 0 {
+               col = col-1;
+            }
+        },
+        Key::Down => {
+            if col < max_col {
+                col = col+1;
+            }
+        }
+        Key::Left => {
+            if row != 0 {
+               row = row-1;
+            }
+        },
+        Key::Right =>{
+            if row < max_row {
+                row = row+1;
+            }
+        },    
+        _ => ()
+    }   
+    (row,col)
+}
+
+fn editor_process_keypress(state: &mut EditorState) -> Result<(), std::io::Error>{
+    let pressed_key = editor_read_key()?;
+    match pressed_key {
+        Key::Ctrl('q') => state.quit = true,
+        Key::Up |
+        Key::Down |
+        Key::Left |
+        Key::Right => {
+            state.cursor_position = editor_move_cursor(state.cursor_position, state.terminal_size, &pressed_key)
+        }
+        _ => ()
+    }
+    Ok(())
+}
+/*** init ***/
+```
+
+## Navigating with <kbd>Page Up</kbd>, <kbd>Page Down</kbd> <kbd>Home</kbd> and <kbd>End</kbd>
+To complete our low-level terminal code, we need to detect a few more special keypresses that use escape sequences, like the arrow keys did. We are going to map <kbd>Page Up</kbd>, <kbd>Page Down</kbd> <kbd>Home</kbd> and <kbd>End</kbd> to position our cursor at the top or bottom of the screen, or the beginning or end of the line, respectively.
+
+```rust
+/*** includes ***/
+/*** structs & constants ***/
+/*** terminal***/
+/*** output ***/
+/*** input ***/
+fn editor_move_cursor(old_position: (u16,u16), terminal_size: (u16, u16), key: &Key) -> (u16, u16){
+    let (mut row, mut col) = old_position;
+    let (max_row, max_col) = terminal_size;
+    match key {
+        Key::Up => {
+            if col > 0 {
+               col = col-1;
+            }
+        },
+        Key::Down => {
+            if col < max_col {
+                col = col+1;
+            }
+        }
+        Key::Left => {
+            if row != 0 {
+               row = row-1;
+            }
+        },
+        Key::Right =>{
+            if row < max_row {
+                row = row+1;
+            }
+        },
+        Key::PageUp => col = 0,
+        Key::PageDown => col = max_col,
+        Key::Home =>  row = 0,
+        Key::End => row = max_row,
+        _ => ()
+    }   
+    (row,col)
+}
+
+fn editor_process_keypress(state: &mut EditorState) -> Result<(), std::io::Error>{
+    let pressed_key = editor_read_key()?;
+    match pressed_key {
+        Key::Ctrl('q') => state.quit = true,
+        Key::Up |
+        Key::Down |
+        Key::Left |
+        Key::Right |
+        Key::PageUp |
+        Key::PageDown |
+        Key::End |
+        Key::Home 
+        => {
+            state.cursor_position = editor_move_cursor(state.cursor_position, state.terminal_size, &pressed_key)
+        }
+        _ => ()
+    }
+    Ok(())
+}
+/*** init ***/
+```
+
+In the next chapter, we will get our program to display text files.
