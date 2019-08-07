@@ -236,7 +236,7 @@ You may notice that the `<esc>[2J` command left the cursor at the bottom of the 
 /*** terminal***/
 /*** output ***/
 fn editor_refresh_screen() -> Result<(), std::io::Error> {
-    println!("{}, {}", termion::clear::All, termion::cursor::Goto(1, 1));
+    println!("{}{}", termion::clear::All, termion::cursor::Goto(1, 1));
     io::stdout().flush()
 }
 /*** input ***/
@@ -256,7 +256,7 @@ Let's clear the screen and reposition the cursor when our program exits. If an e
 /*** helpers ***/
 /*** terminal***/
 fn die(e: std::io::Error) {
-    println!("{}, {}", termion::clear::All, termion::cursor::Goto(1, 1));
+    println!("{}{}", termion::clear::All, termion::cursor::Goto(1, 1));
     panic!(e);
 }
 /*** output ***/
@@ -288,7 +288,7 @@ fn main() {
         match editor_process_keypress() {
            Ok(should_process_next) => {
             if !should_process_next {
-                println!("{}, {}", termion::clear::All, termion::cursor::Goto(1, 1));
+                println!("{}{}", termion::clear::All, termion::cursor::Goto(1, 1));
                 break;
             }
            },
