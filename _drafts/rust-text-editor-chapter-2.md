@@ -78,15 +78,10 @@ Next time you run `cargo run`, the new dependency, `termion` , and its dependenc
 Now change the `main.rs` as follows:
 ```rust
 use std::io::{self,  stdout, Read, Stdout};
-use termion::raw::{IntoRawMode, RawTerminal};
-
-
-fn enable_raw_mode() -> RawTerminal<Stdout>{
-    return stdout().into_raw_mode().unwrap();
-}
+use termion::raw::IntoRawMode;
 
 fn main() {
-    let _stdout = enable_raw_mode();
+    let _stdout = stdout().into_raw_mode().unwrap();
 
     for b in io::stdin().lock().bytes() {
         let c = b.unwrap() as char;
@@ -98,9 +93,9 @@ fn main() {
 }
 ```
 
-There are a few things to note here. First, in `enable_raw_mode`, we are using `termion` to set the standard output into raw mode. But why are we modifying `stdout` to change how we read from `stdin`? The answer is that terminals have their states controlled by the writer, not the reader. The writer is used to draw on the screen or move the cursor, so it is also used to change the mode as well.
+There are a few things to note here. First, we are using `termion` to set the standard output into raw mode. But why are we modifying `stdout` to change how we read from `stdin`? The answer is that terminals have their states controlled by the writer, not the reader. The writer is used to draw on the screen or move the cursor, so it is also used to change the mode as well.
 
-Second, we are unwrapping the value retunred from termion, and then we are returning the result to `main` - where we are not using it. Why? Because `into_raw_mode` returns a `RawTerminal` which, once it goes out of scope, will reset the terminal into canonical mode, so we need to keep it around. You can try it out by removing `let _stdout =` - the terminal won't stay in raw mode. We are actually telling the rust compiler (and others reading our code) that we want to hold on to `_stdout` even though we are not using it by prefixing the variable with an underscore.
+Second, we are unwrapping the value returned from termion, and then we are returning the result to `main` - where we are not using it. Why? Because `into_raw_mode` returns a `RawTerminal` which, once it goes out of scope, will reset the terminal into canonical mode, so we need to keep it around. You can try it out by removing `let _stdout =` - the terminal won't stay in raw mode. We are actually telling the rust compiler (and others reading our code) that we want to hold on to `_stdout` even though we are not using it by prefixing the variable with an underscore.
 
 ## Display keypresses
 
@@ -109,15 +104,10 @@ that we read.
 
 ```rust
 use std::io::{self,  stdout, Read, Stdout};
-use termion::raw::{IntoRawMode, RawTerminal};
-
-
-fn enable_raw_mode() -> RawTerminal<Stdout>{
-    return stdout().into_raw_mode().unwrap();
-}
+use termion::raw::IntoRawMode;
 
 fn main() {
-    let _stdout = enable_raw_mode();
+    let mut _stdout = stdout().into_raw_mode().unwrap();
 
     for byte in io::stdin().lock().bytes() {
         let byte = byte.unwrap();
@@ -156,18 +146,14 @@ It's time to think about how we handle errors. First, we add a `die()` function 
 
 ```rust
 use std::io::{self,  stdout, Read, Stdout};
-use termion::raw::{IntoRawMode, RawTerminal};
+use termion::raw::IntoRawMode;
 
 fn die(e: std::io::Error) {
     panic!(e);
 }
 
-fn enable_raw_mode() -> RawTerminal<Stdout>{
-    return stdout().into_raw_mode().unwrap();
-}
-
 fn main() {
-    let _stdout = enable_raw_mode();
+    let mut _stdout = stdout().into_raw_mode().unwrap();
 
     for byte in io::stdin().lock().bytes() {
         let byte = byte.unwrap();
@@ -187,24 +173,14 @@ fn main() {
 
 ```rust
 use std::io::{self,  stdout, Read, Stdout};
-use termion::raw::{IntoRawMode, RawTerminal};
+use termion::raw::IntoRawMode;
 
 fn die(e: std::io::Error) {
     panic!(e);
 }
 
-fn enable_raw_mode() -> io::Result<RawTerminal<Stdout>>{
-    return stdout().into_raw_mode();
-}
-
-
 fn main() {
-    let mut _stdout = None;
-    match  enable_raw_mode() {
-        Ok(s) => _stdout = Some(s),
-        Err(err) => die(err)
-    }
-
+    let mut _stdout = stdout().into_raw_mode().unwrap();
     for byte in io::stdin().lock().bytes() {
         match byte {
             Ok(byte) => {
@@ -223,7 +199,7 @@ fn main() {
     }
 }
 ```
-We have converted `_stdout` to a variable which can hold either `None` or the Raw Terminal from before, and we are using `match` in two places to check against the return type and call `die` on error.
+We have added some error handling  now - but we are ignoring the error from `into_raw_mode`. If an error happens there, we probably can't write to `stdout` at all, so there is no point to soldier on here. Our error handling is mainly aimed at avoiding garbled output, which can only occur when we are actually repeatedly writing to the screen, so there is no need for any additional error handling before our loop begins.
 
 ## Sections
 
@@ -232,25 +208,16 @@ That just about concludes this chapter on entering raw mode. The last thing weâ€
 ```rust
 /*** includes ***/
 use std::io::{self,  stdout, Read, Stdout};
-use termion::raw::{IntoRawMode, RawTerminal};
+use termion::raw::IntoRawMode;
 
 /*** terminal***/
 fn die(e: std::io::Error) {
     panic!(e);
 }
 
-fn enable_raw_mode() -> io::Result<RawTerminal<Stdout>>{
-    return stdout().into_raw_mode();
-}
-
 /*** init ***/
 fn main() {
-    let mut _stdout = None;
-    match  enable_raw_mode() {
-        Ok(s) => _stdout = Some(s),
-        Err(err) => die(err)
-    }
-
+    let mut _stdout = stdout().into_raw_mode().unwrap();
     for byte in io::stdin().lock().bytes() {
         match byte {
             Ok(byte) => {

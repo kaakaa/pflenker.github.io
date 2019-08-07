@@ -3,9 +3,11 @@ layout: post
 title: "Hecto, Chapter 3: Raw input and output"
 categories: [Rust, hecto]
 ---
+In this chapter, we will tackle reading from and writing to the terminal.
+
 ## Press <kbd>Ctrl-Q</kbd> to quit
 
-Last chapter we saw that the <kbd>Ctrl</kbd> key combined with the alphabetic keys seemed to map to bytes 1&ndash;26. We can use this to detect <kbd>Ctrl</kbd> key combinations and map them to different operations in our editor. We'll start by mapping <kbd>Ctrl-Q</kbd> to the quit operation.
+Last chapter we saw that the <kbd>Ctrl</kbd> key combined with the alphabetic keys seemed to map to bytes 1&ndash;26. We can use this to detect <kbd>Ctrl</kbd> key combinations and map them to different operations in our editor. We'll suse that to map <kbd>Ctrl-Q</kbd> to the quit operation.
 
 ```rust
 /*** includes ***/
@@ -18,12 +20,7 @@ fn to_ctrl_byte(c: char) -> u8{
 /*** terminal***/
 /*** init ***/
 fn main() {
-    let mut _stdout = None;
-    match  enable_raw_mode() {
-        Ok(s) => _stdout = Some(s),
-        Err(err) => die(err)
-    }
-
+    let mut _stdout = stdout().into_raw_mode().unwrap();
     for byte in io::stdin().lock().bytes() {
         match byte {
             Ok(byte) => {
@@ -48,7 +45,7 @@ The `to_ctrl_byte` function bitwise-ANDs a character with the value `00011111`, 
 - When you compare the output for <kbd>Ctrl-Key</kbd> with the output of the key without <kbd>Ctrl</kbd>, you will notice that Ctrl sets the upper 3 bits to `0`
 - If we now remember how bitwise and works, we can see that `to_ctrl_byte` does just the same.
 
-The ASCII character set seems to be designed this way on purpose.  (It is also similarly designed so that you can set and clear a bit to switch between lowercase and uppercase. If you are interested, find out which byte it is and what the impact is on combinations such as  <kbd>Ctrl-A</kbd> in contrast to  <kbd>Ctrl-a</kbd>).
+The ASCII character set seems to be designed this way on purpose.  (It is also similarly designed so that you can set and clear a bit to switch between lowercase and uppercase. If you are interested, find out which byte it is and what the impact is on combinations such as  <kbd>Ctrl</kbd>-<kbd>a</kbd> in contrast to <kbd>Ctrl</kbd>-<kbd>Shift</kbd>-<kbd>a</kbd>  .
 
 ## Refactor keyboard input
 ### Read keys instead of bytes
@@ -65,11 +62,7 @@ use termion::event::Key;
 /*** terminal***/
 /*** init ***/
 fn main() {
-    let mut _stdout = None;
-    match  enable_raw_mode() {
-        Ok(s) => _stdout = Some(s),
-        Err(err) => die(err)
-    }
+    let mut _stdout = enable_raw_mode().unwrap();
 
     for key in io::stdin().lock().keys() {
         match key {
@@ -128,12 +121,7 @@ fn editor_process_keypress() -> Result<bool, std::io::Error>{
 
 /*** init ***/
 fn main() {
-    let mut _stdout = None;
-    match  enable_raw_mode() {
-        Ok(s) => _stdout = Some(s),
-        Err(err) => die(err)
-    }
-
+    let mut _stdout = stdout().into_raw_mode().unwrap();
     loop {
         match editor_process_keypress() {
            Ok(should_process_next) => {
@@ -177,12 +165,7 @@ fn editor_refresh_screen() -> Result<(), std::io::Error> {
 /*** input ***/
 /*** init ***/
 fn main() {
-    let mut _stdout = None;
-    match  enable_raw_mode() {
-        Ok(s) => _stdout = Some(s),
-        Err(err) => die(err)
-    }
-
+    let mut _stdout = stdout().into_raw_mode().unwrap();
     loop {
         match editor_refresh_screen() {
             Err(error) => die(error),
@@ -210,14 +193,14 @@ Also, `0` is the default argument for `J`, so just `<esc>[J` by itself would als
 
 In this tutorial, we will be mostly looking at [VT100](https://en.wikipedia.org/wiki/VT100) escape sequences, which are supported very widely by modern terminal emulators. See the [VT100 User Guide](http://vt100.net/docs/vt100-ug/chapter3.html) for complete documentation of each escape sequence.
 
-Similar with how we have investigated the byte-wise output for every keypress first until we had a firm grip on the concepts, and then replaced it with library functions, we will also use `termion` to write the escape characters for us, which will make our code more readable.
+Similar with how we have investigated the byte-wise output for every keypress first until we had a firm grip on the concepts, and then replaced it with library functions, we will now use `termion` to write the escape characters for us, which will make our code more readable.
 
 ```rust
 /*** includes ***/
 /*** terminal***/
 /*** output ***/
 fn editor_refresh_screen() -> Result<(), std::io::Error> {
-    println!("{}", termion::clear::All);
+    print!("{}", termion::clear::All);
     io::stdout().flush()
 }
 /*** input ***/
@@ -236,7 +219,7 @@ You may notice that the `<esc>[2J` command left the cursor at the bottom of the 
 /*** terminal***/
 /*** output ***/
 fn editor_refresh_screen() -> Result<(), std::io::Error> {
-    println!("{}{}", termion::clear::All, termion::cursor::Goto(1, 1));
+    print!("{}{}", termion::clear::All, termion::cursor::Goto(1, 1));
     io::stdout().flush()
 }
 /*** input ***/
@@ -256,30 +239,19 @@ Let's clear the screen and reposition the cursor when our program exits. If an e
 /*** helpers ***/
 /*** terminal***/
 fn die(e: std::io::Error) {
-    println!("{}{}", termion::clear::All, termion::cursor::Goto(1, 1));
+    print!("{}{}", termion::clear::All, termion::cursor::Goto(1, 1));
     panic!(e);
 }
 /*** output ***/
-
-fn clear_screen() {
-   print!("\x1b[2J");
-   print!("\x1b[H");
-}
-
 fn editor_refresh_screen() -> Result<(), std::io::Error> {
-    clear_screen();
+    print!("{}{}", termion::clear::All, termion::cursor::Goto(1, 1));
     io::stdout().flush()
 }
 
 /*** input ***/
 /*** init ***/
 fn main() {
-    let mut _stdout = None;
-    match  enable_raw_mode() {
-        Ok(s) => _stdout = Some(s),
-        Err(err) => die(err)
-    }
-
+    let mut _stdout = stdout().into_raw_mode().unwrap();
     loop {
         match editor_refresh_screen() {
             Err(error) => die(error),
@@ -288,7 +260,7 @@ fn main() {
         match editor_process_keypress() {
            Ok(should_process_next) => {
             if !should_process_next {
-                println!("{}{}", termion::clear::All, termion::cursor::Goto(1, 1));
+                print!("{}{}", termion::clear::All, termion::cursor::Goto(1, 1));
                 break;
             }
            },
@@ -298,13 +270,78 @@ fn main() {
 }
 ```
 
-We have two exit points where we want to clear the screen at: When the user presses <kbd>Ctrl-Q</kbd> to quit, or when an error occurs. Luckily, we thought early about error handling, so all we have to do is adding `clear_screen` to `die()`.
+We have two exit points where we want to clear the screen at: When the user presses <kbd>Ctrl-Q</kbd> to quit, or when an error occurs. Luckily, we thought early about error handling, so all we have to do is extending `die()`.
+
+## Handling state and writes
+Before we continue, we have to think about a few general concepts of our program. You might have already noticed that if we continue flushing in `editor_refresh_screen()`, we need to `flush` everywhere else where we write to the screen as well. This has three drawbacks:
+- We might forget flushing
+- There are performance drawbacks (drawing to the screen is costly!)
+- It goes against the rule that [you should not repeat yourself](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself).
+
+This mistake snuck in because we where only thinking about the next problem at hand - clearing the screen and positioning the cursor - that we got lost of the big picture. We will fix that in a second, but before we do, let's first consider what we want our program to do on a high level:
+- Read input from user
+- Evaluate the input
+- Draw the screen based on the input from the user
+
+To accomplish this, we will need a way to handle the input from the user and access it later. We also need to keep track of previous interactions from the user. In other words, , we need to handle the state of the editor: The user input modifies the state, then we react on that input, then we write to the terminal and wait for the next input. We already see the first bit of state which we have passed around: `should_process_next`. Let's refactor this to a proper state.
+```rust
+/*** includes ***/
+/*** structs & constants ***/
+struct EditorState {
+    quit: bool
+}
+/*** terminal***/
+/*** output ***/
+fn editor_refresh_screen(state: &EditorState)  {
+    print!("{}{}", termion::clear::All, termion::cursor::Goto(1, 1));
+    if state.quit {
+        print!("Goodbye!\r\n");
+    }
+}
+/*** input ***/
+fn editor_process_keypress(state: &mut EditorState) -> Result<(), std::io::Error>{
+    let pressed_key = editor_read_key();
+    match pressed_key? {
+        Key::Ctrl('q') => state.quit = true,
+        _ => ()
+    }
+    Ok(())
+}
+/*** init ***/
+fn main() {
+    let mut _stdout = stdout().into_raw_mode().unwrap();
+    let mut editor_state = EditorState {
+        quit: false
+    };
+
+    loop {
+        editor_refresh_screen(&editor_state);
+        match io::stdout().flush() {
+            Err(error) => die(error),
+            _ => ()
+        }
+        if editor_state.quit {
+                break;
+        }
+        match editor_process_keypress(&mut editor_state) {
+            Err(error) => die(error),
+            _ => ()
+        }
+
+   }
+}
+```
+
+We have created a new struct which will hold the editor state. For now, it only holds `quit`. `editor_process_keypress()` modifies the state. We have also moved the `break` condition, so that we break *after* refreshing the screen, but *before* getting the next keyboard input.
+
+We are also passing the state to `editor_refresh_screen()` and display a nice message when the user quits. We also moved the flushing to `main`, and handle the potential error there.
 
 ## Tildes
 It's time to start drawing. Let's draw a column of tildes (`~`) on the left hand side of the screen, like [vim](http://www.vim.org/) does. In our text editor, we'll draw a tilde at the beginning of any lines that come after the end of the file being edited.
 
 ```rust
 /*** includes ***/
+/*** structs & constants ***/
 /*** helpers ***/
 /*** terminal***/
 /*** output ***/
@@ -313,11 +350,14 @@ fn editor_draw_rows(){
         print!("~\r\n");
     }
 }
-fn editor_refresh_screen() -> Result<(), std::io::Error> {
-    clear_screen();
+fn editor_refresh_screen(state: &EditorState)  {
+    print!("{}{}", termion::clear::All, termion::cursor::Goto(1, 1));
+    if state.quit {
+        print!("Goodbye!\r\n");
+        return;
+    }
     editor_draw_rows();
-    print!("\x1b[H");
-    io::stdout().flush()
+    print!("{}", termion::cursor::Goto(1, 1));
 }
 /*** input ***/
 /*** init ***/
@@ -327,22 +367,21 @@ fn editor_refresh_screen() -> Result<(), std::io::Error> {
 
 We don't know the size of the terminal yet, so we don't know how many rows to draw. For now we just draw `24` rows.
 
-After we're done drawing, we do another `<esc>[H` escape sequence to reposition the cursor back up at the top-left corner.
+After we're done drawing, we reposition the cursor back up at the top-left corner.
 
 ## Window size
-Our next goal is to get the size of the terminal, so we know how many rows to draw in `editor_draw_rows()`. Getting the terminal size is in most cases done by adding `libc` as a dependency, and then calling `ioctl()` on it. But it turns out that we don't need to add another dependency to our editor, as `termion` already provides us with a method to get the screen size. Let's use it.
+Our next goal is to get the size of the terminal, so we know how many rows to draw in `editor_draw_rows()`. It turns out that `termion`  provides us with a method to get the screen size. We need the screen size in many places later on, so it makes sense to add it to the state in the beginning.
 
 
 ```rust
 /*** includes ***/
+/*** structs & constants ***/
 /*** helpers ***/
 /*** output ***/
-fn editor_draw_rows() ->  Result<(), std::io::Error> {
-    let (_, height) = termion::terminal_size()?;
+fn editor_draw_rows(height: u16){
     for _y in 0..height {
         print!("~\r\n");
     }
-    Ok(())
 }
 fn editor_refresh_screen() -> Result<(), std::io::Error> {
     clear_screen();
@@ -350,6 +389,279 @@ fn editor_refresh_screen() -> Result<(), std::io::Error> {
     print!("\x1b[H");
     io::stdout().flush()
 }
+fn editor_refresh_screen(state: &EditorState)  {
+    print!("{}{}", termion::clear::All, termion::cursor::Goto(1, 1));
+    if state.quit {
+        print!("Goodbye!\r\n");
+        return;
+    }
+    editor_draw_rows(state.terminal_size.1);
+    print!("{}", termion::cursor::Goto(1, 1));
+}
+/*** input ***/
+/*** init ***/
+fn main() {
+    let mut _stdout = stdout().into_raw_mode().unwrap();
+    let mut editor_state = EditorState {
+        quit: false,
+        terminal_size: termion::terminal_size().unwrap()
+    };
+
+    loop {
+        editor_refresh_screen(&editor_state);
+        match io::stdout().flush() {
+            Err(error) => die(error),
+            _ => ()
+        }
+        if editor_state.quit {
+                break;
+        }
+        match editor_process_keypress(&mut editor_state) {
+            Err(error) => die(error),
+            _ => ()
+        }
+
+   }
+}
+```
+
+Note that same as before, we do not care about the error when trying to get the terminal size.
+
+Maybe you noticed the last line of the screen doesn't seem to have a tilde. That's because of a small bug in our code. When we print the final tilde, we then print a `"\r\n"` like on any other line, but this causes the terminal to scroll in order to make room for a new, blank line. Let's make the last line an exception when we print our `"\r\n"`'s.
+
+```rust
+/*** includes ***/
+/*** structs & constants ***/
+/*** helpers ***/
+/*** output ***/
+fn editor_draw_rows(height: u16){
+    for y in 0..height {
+        print!("~");
+        if y < height-1 {
+            print!("\r\n");
+        }
+    }
+}
+/*** input ***/
+/*** init ***
+```
+
+## Hide the cursor when repainting
+
+There is another possible source of the annoying flicker effect we will take care of now. It's possible that the cursor might be displayed in the middle of the screen somewhere for a split second while the terminal is drawing to the screen. To make sure that doesn't happen, let's hide the cursor before refreshing the screen, and show it again immediately after the refresh finishes.
+
+```rust
+/*** includes ***/
+/*** structs & constants ***/
+/*** helpers ***/
+/*** output ***/
+fn editor_refresh_screen(state: &EditorState)  {
+    print!("{}{}{}", termion::cursor::Hide, termion::clear::All, termion::cursor::Goto(1, 1));
+    if state.quit {
+        print!("Goodbye!\r\n");
+    } else {
+        editor_draw_rows(state.terminal_size.1);
+        print!("{}", termion::cursor::Goto(1, 1));
+    }
+
+    print!("{}", termion::cursor::Show);
+}
+/*** input ***/
+/*** init ***
+
+```
+
+Under the hood, we use escape sequences to tell the terminal to hide and show the cursor by writing `\x1b[?25h`,  the `h` command ([Set Mode](http://vt100.net/docs/vt100-ug/chapter3.html#SM)) and `\x1b[?25l`, the `l` command ([Reset Mode](http://vt100.net/docs/vt100-ug/chapter3.html#RM)). These commands are used to turn on and turn off various terminal features or ["modes"](http://vt100.net/docs/vt100-ug/chapter3.html#S3.3.4). The VT100 User Guide just linked to doesn't document argument `?25` which we use above. It appears the cursor hiding/showing feature appeared in [later VT models](http://vt100.net/docs/vt510-rm/DECTCEM.html).
+
+## Clear lines one at a time
+
+Instead of clearing the entire screen before each refresh, it seems more optimal to clear each line as we redraw them. Let's remove `termion::clear::All` (clear entire screen) escape sequence, and instead put a `<esc>[K` sequence at the beginning of each line we draw with `termion::clear::CurrentLine`.
+
+```rust
+/*** includes ***/
+/*** structs & constants ***/
+/*** helpers ***/
+/*** output ***/
+fn editor_draw_rows(height: u16){
+    for y in 0..height {        
+        print!("{}~", termion::clear::CurrentLine);
+        if y < height-1 {
+            print!("\r\n");
+        }
+    }
+}
+fn editor_refresh_screen(state: &EditorState)  {
+    print!("{}{}", termion::cursor::Hide, termion::cursor::Goto(1, 1));
+    if state.quit {
+        print!("{}Goodbye!\r\n", termion::clear::All);
+    } else {
+        editor_draw_rows(state.terminal_size.1);
+        print!("{}", termion::cursor::Goto(1, 1));
+    }
+
+    print!("{}", termion::cursor::Show);
+}
+/*** input ***/
+/*** init ***
+```
+Note that we are now clearing the screen before displaying our goodbye message, to avoid the effect of showing the message on top of the other lines before the program finally terminates.
+
+## Welcome message
+
+Perhaps it's time to display a welcome message. Let's display the name of our editor and a version number a third of the way down the screen.
+
+```rust
+/*** includes ***/
+/*** structs & constants ***/
+const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+
+/*** terminal***/
+/*** output ***/
+fn editor_draw_rows(width: u16, height: u16){
+    for y in 0..height {
+        
+        print!("{}", termion::clear::CurrentLine);
+        if y == height/3 {
+            let welcome_message = format!("Hecto editor -- version {}", VERSION);
+            let welcome_len = std::cmp::min(width as usize, welcome_message.len());
+            let slice = &welcome_message[..welcome_len];
+            print!("{}", slice);
+        } else {
+            print!("~");        
+        }
+        
+
+        if y < height-1 {
+            print!("\r\n");
+        }
+    }
+}
+fn editor_refresh_screen(state: &EditorState)  {
+    print!("{}{}", termion::cursor::Hide, termion::cursor::Goto(1, 1));
+    if state.quit {
+        print!("{}Goodbye!\r\n", termion::clear::All);
+    } else {
+        editor_draw_rows(state.terminal_size.0, state.terminal_size.1);
+        print!("{}", termion::cursor::Goto(1, 1));
+    }
+
+    print!("{}", termion::cursor::Show);
+}
 /*** input ***/
 /*** init ***/
 ```
+
+Since our `Cargo.toml` already contains our version number, we use the `env!` macro to get it. We add it to our welcome message. We also truncate the length of the string in case the terminal is too tiny to fit our welcome messae - which is why we are now passing the full dimensions to `editor_draw_rows`. 
+
+Now let's center it.
+```rust
+/*** includes ***/
+/*** structs & constants ***/
+/*** terminal***/
+/*** output ***/
+fn editor_draw_rows(width: u16, height: u16){
+    for y in 0..height {
+        
+        print!("{}", termion::clear::CurrentLine);
+        if y == height/3 {
+            let width = width as usize;
+            let welcome_message = format!("Hecto editor -- version {}", VERSION);
+            let welcome_len = std::cmp::min(width, welcome_message.len());
+            let padding = (width - welcome_len)/2;
+            if padding > 0 {
+                 print!("~");  
+            }
+            for _i in 0..padding - 1 {
+                 print!(" ");  
+            }
+            let slice = &welcome_message[..welcome_len];
+            print!("{}", slice);
+        } else {
+            print!("~");        
+        }
+        
+
+        if y < height-1 {
+            print!("\r\n");
+        }
+    }
+}
+
+/*** input ***/
+/*** init ***/
+
+```
+To center a string, you divide the screen width by `2`, and then subtract half of the string's length from that. In other words: `width/2 - welcome_len/2`, which simplifies to `(width - welcome_len) / 2`. That tells you how far from the left edge of the screen you should start printing the string. So we fill that space with space characters, except for the first character, which should be a tilde.
+
+## Move the cursor
+
+Let's focus on input now. We want the user to be able to move the cursor around. The first step is to keep track of the cursor's `x` and `y` position in the editor state.
+
+```rust
+/*** includes ***/
+/*** structs & constants ***/
+struct EditorState {
+    quit: bool,
+    terminal_size: (u16, u16),
+    cursor_position: (u16, u16)
+}
+/*** terminal***/
+/*** output ***/
+/*** input ***/
+/*** init ***/
+fn main() {
+    let mut _stdout = stdout().into_raw_mode().unwrap();
+    let mut editor_state = EditorState {
+        quit: false,
+        terminal_size: termion::terminal_size().unwrap(),
+        cursor_position: (0,0)
+    };
+
+    loop {
+        editor_refresh_screen(&editor_state);
+        match io::stdout().flush() {
+            Err(error) => die(error),
+            _ => ()
+        }
+        if editor_state.quit {
+                break;
+        }
+        match editor_process_keypress(&mut editor_state) {
+            Err(error) => die(error),
+            _ => ()
+        }
+
+   }
+}
+```
+
+`cursor_position` is a tuple where the first value will hold the horiozontal coordinate of the cursor (the column), and the second value will hold the vertical coordinate (the row). We initialize both of them to `0`, as we want the cursor to start at the top-left of the screen. (Even though the terminal coordinates are `1`-based, we stick to the standards of virtually every programming language out there by starting with `0`.)
+
+Now, let's add code to `editor_refresh_screen()` to move the cursor to the position stored in `cursor_position`.
+
+```rust
+/*** includes ***/
+/*** structs & constants ***/
+/*** terminal***/
+/*** output ***/
+fn editor_refresh_screen(state: &EditorState)  {
+    print!("{}{}", termion::cursor::Hide,  termion::cursor::Goto(1,1));
+    if state.quit {
+        print!("{}Goodbye!\r\n", termion::clear::All);
+
+    } else {
+        let (x,y) = state.cursor_position;
+        editor_draw_rows(state.terminal_size.0, state.terminal_size.1);
+        print!("{}", termion::cursor::Goto(x+1, y+1));
+    }
+
+    print!("{}", termion::cursor::Show);
+}
+/*** input ***/
+/*** init ***/
+```
+We add `1` to `x` and `y` from `cursor_position()` to convert from `0`-indexed values to the `1`-indexed values that the terminal uses.
+
+At this point, you could try initializing `cursor_position` with a different value, to confirm that the code works as intended so far.
+
+Next, we'll allow the user to move the cursor using the arrow keys.
