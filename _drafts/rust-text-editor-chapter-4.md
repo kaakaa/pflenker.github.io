@@ -36,16 +36,14 @@ fn main() {
 
     loop {
         editor_refresh_screen(&editor_state);
-        match io::stdout().flush() {
-            Err(error) => die(error),
-            _ => ()
+        if let Err(error) = io::stdout().flush() {
+           die(error);
         }
         if editor_state.quit {
-                break;
+            break;
         }
-        match editor_process_keypress(&mut editor_state) {
-            Err(error) => die(error),
-            _ => ()
+        if let Err(error) = editor_process_keypress(&mut editor_state) {
+            die(error);
         }
 
    }
@@ -80,18 +78,88 @@ fn main() {
 
     loop {
         editor_refresh_screen(&editor_state);
-        match io::stdout().flush() {
-            Err(error) => die(error),
-            _ => ()
+        if let Err(error) = io::stdout().flush() {
+           die(error);
         }
         if editor_state.quit {
-                break;
+            break;
         }
-        match editor_process_keypress(&mut editor_state) {
-            Err(error) => die(error),
-            _ => ()
+        if let Err(error) = editor_process_keypress(&mut editor_state) {
+            die(error);
         }
 
    }
 }
 ```
+
+`editor_open()` will eventually be for opening and reading a file from disk, so we put it in a new `/*** file i/o ***/` section. Let's display the hard coded file contents, then.
+
+```rust
+/*** includes ***/
+/*** structs & constants ***/
+/*** terminal***/
+/*** file i/o **/
+/*** output ***/
+fn editor_draw_rows(terminal_size: (u16, u16), file: &Option<File>){
+    let (width, height) = terminal_size;
+    let mut last_file_row = 0;
+    let mut rows= &Vec::new();
+
+    if let Some(file) = file {
+        last_file_row = file.rows.len() as u16;
+        rows = &file.rows;
+    }
+    for row in 0..height {
+        print!("{}", termion::clear::CurrentLine);
+
+        if row >= last_file_row {
+            if row == height/3 {
+                let width = width as usize;
+                let welcome_message = format!("Hecto editor -- version {}", VERSION);
+                let welcome_len = std::cmp::min(width, welcome_message.len());
+                let padding = (width - welcome_len)/2;
+                if padding > 0 {
+                    print!("~");
+                    for _i in 0..padding - 1 {
+                        print!(" ");
+                    }
+                }
+                let slice = &welcome_message[..welcome_len];
+                print!("{}", slice);
+            } else {
+                print!("~");
+            }
+        } else {
+            let current_row = &rows[row as usize];
+            let line_len = std::cmp::min(width as usize, current_row.len() );
+            let slice = &current_row[..line_len];
+            print!("{}", slice);
+        }
+
+        if row < height-1 {
+            print!("\r\n");
+        }
+    }
+}
+fn editor_refresh_screen(state: &EditorState)  {
+    print!("{}{}", termion::cursor::Hide,  termion::cursor::Goto(1,1));
+    if state.quit {
+        print!("{}Goodbye!\r\n", termion::clear::All);
+
+    } else {
+        let (x,y) = state.cursor_position;
+        editor_draw_rows(state.terminal_size, &state.file);
+        print!("{}", termion::cursor::Goto(x+1, y+1));
+    }
+
+    print!("{}", termion::cursor::Show);
+}
+/*** input ***/
+/*** init ***/
+```
+
+We wrap our previous row-drawing code in an `if` statement that checks whether we are currently drawing a row that is part of the text buffer, or a row that comes after the end of the text buffer.
+
+To draw a row that's part of the text buffer, we simply write out the contents of the corresponding row in `File`. But first, we take care to truncate the rendered line if it would go past the end of the screen.
+
+Next, let's allow the user to open and display actual file.

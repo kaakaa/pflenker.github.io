@@ -100,10 +100,8 @@ Let's make a function for low-level keypress reading, and another function for m
 
 fn editor_read_key() -> Result<Key, std::io::Error> {
     loop {
-        let key = io::stdin().lock().keys().next();
-        match key {
-            Some(key) => return key,
-            _ => ()
+        if let Some(key) = io::stdin().lock().keys().next(){
+            return key;
         }
     }
 }
@@ -135,10 +133,10 @@ fn main() {
 }
 ```
 
-`editor_read_key()`'s job is to wait for one keypress, and return it. Note that we can be passed `None` by the system, on which we wait for the next "real" keypress, discarding the current one. This expresses our desire to read an actual key from the user, and not `None`.
+`editor_read_key()`'s job is to wait for one keypress, and return it.
 Later, we'll expand this function to handle escape sequences, which involves reading multiple bytes that represent a single keypress, as is the case with the arrow keys. Since we are now explicitly using a `loop` in `main()`, we do not need to use `for..in` here.
 
-`editor_process_keypress()` waits for a keypress, and then handles it. Later, it will map various <kbd>Ctrl</kbd> key combinations and other special keys to different editor functions, and insert any alphanumeric and other printable keys' characters into the text that is being edited.
+`editor_process_keypress()` waits for a keypress, and then handles it. Later, it will map various <kbd>Ctrl</kbd> key combinations and other special keys to different editor functions, and insert any alphanumeric and other printable keys' characters into the text that is being edited. That's why we are using `match` instead of `if let` here.
 
 `editor_process_keypress()` returns a boolean which indicates to the `main` whether or not it should listen for the next key press. We could have exited the program from within `editor_process_keypress` by calling `std::process::exit`, but that would prevent Rust from doing cleanup and leave the terminal in an undefined state.
 
@@ -167,9 +165,8 @@ fn editor_refresh_screen() -> Result<(), std::io::Error> {
 fn main() {
     let mut _stdout = stdout().into_raw_mode().unwrap();
     loop {
-        match editor_refresh_screen() {
-            Err(error) => die(error),
-            _ => ()
+        if let Error(err) = editor_refresh_screen() {
+            die(error);
         }
         match editor_process_keypress() {
            Ok(should_process_next) => {
@@ -253,9 +250,8 @@ fn editor_refresh_screen() -> Result<(), std::io::Error> {
 fn main() {
     let mut _stdout = stdout().into_raw_mode().unwrap();
     loop {
-        match editor_refresh_screen() {
-            Err(error) => die(error),
-            _ => ()
+        if let Error(err) = editor_refresh_screen() {
+            die(error);
         }
         match editor_process_keypress() {
            Ok(should_process_next) => {
@@ -316,16 +312,14 @@ fn main() {
 
     loop {
         editor_refresh_screen(&editor_state);
-        match io::stdout().flush() {
-            Err(error) => die(error),
-            _ => ()
+        if let Err(error) = io::stdout().flush() {
+           die(error);
         }
         if editor_state.quit {
                 break;
         }
-        match editor_process_keypress(&mut editor_state) {
-            Err(error) => die(error),
-            _ => ()
+       if let Err(error) = editor_process_keypress(&mut editor_state) {
+            die(error);
         }
 
    }
@@ -383,12 +377,6 @@ fn editor_draw_rows(height: u16){
         print!("~\r\n");
     }
 }
-fn editor_refresh_screen() -> Result<(), std::io::Error> {
-    clear_screen();
-    editor_draw_rows()?;
-    print!("\x1b[H");
-    io::stdout().flush()
-}
 fn editor_refresh_screen(state: &EditorState)  {
     print!("{}{}", termion::clear::All, termion::cursor::Goto(1, 1));
     if state.quit {
@@ -409,16 +397,14 @@ fn main() {
 
     loop {
         editor_refresh_screen(&editor_state);
-        match io::stdout().flush() {
-            Err(error) => die(error),
-            _ => ()
+        if let Err(error) = io::stdout().flush() {
+           die(error);
         }
         if editor_state.quit {
                 break;
         }
-        match editor_process_keypress(&mut editor_state) {
-            Err(error) => die(error),
-            _ => ()
+        if let Err(error) = editor_process_keypress(&mut editor_state) {
+            die(error);
         }
 
    }
@@ -435,9 +421,9 @@ Maybe you noticed the last line of the screen doesn't seem to have a tilde. That
 /*** helpers ***/
 /*** output ***/
 fn editor_draw_rows(height: u16){
-    for y in 0..height {
+    for row in 0..height {
         print!("~");
-        if y < height-1 {
+        if row < height-1 {
             print!("\r\n");
         }
     }
@@ -483,9 +469,9 @@ Instead of clearing the entire screen before each refresh, it seems more optimal
 /*** helpers ***/
 /*** output ***/
 fn editor_draw_rows(height: u16){
-    for y in 0..height {        
+    for row in 0..height {
         print!("{}~", termion::clear::CurrentLine);
-        if y < height-1 {
+        if row < height-1 {
             print!("\r\n");
         }
     }
@@ -518,20 +504,18 @@ const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 /*** terminal***/
 /*** output ***/
 fn editor_draw_rows(width: u16, height: u16){
-    for y in 0..height {
-        
+    for row in 0..height {
+
         print!("{}", termion::clear::CurrentLine);
-        if y == height/3 {
+        if row == height/3 {
             let welcome_message = format!("Hecto editor -- version {}", VERSION);
             let welcome_len = std::cmp::min(width as usize, welcome_message.len());
             let slice = &welcome_message[..welcome_len];
             print!("{}", slice);
         } else {
-            print!("~");        
+            print!("~");
         }
-        
-
-        if y < height-1 {
+        if row < height-1 {
             print!("\r\n");
         }
     }
@@ -551,7 +535,7 @@ fn editor_refresh_screen(state: &EditorState)  {
 /*** init ***/
 ```
 
-Since our `Cargo.toml` already contains our version number, we use the `env!` macro to get it. We add it to our welcome message. We also truncate the length of the string in case the terminal is too tiny to fit our welcome messae - which is why we are now passing the full dimensions to `editor_draw_rows`. 
+Since our `Cargo.toml` already contains our version number, we use the `env!` macro to get it. We add it to our welcome message. We also truncate the length of the string in case the terminal is too tiny to fit our welcome messae - which is why we are now passing the full dimensions to `editor_draw_rows`.
 
 Now let's center it.
 ```rust
@@ -560,28 +544,26 @@ Now let's center it.
 /*** terminal***/
 /*** output ***/
 fn editor_draw_rows(width: u16, height: u16){
-    for y in 0..height {
-        
+    for row in 0..height {
+
         print!("{}", termion::clear::CurrentLine);
-        if y == height/3 {
+        if row == height/3 {
             let width = width as usize;
             let welcome_message = format!("Hecto editor -- version {}", VERSION);
             let welcome_len = std::cmp::min(width, welcome_message.len());
             let padding = (width - welcome_len)/2;
             if padding > 0 {
-                 print!("~");  
-            }
-            for _i in 0..padding - 1 {
-                 print!(" ");  
+                print!("~");
+                for _i in 0..padding - 1 {
+                    print!(" ");
+                }
             }
             let slice = &welcome_message[..welcome_len];
             print!("{}", slice);
         } else {
-            print!("~");        
+            print!("~");
         }
-        
-
-        if y < height-1 {
+        if row < height-1 {
             print!("\r\n");
         }
     }
@@ -619,16 +601,14 @@ fn main() {
 
     loop {
         editor_refresh_screen(&editor_state);
-        match io::stdout().flush() {
-            Err(error) => die(error),
-            _ => ()
+        if let Err(error) = io::stdout().flush() {
+           die(error);
         }
         if editor_state.quit {
                 break;
         }
-        match editor_process_keypress(&mut editor_state) {
-            Err(error) => die(error),
-            _ => ()
+        if let Err(error) = editor_process_keypress(&mut editor_state) {
+            die(error);
         }
 
    }
@@ -736,9 +716,9 @@ fn editor_move_cursor(old_position: (u16,u16), terminal_size: (u16, u16), key: &
             if row < max_row {
                 row = row+1;
             }
-        },    
+        },
         _ => ()
-    }   
+    }
     (row,col)
 }
 
@@ -797,7 +777,7 @@ fn editor_move_cursor(old_position: (u16,u16), terminal_size: (u16, u16), key: &
         Key::Home =>  row = 0,
         Key::End => row = max_row,
         _ => ()
-    }   
+    }
     (row,col)
 }
 
@@ -812,7 +792,7 @@ fn editor_process_keypress(state: &mut EditorState) -> Result<(), std::io::Error
         Key::PageUp |
         Key::PageDown |
         Key::End |
-        Key::Home 
+        Key::Home
         => {
             state.cursor_position = editor_move_cursor(state.cursor_position, state.terminal_size, &pressed_key)
         }
