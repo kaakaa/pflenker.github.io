@@ -208,11 +208,23 @@ We are writing an *escape sequence* to the terminal. Escape sequences always sta
 We are using the `J` command ([Erase In Display](http://vt100.net/docs/vt100-ug/chapter3.html#ED)) to clear the screen. Escape sequence commands take arguments, which come before the command. In this case the argument is `2`, which says to clear the entire screen. `<esc>[1J` would clear the screen up to where the cursor is, and `<esc>[0J` would clear the screen from the cursor up to the end of the screen.
 Also, `0` is the default argument for `J`, so just `<esc>[J` by itself would also clear the screen from the cursor to the end.
 
-In this tutorial, we will be mostly using [VT100](https://en.wikipedia.org/wiki/VT100) escape sequences, which are supported very widely by modern terminal emulators. See the [VT100 User Guide](http://vt100.net/docs/vt100-ug/chapter3.html) for complete documentation of each escape sequence.
+In this tutorial, we will be mostly looking at [VT100](https://en.wikipedia.org/wiki/VT100) escape sequences, which are supported very widely by modern terminal emulators. See the [VT100 User Guide](http://vt100.net/docs/vt100-ug/chapter3.html) for complete documentation of each escape sequence.
 
-TODO clear screen with lib here
+Similar with how we have investigated the byte-wise output for every keypress first until we had a firm grip on the concepts, and then replaced it with library functions, we will also use `termion` to write the escape characters for us, which will make our code more readable.
 
-If we wanted to support the maximum number of terminals out there, we could use the [ncurses](https://en.wikipedia.org/wiki/Ncurses) library, which uses the [terminfo](https://en.wikipedia.org/wiki/Terminfo) database to figure out the capabilities of a terminal and what escape sequences to use for that particular terminal.
+```rust
+/*** includes ***/
+/*** terminal***/
+/*** output ***/
+fn editor_refresh_screen() -> Result<(), std::io::Error> {
+    println!("{}", termion::clear::All);
+    io::stdout().flush()
+}
+/*** input ***/
+/*** init ***/
+```
+
+From here on out, we will be using `termion` directly in the code instead of the escape characters.
 
 ## Reposition the cursor
 
@@ -223,10 +235,8 @@ You may notice that the `<esc>[2J` command left the cursor at the bottom of the 
 /*** helpers ***/
 /*** terminal***/
 /*** output ***/
-
 fn editor_refresh_screen() -> Result<(), std::io::Error> {
-    print!("\x1b[2J");
-    print!("\x1b[H");
+    println!("{}, {}", termion::clear::All, termion::cursor::Goto(1, 1));
     io::stdout().flush()
 }
 /*** input ***/
@@ -235,7 +245,7 @@ fn editor_refresh_screen() -> Result<(), std::io::Error> {
 
 ```
 
-This escape sequence is only `3` bytes long, and uses the `H` command ([Cursor Position](http://vt100.net/docs/vt100-ug/chapter3.html#CUP)) to position the cursor. The `H` command actually takes two arguments: the row number and the column number at which to position the cursor. So if you have an 80&times;24 size terminal and you want the cursor in the center of the screen, you could use the command `<esc>[12;40H`. (Multiple arguments are separated by a `;` character.) The default arguments for `H` both happen to be `1`, so we can leave both arguments out and it will position the cursor at the first row and first column, as if we had sent the `<esc>[1;1H` command. (Rows and columns are numbered starting at `1`, not `0`.)
+The escape sequence behind `termion::clear::All`  uses the `H` command ([Cursor Position](http://vt100.net/docs/vt100-ug/chapter3.html#CUP)) to position the cursor. The `H` command actually takes two arguments: the row number and the column number at which to position the cursor. So if you have an 80&times;24 size terminal and you want the cursor in the center of the screen, you could use the command `<esc>[12;40H`. (Multiple arguments are separated by a `;` character.) As rows and columns are numbered starting at `1`, not `0`, the `termion` method is also 1-based.
 
 ## Clear the screen on exit
 
@@ -246,8 +256,7 @@ Let's clear the screen and reposition the cursor when our program exits. If an e
 /*** helpers ***/
 /*** terminal***/
 fn die(e: std::io::Error) {
-    clear_screen();
-    io::stdout().flush().unwrap();
+    println!("{}, {}", termion::clear::All, termion::cursor::Goto(1, 1));
     panic!(e);
 }
 /*** output ***/
@@ -279,8 +288,7 @@ fn main() {
         match editor_process_keypress() {
            Ok(should_process_next) => {
             if !should_process_next {
-                clear_screen();
-                io::stdout().flush().unwrap();
+                println!("{}, {}", termion::clear::All, termion::cursor::Goto(1, 1));
                 break;
             }
            },
