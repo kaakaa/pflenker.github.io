@@ -33,9 +33,7 @@ the program. But it does not work well for programs with more complex user
 interfaces, like text editors. We want to process each keypress as it comes in,
 so we can respond to it immediately.
 
-What we want is **raw mode**. Fortunately, there are external libraries available to set the terminal to raw mode. Libraries in Rust are called Crates, and [if you haven't, it's worth reading up on these](https://doc.rust-lang.org/book/ch07-00-managing-growing-projects-with-packages-crates-and-modules.html). Like many other programming languages, Rust comes with a lean core and relies on crates to extend its functionality.
-
-(**Side Note:** *We could have done everything we are doing in this tutorial completely manually. We could, on the other hand, also have done a lot of what we are doing in this tutorial by using various crates. I have decided against adding external libraries where I could, but added them, as in this case, whenever the effort of boilerplate code to get things running outweighed the learning value. However, all crates used are publicly available, and I encourage you to read through their source code just to get an overview over what you missed.*)
+What we want is **raw mode**. Fortunately, there are external libraries available to set the terminal to raw mode. Libraries in Rust are called Crates, and [if you haven't, it's worth reading up on these](https://doc.rust-lang.org/book/ch07-00-managing-growing-projects-with-packages-crates-and-modules.html). Like many other programming languages, Rust comes with a lean core and relies on crates to extend its functionality. In this tutorial, we will sometimes do things manually first before switching to external functionality, sometimes we jump directly to the library function (as in this case), and sometimes we won't use external libraries at all..
 
 To exit the above program, press <kbd>Ctrl-D</kbd> to tell `read()` that it's
 reached the end of file. Or you can always press <kbd>Ctrl-C</kbd> to signal
@@ -121,8 +119,8 @@ fn enable_raw_mode() -> RawTerminal<Stdout>{
 fn main() {
     let _stdout = enable_raw_mode();
 
-    for b in io::stdin().lock().bytes() {
-        let byte = b.unwrap();
+    for byte in io::stdin().lock().bytes() {
+        let byte = byte.unwrap();
         let c = byte as char;
         if c.is_control() {
             print!("{:?} \r\n", byte);
@@ -171,8 +169,8 @@ fn enable_raw_mode() -> RawTerminal<Stdout>{
 fn main() {
     let _stdout = enable_raw_mode();
 
-    for b in io::stdin().lock().bytes() {
-        let byte = b.unwrap();
+    for byte in io::stdin().lock().bytes() {
+        let byte = byte.unwrap();
         let c = byte as char;
         if c.is_control() {
             print!("{:?} \r\n", byte);
@@ -204,7 +202,7 @@ fn main() {
     let mut _stdout = None;
     match  enable_raw_mode() {
         Ok(s) => _stdout = Some(s),
-        Err(err) => die(err)        
+        Err(err) => die(err)
     }
 
     for byte in io::stdin().lock().bytes() {
@@ -220,7 +218,7 @@ fn main() {
                     break;
                 }
             },
-            Err(err) => die(err)        
+            Err(err) => die(err)
         }
     }
 }
@@ -250,7 +248,7 @@ fn main() {
     let mut _stdout = None;
     match  enable_raw_mode() {
         Ok(s) => _stdout = Some(s),
-        Err(err) => die(err)        
+        Err(err) => die(err)
     }
 
     for byte in io::stdin().lock().bytes() {
@@ -266,7 +264,7 @@ fn main() {
                     break;
                 }
             },
-            Err(err) => die(err)        
+            Err(err) => die(err)
         }
     }
 }

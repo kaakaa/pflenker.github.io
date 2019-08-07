@@ -21,7 +21,7 @@ fn main() {
     let mut _stdout = None;
     match  enable_raw_mode() {
         Ok(s) => _stdout = Some(s),
-        Err(err) => die(err)        
+        Err(err) => die(err)
     }
 
     for byte in io::stdin().lock().bytes() {
@@ -37,7 +37,7 @@ fn main() {
                     break;
                 }
             },
-            Err(err) => die(err)        
+            Err(err) => die(err)
         }
     }
 }
@@ -48,9 +48,53 @@ The `to_ctrl_byte` function bitwise-ANDs a character with the value `00011111`, 
 - When you compare the output for <kbd>Ctrl-Key</kbd> with the output of the key without <kbd>Ctrl</kbd>, you will notice that Ctrl sets the upper 3 bits to `0`
 - If we now remember how bitwise and works, we can see that `to_ctrl_byte` does just the same.
 
-The ASCII character set seems to be designed this way on purpose.  (It is also similarly designed so that you can set and clear a bit to switch between lowercase and uppercase. If you are interested, find out which byte it is and what the impact is on combinations such as  <kbd>Ctrl-A</kbd> in contrast to  <kbd>Ctrl-a</kbd>)
+The ASCII character set seems to be designed this way on purpose.  (It is also similarly designed so that you can set and clear a bit to switch between lowercase and uppercase. If you are interested, find out which byte it is and what the impact is on combinations such as  <kbd>Ctrl-A</kbd> in contrast to  <kbd>Ctrl-a</kbd>).
 
 ## Refactor keyboard input
+### Read keys instead of bytes
+In the previous steps, we have worked directly on bytes, which was both fun and valuable. However, at a certain point you should ask yourself if the funtionality you are implementing could not be replaced by a library function, as in many cases, someone else has already solved your problem, and probably better.
+For me, handling with bit operations is a huge red flag that tells me that I am probably too deep down the rabbit hole.
+Fortunately for us, our dependency, `termion`, makes things already a lot easier, as it can already group individual bytes to keypresses and pass them to us. Let's implement this.
+
+```rust
+/*** imports ***/
+use termion::raw::{IntoRawMode, RawTerminal};
+use termion::input::TermRead;
+use termion::event::Key;
+
+/*** terminal***/
+/*** init ***/
+fn main() {
+    let mut _stdout = None;
+    match  enable_raw_mode() {
+        Ok(s) => _stdout = Some(s),
+        Err(err) => die(err)
+    }
+
+    for key in io::stdin().lock().keys() {
+        match key {
+            Ok(key) => {
+                match key {
+                    Key::Char(c) => {
+                        if c.is_control() {
+                            print!("{:?} \r\n", c as u8);
+                        } else {
+                            print!("{:?} ({})\r\n", c as u8,c);
+                        }
+                    },
+                    Key::Ctrl('q') => break,
+                    _ => print!("{:?}\r\n", key)
+                }
+            },
+            Err(err) => die(err)
+        }
+    }
+}
+```
+
+With that change, we where able to get rid of manually checking if <kbd>Ctrl</kbd> has been pressed, as all keys are now properly handled for us.
+
+### Separate reading from evaluating
 
 Let's make a function for low-level keypress reading, and another function for mapping keypresses to editor operations. We'll also stop printing out keypresses at this point.
 
@@ -61,22 +105,22 @@ Let's make a function for low-level keypress reading, and another function for m
 /*** terminal***/
 
 
-fn editor_read_key() -> Option<Result<u8, std::io::Error>> {
-    io::stdin().lock().bytes().next() 
+fn editor_read_key() -> Result<Key, std::io::Error> {
+    loop {
+        let key = io::stdin().lock().keys().next();
+        match key {
+            Some(key) => return key,
+            _ => ()
+        }
+    }
 }
 
 /*** input ***/
 fn editor_process_keypress() -> Result<bool, std::io::Error>{
     let pressed_key = editor_read_key();
     let mut should_process_next = true;
-    match pressed_key {        
-        Some(pressed_key) => {
-            let pressed_key = pressed_key?;
-            let ctrl_key = to_ctrl_byte('q') ;
-            if pressed_key == ctrl_key {
-                should_process_next = false;
-            }
-        },
+    match pressed_key? {
+        Key::Ctrl('q') => should_process_next = false,
         _ => ()
     }
     Ok(should_process_next)
@@ -87,7 +131,7 @@ fn main() {
     let mut _stdout = None;
     match  enable_raw_mode() {
         Ok(s) => _stdout = Some(s),
-        Err(err) => die(err)        
+        Err(err) => die(err)
     }
 
     loop {
@@ -103,13 +147,14 @@ fn main() {
 }
 ```
 
-`editor_read_key()`'s job is to wait for one keypress, and return it. Note that the result can be `None`, or an error can occur, hence the complicated return value. Later, we'll expand this function to handle escape sequences, which involves reading multiple bytes that represent a single keypress, as is the case with the arrow keys. Since we are now explicitly using a `loop` in `main()`, we do not need to use `for..in` here.
+`editor_read_key()`'s job is to wait for one keypress, and return it. Note that we can be passed `None` by the system, on which we wait for the next "real" keypress, discarding the current one. This expresses our desire to read an actual key from the user, and not `None`.
+Later, we'll expand this function to handle escape sequences, which involves reading multiple bytes that represent a single keypress, as is the case with the arrow keys. Since we are now explicitly using a `loop` in `main()`, we do not need to use `for..in` here.
 
 `editor_process_keypress()` waits for a keypress, and then handles it. Later, it will map various <kbd>Ctrl</kbd> key combinations and other special keys to different editor functions, and insert any alphanumeric and other printable keys' characters into the text that is being edited.
 
 `editor_process_keypress()` returns a boolean which indicates to the `main` whether or not it should listen for the next key press. We could have exited the program from within `editor_process_keypress` by calling `std::process::exit`, but that would prevent Rust from doing cleanup and leave the terminal in an undefined state.
 
-Note that `editor_read_key()` belongs in the `/*** terminal ***/` section because it deals with low-level terminal input, whereas `editor_process_keypress()` belongs in the new `/*** input ***/` section because it deals with mapping keys to editor functions at a much higher level.  
+Note that `editor_read_key()` belongs in the `/*** terminal ***/` section because it deals with low-level terminal input, whereas `editor_process_keypress()` belongs in the new `/*** input ***/` section because it deals with mapping keys to editor functions at a much higher level.
 
 Now we have simplified `main()`, and we will try to keep it that way.
 
@@ -119,13 +164,12 @@ We're going to render the editor's user interface to the screen after each keypr
 
 ```rust
 /*** includes ***/
-use std::io::{self,  stdout, Read, Stdout, Write};
+use std::io::{self,  stdout, Write, Stdout};
 //...
 
 /*** helpers ***/
 /*** terminal***/
 /*** output ***/
-
 fn editor_refresh_screen() -> Result<(), std::io::Error> {
     print!("\x1b[2J");
     io::stdout().flush()
@@ -136,14 +180,14 @@ fn main() {
     let mut _stdout = None;
     match  enable_raw_mode() {
         Ok(s) => _stdout = Some(s),
-        Err(err) => die(err)        
+        Err(err) => die(err)
     }
 
     loop {
         match editor_refresh_screen() {
             Err(error) => die(error),
             _ => ()
-        }        
+        }
         match editor_process_keypress() {
            Ok(should_process_next) => {
             if !should_process_next {
@@ -155,16 +199,18 @@ fn main() {
    }
 }
 ```
-`print` is a macro which writes its parameters to `stdout`. However, since `stdout` is buffered, we flush it on every refresh, to force Rust to write everything in its buffer to the terminal.
+`print` is a macro which writes its parameters to `stdout` - we have used this before. However, since `stdout` is buffered, the results of `print` are not always written to the screen. So we call `flush()` manually to force Rust to write everything in its buffer to the terminal.
 
-We are writing `4` bytes out to the terminal. The first byte is `\x1b`, which is the escape character, or `27` in decimal. (Try and remember `\x1b`, we will be using it a lot.) The other three bytes are `[2J`.
+To clear the screen, we are writing `4` bytes out to the terminal. The first byte is `\x1b`, which is the escape character, or `27` in decimal. (Try and remember `\x1b`, we will be using it a lot.) The other three bytes are `[2J`.
 
 We are writing an *escape sequence* to the terminal. Escape sequences always start with an escape character (`27`, which, as we saw earlier, is also produced by <kbd>Esc</kbd>) followed by a `[` character. Escape sequences instruct the terminal to do various text formatting tasks, such as coloring text, moving the cursor around, and clearing parts of the screen.
 
-We are using the `J` command ([Erase In Display](http://vt100.net/docs/vt100-ug/chapter3.html#ED)) to clear the screen. Escape sequence commands take arguments, which come before the command. In this case the argument is `2`, which says to clear the entire screen. `<esc>[1J` would clear the screen up to where the cursor is, and `<esc>[0J` would clear the screen from the cursor up to the end of the screen.  
+We are using the `J` command ([Erase In Display](http://vt100.net/docs/vt100-ug/chapter3.html#ED)) to clear the screen. Escape sequence commands take arguments, which come before the command. In this case the argument is `2`, which says to clear the entire screen. `<esc>[1J` would clear the screen up to where the cursor is, and `<esc>[0J` would clear the screen from the cursor up to the end of the screen.
 Also, `0` is the default argument for `J`, so just `<esc>[J` by itself would also clear the screen from the cursor to the end.
 
-For our text editor, we will be mostly using [VT100](https://en.wikipedia.org/wiki/VT100) escape sequences, which are supported very widely by modern terminal emulators. See the [VT100 User Guide](http://vt100.net/docs/vt100-ug/chapter3.html) for complete documentation of each escape sequence.
+In this tutorial, we will be mostly using [VT100](https://en.wikipedia.org/wiki/VT100) escape sequences, which are supported very widely by modern terminal emulators. See the [VT100 User Guide](http://vt100.net/docs/vt100-ug/chapter3.html) for complete documentation of each escape sequence.
+
+TODO clear screen with lib here
 
 If we wanted to support the maximum number of terminals out there, we could use the [ncurses](https://en.wikipedia.org/wiki/Ncurses) library, which uses the [terminfo](https://en.wikipedia.org/wiki/Terminfo) database to figure out the capabilities of a terminal and what escape sequences to use for that particular terminal.
 
@@ -201,7 +247,7 @@ Let's clear the screen and reposition the cursor when our program exits. If an e
 /*** terminal***/
 fn die(e: std::io::Error) {
     clear_screen();
-    io::stdout().flush().unwrap();    
+    io::stdout().flush().unwrap();
     panic!(e);
 }
 /*** output ***/
@@ -222,19 +268,19 @@ fn main() {
     let mut _stdout = None;
     match  enable_raw_mode() {
         Ok(s) => _stdout = Some(s),
-        Err(err) => die(err)        
+        Err(err) => die(err)
     }
 
     loop {
         match editor_refresh_screen() {
             Err(error) => die(error),
             _ => ()
-        }        
+        }
         match editor_process_keypress() {
            Ok(should_process_next) => {
             if !should_process_next {
                 clear_screen();
-                io::stdout().flush().unwrap();                
+                io::stdout().flush().unwrap();
                 break;
             }
            },
