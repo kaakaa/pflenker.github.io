@@ -816,4 +816,174 @@ fn main() {
    }
 }
 ```
-To display each row at the column offset, we'll use `editor_state.offset.col` as an index to the array of each `row` we display, and subtract the number of characters that are to the left of the offset from the length of the row.
+To display each row at the column offset, we'll use `editor_state.offset.col` as the starting index to the array of each `row` we display, and `state.offset.col ` added to `width`as the end index. Also, we make sure we are not going past the boundaries of our current row.
+
+```rust
+/*** includes ***/
+/*** structs & constants ***/
+/*** terminal***/
+/*** file i/o ***/
+/*** output ***/
+fn editor_draw_rows(state: &EditorState ){
+    
+    let Size{width, height} = state.terminal_size;
+    let mut last_file_row = 0;
+    let mut rows = &Vec::new();
+
+    if let Some(file) = &state.file {
+        last_file_row = file.len();
+        rows = &file.rows ;
+    }
+   for terminal_row in 0..height {
+        print!("{}", termion::clear::CurrentLine);
+        let file_row = terminal_row + state.offset.row;
+        if file_row >= last_file_row {
+            if last_file_row == 0 && terminal_row == height/3 {
+                draw_welcome_message(width as usize);
+            } else {
+                print!("~");
+            }
+        } else {
+            let current_row = &rows[file_row as usize];
+            let current_row_len = current_row.len() as u16;
+            let mut line_end = state.offset.col + width;
+            let mut line_start = state.offset.col;
+            if line_end > current_row_len {
+                line_end = current_row_len;
+            }
+            if line_start > current_row_len {
+                line_start = current_row_len;
+            }
+            let line_start = line_start as usize;
+            let line_end = line_end as usize;
+            let slice = &current_row[line_start..line_end];
+            print!("{}", slice);
+        }
+
+        if terminal_row < height-1 {
+            print!("\r\n");
+        }
+    }
+}
+/*** input ***/
+/*** init ***/
+
+```
+Note that we have to handle the case where we scrolled horizontally past the end of the line. In that case, we set `line_len` to `0` so that nothing is displayed on that
+line.
+
+Now let's update `editor_scroll()` to handle horizontal scrolling.
+
+```rust
+/*** includes ***/
+/*** structs & constants ***/
+/*** terminal***/
+/*** file i/o ***/
+/*** output ***/
+/*** input ***/
+
+fn editor_scroll(state: &mut EditorState) {
+    let Position{row,col} = state.cursor_position;
+    let terminal_height = state.terminal_size.height;
+    let terminal_width = state.terminal_size.width;
+    let mut offset = &mut state.offset;
+    if row < offset.row {
+        offset.row = row;
+    } else  if row >= offset.row + terminal_height {
+        offset.row = row - terminal_height + 1;
+    }
+     if col < offset.col {
+        offset.col = col;
+     } else if col >= offset.col + terminal_width {
+        offset.col = col - terminal_width + 1;
+    }
+
+}
+/*** init ***/
+```
+As you can see, it is exactly parallel to the vertical scrolling code. We just replace `row` with `col`, `offset.row` with `offset.cols`, and `height` with `width`.
+
+Now let's allow the user to scroll past the right edge of the screen.
+
+```rust
+/*** includes ***/
+/*** structs & constants ***/
+/*** terminal***/
+/*** file i/o ***/
+/*** output ***/
+/*** input ***/
+fn editor_move_cursor(state: &mut EditorState, key: &Key){
+    let Position{mut row, mut col} = state.cursor_position;    
+    let Size{mut height,  mut width} = state.terminal_size;
+    if let Some(file) = &state.file {
+               height = file.len();
+               if  row <height {
+                   width = file.rows[row as usize].len() as u16;
+               } else {
+                   width = 0;
+               }
+    }
+    match key {
+        Key::Up => {
+            if row > 0 {
+               row = row-1;
+            }
+        },
+        Key::Down => {
+            if row < height {
+                row = row+1;
+            }
+        }
+        Key::Left => {
+            if col > 0 {
+               col = col-1;
+            }
+        },
+        Key::Right =>{
+            if col < width {
+                col = col+1;
+            }
+        },
+        Key::PageUp => row = 0,
+        Key::PageDown => row = height,
+        Key::Home =>  col = 0,
+        Key::End => col = width,
+        _ => ()
+    }
+    state.cursor_position = Position{row,col}
+}
+/*** init ***/
+```
+
+You should be able to confirm that horizontal scrolling now works. 
+Next, let's fix the cursor positioning, just like we did with vertical scrolling.
+
+```rust
+/*** includes ***/
+/*** structs & constants ***/
+/*** terminal***/
+/*** file i/o ***/
+/*** output ***/
+/*** input ***/
+fn editor_refresh_screen(state: &EditorState)  {
+    print!("{}{}", termion::cursor::Hide,  termion::cursor::Goto(1,1));
+    if state.quit {
+        print!("{}Goodbye!\r\n", termion::clear::All);
+
+    } else {
+        let Position{row, col} = state.cursor_position;
+        editor_draw_rows(&state);
+        print!("{}", termion::cursor::Goto(col-state.offset.col+1, row-state.offset.row+1));
+    }
+
+    print!("{}", termion::cursor::Show);
+}
+/*** input ***/
+```
+
+## Limit scrolling to the right
+
+Now `cursor_position` refers to the cursor's position within the file, not its position on the screen. So our goal with the next few steps is to limit the values of `cursor_position` ` to only ever point to valid positions in the file.  
+Otherwise, the user could move the cursor way off to the right of a line and start inserting text there, which wouldn't make much sense. (The only exceptions to this rule are that `cursor_position.col` can point one character past the end of a line so that characters can be inserted at the end of the line, and `cursor_position.row` can point one line past the end of the file so that new lines at the end of the file can be added easily.)
+
+Let's start by not allowing the user to scroll past the end of the current line.
