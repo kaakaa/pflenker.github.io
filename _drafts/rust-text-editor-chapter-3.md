@@ -7,7 +7,7 @@ In this chapter, we will tackle reading from and writing to the terminal.
 
 ## Press <kbd>Ctrl-Q</kbd> to quit
 
-Last chapter we saw that the <kbd>Ctrl</kbd> key combined with the alphabetic keys seemed to map to bytes 1&ndash;26. We can use this to detect <kbd>Ctrl</kbd> key combinations and map them to different operations in our editor. We'll suse that to map <kbd>Ctrl-Q</kbd> to the quit operation.
+Last chapter we saw that the <kbd>Ctrl</kbd> key combined with the alphabetic keys seemed to map to bytes 1&ndash;26. We can use this to detect <kbd>Ctrl</kbd> key combinations and map them to different operations in our editor. We'll use that to map <kbd>Ctrl-Q</kbd> to the quit operation.
 
 ```rust
 /*** includes ***/

@@ -39,18 +39,20 @@ Rust needs a linker of some kind to operate. It's likely that it's already insta
 
 ### Check your installation
 To verify that Rust has been installed correctly, run the following command (On Windows, you need to add `.exe` to the program name):
-```
+```bash
 rustc --version
 ```
+
 For Cargo, run:
-```
+```bash
 cargo --version
 ```
 In both cases, you should see the program name, the version number and a few other information. If not, please refer to the Installation chapter of the [official Rust book](https://doc.rust-lang.org/book/ch01-01-installation.html) to troubleshoot your installation.
 
 ## The main function
 Go to a directory where you would like to start building and type
-```
+
+```bash
 cargo init hecto
 ```
 `hecto` is the name of the text editor we will be building. Executing this command will create a folder called `hecto` which has already set up git (and therefore includes a folder called `.git` and a file called `.gitignore`). We are not going to use git for this tutorial, so you can ignore this for now.
@@ -67,12 +69,27 @@ This code defines a function. The `main()` function is special. It is the defaul
 
 Rust is a compiled language. That means we need to run our program through a Rust compiler to turn it into an executable file. We then run that executable like we would run any other program on the command line.
 
-To compile `main.rs`, run `cargo build` in your shell. If no errors occur, this will produce an executable named `hecto` and place it next to `src/` in `target/debug/` . To run `hecto`, type `./target/debug/hecto` and press <kbd>Enter</kbd>. The program should output "Hello, world!" and then exit.
+To compile `main.rs`, make sure you are in the `hecto` folder (Run `cd hecto` after `cargo init hecto`), and then run `cargo build` in your shell. The output will look similar to this:
+```
+    Compiling hecto v0.1.0 (/Users/flenker/Documents/Repositories/hecto)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.45s
+```
+This will produce an executable named `hecto` and place it in a new folder called `target/debug/`.
+Additionally, a new file will be created called `Cargo.lock`. It is automatically generated and should not be touched. When we add dependencies later to the project, the `Cargo.lock` will also be updated.
+
+If you look further at the contents of `target/debug`, you will find that several more files have been generated.  These files are mostly needed by `cargo`to make rebuilding the code more efficient (more on that in a second)
+You won't need any of these files to run `hecto` except for the executable itself, to run `hecto`, type `./target/debug/hecto` and press <kbd>Enter</kbd>. The program should output `Hello, world!` and then exit.
 
 ### Compiling and running
 Since it's very common that you want to compile and run your program, Rust combines both steps with the command `cargo run`.
-If you run that command now after `cargo build`, you might notice that `cargo` does not output a line starting with **Compiling**, as it dit before.
-That it because rust  can tell that the current version of `main.rs` has already been compiled by looking at each file’s last-modified timestamp. If `hecto` was last modified after `main.rs` was last modified, then `rust` assumes that `main.rs` has already been compiled, and so it doesn’t bother running the compilation command. If `main.rs` was last modified after `hecto` was, then `rust` recompiles `main.rs`. This is more useful for large projects with many different components to compile, as most of the components shouldn’t need to be recompiled over and over when you’re only making changes to one component’s source code.
+If you run that command now after `cargo build`, you might notice that the output changes a bit. It now looks similar to this:
+```
+    Finished dev [unoptimized + debuginfo] target(s) in 0.00s
+     Running `target/debug/hecto`
+Hello, world!
+```
+As you might have noticed, `cargo` does not output a line starting with `Compiling`, as it dit before.
+That it because rust can tell that the current version of `main.rs` has already been compiled. If  the `main.rs` was not modified since the last compilation, then `rust` doesn’t bother running the compilation again. If `main.rs` was changed, then `rust` recompiles `main.rs`. This is more useful for large projects with many different components to compile, as most of the components shouldn’t need to be recompiled over and over when you’re only making changes to one component’s source code.
 
 Try changing the return value in `main.rs` to a string other than `Hello, World`. Then run `cargo run`, and you should see it compile. Check the result to see if you get the string you changed it to. Then change it back to `Hello, World`, recompile,and make sure it's back to returning `Hello, World`.
 
