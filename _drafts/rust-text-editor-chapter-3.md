@@ -3,14 +3,14 @@ layout: post
 title: "Hecto, Chapter 3: Raw input and output"
 categories: [Rust, hecto]
 ---
-In this chapter, we will tackle reading from and writing to the terminal. But first, we need to make our code more idiomatically.
+In this chapter, we will tackle reading from and writing to the terminal. But first, we need to make our code more idiomatically. Beware! The beginning of this chapter will contain a lot of prose, which you can safely skip if you are not interested.
 
 ## Writing idiomatic code
 Whenever you deal with newer languages such as Rust, you will often hear about _idiomatic_ code. Apparently, it is not enough to make the code solve a problem, it should be _idiomatic_ as well. Let's discuss first why this makes sense. We start off with a linguistic example: If I told you that with this tutorial, you could _kill two flies with one swat_, because you learn Rust and write your very own editor at the same time, would you understand my meaning?
 
-If you are a German, you would probably not have any trouble, because "Killing to flies with one swat" is a near-literal translation of a German saying. If you are Russian, "killing two rabbits with one shot" would be more understandable for you. But if you are not familiar with German or Russian, you would have to try and extract the meaning of these sentences out of the context. It's not terribly difficult, but it takes a bit of time, and if I would be talking to you, you would probably be missing my super important point while thinking about flies, rabbits and stones. The _idiomatic_ way of saying this in English is, of course, "To kill two birds with one stone". 
+If you are a German, you would probably not have any trouble, because "Killing to flies with one swat" is a near-literal translation of a German saying. If you are Russian, "killing two rabbits with one shot" would be more understandable for you. But if you are not familiar with German or Russian, you would have to try and extract the meaning of these sentences out of the context. It's not terribly difficult, but it takes a bit of time, and if I would be talking to you, you would probably be missing my super important point while thinking about flies, rabbits and stones. The _idiomatic_ way of saying this in English is, of course, "To kill two birds with one stone".
 
-Writing idiomatic code is similar. It's easier to maintain for others, since it sticks to certain rules and conventions, which are what the designers of the language had in mind. Remember, your code is only reviewed when it doesn't work - either because a feature is missing and someone wants to extend it, or because it has a bug. Making it easier for others to read and understand your code is generally a good idea. 
+Writing idiomatic code is similar. It's easier to maintain for others, since it sticks to certain rules and conventions, which are what the designers of the language had in mind. Remember, your code is only reviewed when it doesn't work - either because a feature is missing and someone wants to extend it, or because it has a bug. Making it easier for others to read and understand your code is generally a good idea.
 
 We saw before that the Rust compiler can give you some advise on idiomatic code - for instance, when we prefixed a variable that we where not using with an underscore. My advise is to not ignore compiler warnings, your final code should always compile without warnings.
 
@@ -48,13 +48,13 @@ fn main() {
                             print!("{:?} ({})\r\n", c as u8,c);
                         }
                     },
-                    Key::Ctrl('q') => break,   
+                    Key::Ctrl('q') => break,
                     _ => print!("{:?}\r\n", key)
                 }
             },
             Err(err) => die(err)
         }
-        
+
     }
 }
 ```
@@ -71,13 +71,13 @@ The code we have is too low-level for now. We have to understand the whole code 
 Create a new file in `src` called `editor.rs` and add the following code:
 ```rust
 pub struct Editor {
-    
+
 }
 
 ```
 A `struct` is a collection of variables and, eventually, functions which are grouped together to form a meaningful entity - in our case, the Editor (It's not very meaningful yet, but we'll get to that!). The `pub` keyword tells us that this struct can be accessed from outside the `editor.rs`. We want to use it from `main`, so we use `pub`. This is already the next advantage of separating our code: We can make sure that certain functions are only called internally, while we expose others to other parts of the system.
 
-Now, our editor needs some functionality. Let's provide it with a `run()` function, like this: 
+Now, our editor needs some functionality. Let's provide it with a `run()` function, like this:
 ```rust
 use std::io::{self,stdout};
 use termion::raw::IntoRawMode;
@@ -85,12 +85,12 @@ use termion::input::TermRead;
 use termion::event::Key;
 
 pub struct Editor {
-    
+
 }
 
 
 impl Editor {
-    pub fn run(&self) {    
+    pub fn run(&self) {
         let _stdout = stdout().into_raw_mode().unwrap();
         for key in io::stdin().keys() {
             match key {
@@ -103,13 +103,13 @@ impl Editor {
                                 print!("{:?} ({})\r\n", c as u8,c);
                             }
                         },
-                        Key::Ctrl('q') => break,   
+                        Key::Ctrl('q') => break,
                         _ => print!("{:?}\r\n", key)
                     }
                 },
                 Err(err) => die(err)
             }
-            
+
         }
     }
 }
@@ -142,12 +142,12 @@ use termion::input::TermRead;
 use termion::event::Key;
 
 pub struct Editor {
-    
+
 }
 
 
 impl Editor {
-    pub fn run(&self) {    
+    pub fn run(&self) {
         let _stdout = stdout().into_raw_mode().unwrap();
         for key in io::stdin().keys() {
             match key {
@@ -160,13 +160,13 @@ impl Editor {
                                 print!("{:?} ({})\r\n", c as u8,c);
                             }
                         },
-                        Key::Ctrl('q') => break,   
+                        Key::Ctrl('q') => break,
                         _ => print!("{:?}\r\n", key)
                     }
                 },
                 Err(err) => die(err)
             }
-            
+
         }
     }
     pub fn new() -> Editor {
@@ -201,7 +201,7 @@ Let's make a function for keypress reading, and another function for mapping key
 
 ```rust
 impl Editor {
-    pub fn run(&self) {    
+    pub fn run(&self) {
         let _stdout = stdout().into_raw_mode().unwrap();
         loop {
             if let Err(error) = self.process_keypress() {
@@ -221,7 +221,7 @@ impl Editor {
         }
         Ok(())
     }
-    
+
 }
 
 fn read_key() -> Result<Key, std::io::Error> {
@@ -237,15 +237,15 @@ We have now added a loop in `run`, which we use in combination with another feat
 
 `process_keypress()` waits for a keypress, and then handles it. Later, it will map various <kbd>Ctrl</kbd> key combinations and other special keys to different editor functions, and insert any alphanumeric and other printable keys' characters into the text that is being edited. That's why we are using `match` instead of `if let` here. To understand the question mark after `read_key`, let's look at what this function does by starting to read it from the inside.
 
-Similar to `Result`, which is used to return either a value or an error, Rust has a concept of an `Option`, which either holds a value or `None`, to signify that nothing is there. This is Rust's way of avoiding `undefined` or `null` values. With `if let`, we get a match as soon as some value is returned from `stdin`. Else, we loop until we get a proper keypress. 
+Similar to `Result`, which is used to return either a value or an error, Rust has a concept of an `Option`, which either holds a value or `None`, to signify that nothing is there. This is Rust's way of avoiding `undefined` or `null` values. With `if let`, we get a match as soon as some value is returned from `stdin`. Else, we loop until we get a proper keypress.
 
 However, `key` itself is not directly a keypress, it is a `Result` which could also contain an Error. In `process_keypress`, we want to continue with the `Result` and propagate the error up to the top if there is one. That's what `?` does for us - if there is an error, return it, if not, continue with the unwrapped value.
 
-Because of that, `process_keypress` does not return nothing - it returns a Result which can either be nothing or an Error. this is why we have to return a result which contains the empty result in the last line with `Ok(())`. 
+Because of that, `process_keypress` does not return nothing - it returns a Result which can either be nothing or an Error. this is why we have to return a result which contains the empty result in the last line with `Ok(())`.
 
 Try playing around with these concepts by removing the `?`, or the `Ok(())`, or by changing the return value.
 
-That is how the error makes its way into `run`, where it is finally handled by `die`. Speaking of `die`, there is a new ugly wart in our code: Because we don't know yet how to exit our code from within the program, we are `panic`king now when the user uses <kbd>Ctrl-Q</kbd>.  
+That is how the error makes its way into `run`, where it is finally handled by `die`. Speaking of `die`, there is a new ugly wart in our code: Because we don't know yet how to exit our code from within the program, we are `panic`king now when the user uses <kbd>Ctrl-Q</kbd>.
 
 We could instead call the proper method to end the program (`std::process::exit`, in case you are interested), but similar to how we do not want our program to crash randomly deep within our code, we also don't want it to exit somewhere deep down, but in `run`. We solve this by adding our first element to the `Editor` struct: a boolean which indicates if the user wants to quit.
 
@@ -264,7 +264,7 @@ pub struct Editor {
 We have to initialize it in `new` right away, or we won't be able to compile our code. Let's set the boolean now and quit the program when it is `true`.
 
 ```rust
-    pub fn run(&mut self) {    
+    pub fn run(&mut self) {
         let _stdout = stdout().into_raw_mode().unwrap();
         loop {
             if let Err(error) = self.process_keypress() {
@@ -284,7 +284,7 @@ We have to initialize it in `new` right away, or we won't be able to compile our
         }
         Ok(())
     }
-    
+
 ```
 Note that we had to change `&self` to `&mut self` in the function signature. The reason is that our methods now mutate (change) our `Editor`, something which must be visible in the signature. While `&foo` means "A reference to a `foo`", `&mut foo` means "A mutable reference to a `foo`". That way, you always have an idea whether or not a method call changes the parameters you hand in.
 
@@ -295,7 +295,7 @@ Now we have simplified `run()`, and we will try to keep it that way.
 We're going to render the editor's user interface to the screen after each keypress. Let's start by just clearing the screen.
 
 ```rust
-    pub fn run(&mut self) {    
+    pub fn run(&mut self) {
         let _stdout = stdout().into_raw_mode().unwrap();
         loop {
             if let Err(error) = self.refresh_screen() {
@@ -422,7 +422,7 @@ impl Terminal {
         let size =  termion::terminal_size()?;
         Ok(Terminal {
             size: Size {
-                width: size.0, 
+                width: size.0,
                 height: size.1
             }
         })
@@ -470,14 +470,14 @@ fn main() {
 }
 ```
 Here, we use `if let` again to check if we successfully got a new Editor instance. If not, we print an error. Rust forces us to think about these things earlier and not just let it happen. There are multiple other strategies which we could have taken:
-- `panic` right then an there in `terminal.rs` 
+- `panic` right then an there in `terminal.rs`
 - Defer the error handling to the `run` function. This would mean that the `terminal` property of `editor` needs to be an `Option`, to indicate if we have a terminal object or not.
 - maybe more?
 
 The point here is not that one strategy should be preferred over the other, the point is that with Rust, we need to take a conscious decision which path we take. We can't ignore it - the code just won't compile then.
 
 Now that our code compiles, let's use our new struct.
- 
+
 ```rust
     fn draw_rows(&self) {
         for _i in 0..self.terminal.size.height {
@@ -530,7 +530,7 @@ impl Terminal {
         let stdout = stdout().into_raw_mode()?;
         Ok(Terminal {
             size: Size {
-                width: size.0 as u16, 
+                width: size.0 as u16,
                 height: size.1 as u16,
             },
             _stdout: stdout
@@ -585,7 +585,7 @@ impl Editor {
         })
     }
 
-    pub fn run(&mut self) {    
+    pub fn run(&mut self) {
         loop {
             if let Err(error) = self.refresh_screen() {
                 die(error);
@@ -605,7 +605,7 @@ impl Editor {
         }
     }
     fn refresh_screen(&self) -> Result<(), std::io::Error>{
-        Terminal::clear_screen(); 
+        Terminal::clear_screen();
         Terminal::cursor_position(0,0);
         if self.should_quit {
             print!("Goodbye!\r\n");
@@ -623,7 +623,7 @@ impl Editor {
         }
         Ok(())
     }
-    
+
 }
 
 
@@ -641,7 +641,7 @@ What did we do? We moved all the low-level terminal stuff to `Terminal`, leaving
 
 By the way, the normal handling of overflows in Rust is as follows: In debug mode (which we are using by default), the program crashes. This is what you want: The compiler should not try to keep your program alive, but slap the bug in your face. In production mode, an overflow occurs, so `y+1` would return `0`. This is also what you want, because you don't want to crash your application unexpectedly in production, instead it could make sense continuing with the overflown values. In our case, it would mean that the cursor is not placed at the bottom or right of the screen, but at the laft, which would be annoying, but not enough to warrant a crash. Luckily, our new code avoids this anyways.
 
-You can build your application for production with `cargo build --release`, which will place the production executable in `target/release`. 
+You can build your application for production with `cargo build --release`, which will place the production executable in `target/release`.
 
 ## The last line
 
@@ -667,7 +667,7 @@ In `terminal.rs`:
     }
     pub fn cursor_show() {
          print!("{}", termion::cursor::Show);
-    }    
+    }
 ```
 
 
@@ -675,7 +675,7 @@ In `mod.rs`:
 ```rust
     fn refresh_screen(&self) -> Result<(), std::io::Error>{
         Terminal::cursor_hide();
-        Terminal::clear_screen();        
+        Terminal::clear_screen();
         Terminal::cursor_position(0,0);
 
         if self.should_quit {
@@ -684,7 +684,7 @@ In `mod.rs`:
             self.draw_rows();
             Terminal::cursor_position(0,0);
         }
-        
+
         Terminal::cursor_show();
         Terminal::flush()
     }
@@ -715,7 +715,7 @@ In `mod.rs`:
         }
     }
     fn refresh_screen(&self) -> Result<(), std::io::Error>{
-        Terminal::cursor_hide();      
+        Terminal::cursor_hide();
         Terminal::cursor_position(0,0);
 
         if self.should_quit {
@@ -750,7 +750,7 @@ const VERSION: &'static str = env!("CARGO_PKG_VERSION");
             } else {
                 print!("~\r\n");
             }
-            
+
             if row < height-1 {
                 print!("\r\n");
             }
@@ -789,7 +789,7 @@ In `main.rs`:
         }
     }
     fn refresh_screen(&self) -> Result<(), std::io::Error>{
-        Terminal::cursor_hide();      
+        Terminal::cursor_hide();
         Terminal::cursor_position(0,0);
 
         if self.should_quit {
@@ -815,7 +815,7 @@ Now let's center the welcome message.
         let width = self.terminal.size().width as usize;
         let mut welcome_message = format!("Hecto editor -- version {}", VERSION);
         let len = welcome_message.len();
-        
+
         if width > len {
             let padding  = (width - len)/2;
             let prefix = "~";
@@ -836,7 +836,7 @@ Now let's center the welcome message.
         }
     }
 ```
-To retain code clarity, we have extracted `draw_welcome_message` - and while we were doing that, we also did the same with `draw_empty_row`. 
+To retain code clarity, we have extracted `draw_welcome_message` - and while we were doing that, we also did the same with `draw_empty_row`.
 
 To center a string, you divide the screen width by `2`, and then subtract half of the string's length from that. In other words: `width/2 - welcome_len/2`, which simplifies to `(width - welcome_len) / 2`. That tells you how far from the left edge of the screen you should start printing the string. So we fill that space with space characters, except for the first character, which should be a tilde. `repeat` is a nice helper function which repeats the character we hand in.
 
@@ -872,15 +872,15 @@ impl Editor {
 //...
 }
 ```
-`cursor_position` is a struct where `x` will hold the horiozontal coordinate of the cursor (the column), and `y` will hold the vertical coordinate (the row), where (0,0) is at the top left of the screen. We initialize both of them to `0`, as we want the cursor to start at the top-left of the screen. 
+`cursor_position` is a struct where `x` will hold the horiozontal coordinate of the cursor (the column), and `y` will hold the vertical coordinate (the row), where (0,0) is at the top left of the screen. We initialize both of them to `0`, as we want the cursor to start at the top-left of the screen.
 
 Two other considerations are noteworthy here. We are not adding `Position` to `Terminal`, even though you might intuitively think that if we modify the cursor position in `Terminal`, it should only be natural that we are keeping track of it there, either. However, `cursor_position` will soon describe the position of the cursor _in our current document_, and not on the screen. and is therefore different from the position of the cursor on the terminal.
 
-This is direectly related to the other consideration: Even though we saw that in order to place the cursor on the terminal, we have to use `u16` as a type, we are using the type `usize` for the cursor position instead. As discussed before, `u16` goes up until around 65,000, which is too small for our purposes. But how big is `usize`? THe answer is: It depends on the architecture we are compiling for, either 32 bit or 64 bit. It's used in Rust for adressing memory, which is essentially what we will be doing with it, so this is the right size for us. 
+This is direectly related to the other consideration: Even though we saw that in order to place the cursor on the terminal, we have to use `u16` as a type, we are using the type `usize` for the cursor position instead. As discussed before, `u16` goes up until around 65,000, which is too small for our purposes. But how big is `usize`? THe answer is: It depends on the architecture we are compiling for, either 32 bit or 64 bit. It's used in Rust for adressing memory, which is essentially what we will be doing with it, so this is the right size for us.
 
 Now, let's add code to `refresh_screen()` to move the cursor to the position stored in `cursor_position`. While we're at it, let's rewrite `cursor_position` to accept a `Position`.
 
-In `terminal.rs`: 
+In `terminal.rs`:
 ```rust
     pub fn cursor_position(position: &Position) {
         let Position{mut x, mut y} = position;
@@ -899,7 +899,7 @@ In `terminal.rs`:
 In `mod.rs`:
 ```rust
     fn refresh_screen(&self) -> Result<(), std::io::Error>{
-        Terminal::cursor_hide();      
+        Terminal::cursor_hide();
         Terminal::cursor_position(&Position{x: 0, y: 0});
 
         if self.should_quit {
@@ -914,8 +914,8 @@ In `mod.rs`:
         Terminal::flush()
     }
 ```
-We are using something called [destructuring](https://doc.rust-lang.org/rust-by-example/flow_control/match/destructuring.html) here: `let Position{mut x, mut y} = position;` creates new variables x and y and binds their values to the fields of the same name in `position`. 
-At this point, you could try initializing `cursor_position` with a different value, to confirm that the code works as intended so far. 
+We are using something called [destructuring](https://doc.rust-lang.org/rust-by-example/flow_control/match/destructuring.html) here: `let Position{mut x, mut y} = position;` creates new variables x and y and binds their values to the fields of the same name in `position`.
+At this point, you could try initializing `cursor_position` with a different value, to confirm that the code works as intended so far.
 
 Next, we'll allow the user to move the cursor using the arrow keys.
 
