@@ -19,10 +19,21 @@ layout: default
         </a>
       
       <div class="entry">
-        {{ post.excerpt }}
+        {%  if post.title != "" %}
+          {{ post.excerpt }}
+        {%  else  %}
+          {{ post.content }}
+        {% endif %}  
       </div>
 
-      <a href="{{ site.baseurl }}{{ post.url }}" class="read-more"> &raquo;  Read More...</a>
+      <a href="{{ site.baseurl }}{{ post.url }}" class="read-more"> 
+        {%  if post.title != "" %}
+          &raquo;  Read More
+        {%  else  %}
+          &raquo;  View Post
+        {% endif %}  
+        
+      </a>
     </article>
   {% endfor %}
 

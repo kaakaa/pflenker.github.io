@@ -3,7 +3,7 @@ layout: post
 title: ""
 categories: [Miscellaneous, Performance, Web]
 ---
-Someone has [surfed the web on a budget of 50 MB per day](https://www.smashingmagazine.com/2019/07/web-on-50mb-budget/)
+Someone has [surfed the web on a budget of 50 MB per day](https://www.smashingmagazine.com/2019/07/web-on-50mb-budget/):
 
 > I’m going to limit my browsing today to 50 MB, which in Zimbabwe would cost around $3.67 on a mobile data tariff. That may not sound like much, but teachers in Zimbabwe were striking this year because their salaries had fallen to just $2.50 a day.
 > 
