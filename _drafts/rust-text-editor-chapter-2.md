@@ -153,12 +153,54 @@ You'll notice a few interesting things:
 - Special characters such as German umlauts also produce multiple bytes.
 - <kbd>Ctrl-A</kbd> is `1`, <kbd>Ctrl-B</kbd> is `2`, <kbd>Ctrl-C</kbd> is... `3` and doesn't terminate the program as you might have expected. And the rest of the <kbd>Ctrl</kbd> key combinations  seem to map the letters A&ndash;Z to the codes 1&ndash;26.
 
+
+## Press <kbd>Ctrl-Q</kbd> to quit
+We now know that the <kbd>Ctrl</kbd> key combined with the alphabetic keys seems to map to bytes 1&ndash;26. We can use this to detect <kbd>Ctrl</kbd> key combinations and map them to different operations in our editor. We'll use that to map <kbd>Ctrl-Q</kbd> to the quit operation.
+
+```rust
+use std::io::{self,stdout, Read};
+use termion::raw::IntoRawMode;
+
+fn to_ctrl_byte(c: char) -> u8{
+    let byte = c as u8;
+    byte & 0b00011111
+}
+
+fn main() {
+    let _stdout = stdout().into_raw_mode().unwrap();
+
+    for b in io::stdin().bytes() {
+        let b = b.unwrap();
+        let c = b as char;
+        if c.is_control() {
+            print!("{:?} \r\n", b);
+        } else {
+            print!("{:?} ({})\r\n", b,c);
+        }
+        if b ==  to_ctrl_byte('q') {
+            break;
+        }
+    }
+}
+```
+
+
+The `to_ctrl_byte` function bitwise-ANDs a character with the value `00011111`, in binary. You can use `println!("{:#b}", b);` to print out the binary representation of `b`, which is an `u8`. The `#b` and the variable name are not related.  Try this to see the actual bytes which are read into our program.  
+When you compare the output for <kbd>Ctrl-Key</kbd> with the output of the key without <kbd>Ctrl</kbd>, you will notice that Ctrl sets the upper 3 bits to `0`.  If we now remember how bitwise and works, we can see that `to_ctrl_byte` does just the same. (If all this stuff is too low-level for you, hang in there until the next chapter!)
+
+The ASCII character set seems to be designed this way on purpose.  (It is also similarly designed so that you can set and clear a bit to switch between lowercase and uppercase. If you are interested, find out which byte it is and what the impact is on combinations such as  <kbd>Ctrl</kbd>-<kbd>a</kbd> in contrast to <kbd>Ctrl</kbd>-<kbd>Shift</kbd>-<kbd>a</kbd> 
+
 ## Error Handling
 It's time to think about how we handle errors. First, we add a `die()` function that prints an error message and exits the program.
 
 ```rust
 use std::io::{self,stdout, Read};
 use termion::raw::IntoRawMode;
+
+fn to_ctrl_byte(c: char) -> u8{
+    let byte = c as u8;
+    byte & 0b00011111
+}
 
 fn die(e: std::io::Error) {
     panic!(e);
@@ -175,7 +217,7 @@ fn main() {
         } else {
             print!("{:?} ({})\r\n", b,c);
         }
-        if c == 'q' {
+        if b ==  to_ctrl_byte('q') {
             break;
         }
     }
@@ -185,13 +227,18 @@ fn main() {
 
 This propagation works so that a function where an error could happen returns something called a [Result](https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html), which represents either the return value we originally wanted, or an error. Every value in `b` is originally a `Result`, which either holds the byte we have read in, or an Error object, indicating that something went wrong while reading the byte. To get the value we need, we can call `unwrap`, which is short for: "Return the value, or `panic` if there was an error".
 
-We want to control the crash ourselves, because later on we want to clear the screen before a crash occurs, to not leave the user with half-drawn input. For now, let's simply check for an error and call `die`, which panics for us.
+We want to control the crash ourselves instead of letting Rust `panic` whenever an error occurs, because later on we want to clear the screen before crashing, to not leave the user with half-drawn input. For now, let's simply check for an error and call `die`, which panics for us.
 
- Let's implement that now.
+Let's implement that now.
 
 ```rust
 use std::io::{self,stdout, Read};
 use termion::raw::IntoRawMode;
+
+fn to_ctrl_byte(c: char) -> u8{
+    let byte = c as u8;
+    byte & 0b00011111
+}
 
 fn die(e: std::io::Error) {
     panic!(e);
@@ -199,23 +246,21 @@ fn die(e: std::io::Error) {
 
 fn main() {
     let _stdout = stdout().into_raw_mode().unwrap();
-
     for b in io::stdin().bytes() {
         match b {
             Ok (b) => {
-                let c = b as char;
-                if c.is_control() {
-                    print!("{:?} \r\n", b);
-                } else {
-                    print!("{:?} ({})\r\n", b,c);
-                }
-                if c == 'q' {
-                    break;
-                }
-            },
+            let c = b as char;
+            if c.is_control() {
+                print!("{:?} \r\n", b);
+            } else {
+                print!("{:?} ({})\r\n", b,c);
+            }
+            if b ==  to_ctrl_byte('q') {
+                break;
+            }
+            }, 
             Err(err) => die(err)
         }
-
     }
 }
 ```
@@ -224,4 +269,5 @@ Another thing of interest is that `match` must have cases for all values that `b
 
 We have added some error handling  now - but we are deliberately ignoring the error from `into_raw_mode`. Our error handling is mainly aimed at avoiding garbled output, which can only occur when we are actually repeatedly writing to the screen, so for our purposes, there is no need for any additional error handling before our loop begins.
 
-That concludes this chapter on entering raw mode. In the next chapter, we'll do some more terminal input/output handling, and use that to draw to the screen and allow the user to move the cursor around.
+## Conclusion
+That concludes this chapter on entering raw mode. We have learned a lot about the terminal and about the fundamentals of Rust along the way.  In the next chapter, we'll do some more terminal input/output handling, and use that to draw to the screen and allow the user to move the cursor around. We will also refactor our code to be more idiomatic, but first, we need to clarify what _idiomatic_ means.
