@@ -758,52 +758,34 @@ const VERSION: &'static str = env!("CARGO_PKG_VERSION");
     }
 ```
 
-Since our `Cargo.toml` already contains our version number, we use the `env!` macro to get it. We add it to our welcome message. However, we need to deal with the fact that our message might be cut off due to the terminal size. Also, we want our `Terminal` struct to handle the writing for us, since it knows about the size of the terminal.
-
-In `terminal.rs`:
-```rust
-    pub fn println(&self, text: &String) {
-        let mut text = text.clone();
-        text.truncate(self.size.width as usize);
-        print!("{}\r\n", text)
-    }
-    pub fn println_str(&self, text: &str) {
-        self.println(&text.to_string())
-    }
-```
-We are defining two functions here, one takes a string, makes a copy with `clone` (we don't want to modify the original string by printing it out) and then printing it. The other one takes a `&str`, which is the data type you get when you type literal strings. It converts it into a string and passes it to `println`. In the upcoming steps, working with Strings will become the norm, and working with `str`s will be the exception, so we do not bother optimizing `println_str` to not create a string, but printing its contents directly.
-
+Since our `Cargo.toml` already contains our version number, we use the `env!` macro to get it. We add it to our welcome message. However, we need to deal with the fact that our message might be cut off due to the terminal size. We do that in a separate function.
 
 In `main.rs`:
 ```rust
- fn draw_rows(&self) {
+    pub fn draw_text(&self, text: &String) {
+        let mut width = self.terminal.size().width as usize;
+        
+        if width > text.len()  {
+            width = text.len();
+        }
+        print!("{}\r\n", &text[..width])
+    }
+
+    fn draw_rows(&self) {
         let height = self.terminal.size().height;
         for row in 0..height-1 {
             Terminal::clear_current_line();
             if row == height / 3 {
                 let welcome_message = format!("Hecto editor -- version {}", VERSION);
-                self.terminal.println(&welcome_message);
+                self.draw_text(&welcome_message);
             } else {
-                self.terminal.println_str("~");
+                 print!("~\r\n");
             }
         }
     }
-    fn refresh_screen(&self) -> Result<(), std::io::Error>{
-        Terminal::cursor_hide();
-        Terminal::cursor_position(0,0);
 
-        if self.should_quit {
-            Terminal::clear_screen();
-            self.terminal.println_str("Goodbye!");
-        } else {
-            self.draw_rows();
-            Terminal::cursor_position(0,0);
-        }
-
-        Terminal::cursor_show();
-        Terminal::flush()
-    }
 ```
+We are using the slice operator here to slice our string from `0` (which can be omitted) to `width`.
 
 Now let's center the welcome message.
 
@@ -822,7 +804,7 @@ Now let's center the welcome message.
             let spaces = " ".repeat(padding - 1);
             welcome_message = format!("{}{}{}", prefix, spaces, welcome_message);
         }
-        self.terminal.println(&welcome_message);
+        self.draw_text(&welcome_message);
     }
     fn draw_rows(&self) {
         let height = self.terminal.size().height;
@@ -831,16 +813,14 @@ Now let's center the welcome message.
             if row == height / 3 {
                 self.draw_welcome_message()
             } else {
-                self.draw_empty_row();
+                 print!("~\r\n");
             }
         }
     }
 ```
-To retain code clarity, we have extracted `draw_welcome_message` - and while we were doing that, we also did the same with `draw_empty_row`.
+To retain code clarity, we have extracted `draw_welcome_message` as a separate method.
 
 To center a string, you divide the screen width by `2`, and then subtract half of the string's length from that. In other words: `width/2 - welcome_len/2`, which simplifies to `(width - welcome_len) / 2`. That tells you how far from the left edge of the screen you should start printing the string. So we fill that space with space characters, except for the first character, which should be a tilde. `repeat` is a nice helper function which repeats the character we hand in.
-
-We are handling the centering in the `Editor`, not in the `Terminal`. We are not planning to center another screen for now, so adding a function in the `Terminal` seemed a bit like overkill. As usual, this comes back to personal preference, so if you want to include this method into `Terminal`, I am not going to stop you.
 
 ## Move the cursor
 
@@ -904,7 +884,7 @@ In `mod.rs`:
 
         if self.should_quit {
             Terminal::clear_screen();
-            self.terminal.println_str("Goodbye!");
+            print!("Goodbye!\r\n");
         } else {
             self.draw_rows();
             Terminal::cursor_position(&self.cursor_position);
