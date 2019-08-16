@@ -762,22 +762,18 @@ Since our `Cargo.toml` already contains our version number, we use the `env!` ma
 
 In `main.rs`:
 ```rust
-    pub fn draw_text(&self, text: &String) {
-        let mut width = self.terminal.size().width as usize;
-        
-        if width > text.len()  {
-            width = text.len();
-        }
-        print!("{}\r\n", &text[..width])
-    }
-
     fn draw_rows(&self) {
         let height = self.terminal.size().height;
         for row in 0..height-1 {
             Terminal::clear_current_line();
             if row == height / 3 {
                 let welcome_message = format!("Hecto editor -- version {}", VERSION);
-                self.draw_text(&welcome_message);
+                let mut width = self.terminal.size().width as usize;
+        
+                if width > welcome_message.len()  {
+                    width = welcome_message.len();
+                }
+                print!("{}\r\n", &welcome_message[..width])
             } else {
                  print!("~\r\n");
             }
@@ -797,14 +793,16 @@ Now let's center the welcome message.
         let width = self.terminal.size().width as usize;
         let mut welcome_message = format!("Hecto editor -- version {}", VERSION);
         let len = welcome_message.len();
-
+        
         if width > len {
             let padding  = (width - len)/2;
-            let prefix = "~";
             let spaces = " ".repeat(padding - 1);
-            welcome_message = format!("{}{}{}", prefix, spaces, welcome_message);
+            welcome_message = format!("~{}{}", spaces, welcome_message);
+        } else if width < len {
+            welcome_message.truncate(width);
         }
-        self.draw_text(&welcome_message);
+      
+        print!("{}\r\n", welcome_message);
     }
     fn draw_rows(&self) {
         let height = self.terminal.size().height;

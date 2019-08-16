@@ -6,12 +6,23 @@ categories: [Rust, hecto]
 Let's see if we can turn `hecto` into a text viewer in this chapter.
 
 ## A line viewer
-We need one more data structures: A `Document`, which will represent the, you guessed it, document the user is currently editing. We create a new file called `document.rs` for that.
+We need one more data structures: A `Document`, which will represent the, you guessed it, document the user is currently editing. We create a new folder called `document` for that.
 
-In `document.rs`:
+We start with the Row first, so we create a file called `row.rs` in `document` with the following content:
+
 ```rust
+pub struct Row {
+    string: String
+}
+```
+Then we create a `mod.rs` alongside it - this will be the acutual `Document` module. It has the following contents:
+
+```rust
+mod row;
+pub use row::Row;
+
 pub struct Document {
-    rows: Vec<String>
+    rows: Vec<Row>
 }
 
 impl Document {
@@ -21,9 +32,14 @@ impl Document {
         }
     }
 }
+
 ```
 
-In `mod.rs`:
+Now we have two `mod.rs` files. Going forward, this tutorial will be referring to the modules by name - for example, when talking about `editor`, we mean the file `editor/mod.rs`.
+
+We are also using a new keyword here: `pub use`. With `pub use`, we make sure that others can reference a row with `document::Document::Row` instead of having to use `document::Document::row::Row`. 
+
+Let's use this all together in `editor`:
 ```rust
 mod document;
 use document::Document;
@@ -42,46 +58,86 @@ use document::Document;
 ```
 
 
-We will use `Document` to represent the file we are displaying right now. For now, it only has a vector of `String`s, but we will extend it later. A Vector is a data structure similar to an array, with the main difference that arrays have fixed lenghts, whereas vectors can grow dynamically. Since we eventually want the user to edit rows, we choose a Vector over an array.
+We will use `Document` to represent the file we are displaying right now. For now, it only has a vector of `Row`s, but we will extend it later. A Vector is a data structure similar to an array, with the main difference that arrays have fixed lenghts, whereas vectors can grow dynamically. Since we eventually want the user to edit rows, we choose a Vector over an array.
 
 Let's fill it with some text now. We won't worry about reading from a file just yet. Instead, we'll hardcode a "Hello, World" string into it.
 
-```rust
-pub struct Document {
-    rows: Vec<String>
-}
+Let's prepare `row`:
 
+```rust
+impl Row {
+    fn from(slice: &str) -> Row{
+        Row {
+            string: String::from(slice)
+        }
+    }
+}
+```
+Then let's use this in `document`:
+
+```rust
 impl Document {
     pub fn new() -> Document{
         let mut rows =  Vec::new();
-        rows.push(String::from("Hello, World!"));
+        rows.push(Row::from("Hello, World!"));
         Document{
             rows
         }
     }
 }
 
+
+
 ```
 
-We will later implement a method to open a `Document` from file. When we do it, `new` will return an empty document again. But let's focus on getting our hardcoded value displayed for now.
+We will later implement a method to open a `Document` from file. When we do it, `new` will return an empty document again. But let's focus on getting our hardcoded value displayed for now. Same as before, we start with exposing methods in `Row`, which we will then use in `Document` and in `Editor`. 
 
-In `Document`:
+First in `row`:
 ```rust
-    pub fn row(&self, index: usize) -> Option<&String> {
+    pub fn render(&self, start: usize, end: usize) -> String {
+        let mut end = end;
+        let mut start = start;
+        if end > self.string.len() {
+            end = self.string.len();
+        }
+        if start > end {
+            start = end;
+        }
+        String::from(&self.string[start..end]);
+    }
+```
+
+We call this method `render`, beause eventually it will be responsible for a few more things than just returning a substring. Our `render` method is very user friendly as it normalizes bogus input. Essentially, it returns the biggest possible sub string it can generate.
+
+Now let's create a method to access a `Row` on a `Document`.
+
+```rust
+    pub fn row(&self, index: usize) -> Option<&Row> {
         if index >= self.rows.len() {
             return None;
         }
         Some(&self.rows[index])
     }
 ```
-In `mod.rs`:
+Let's tie this together in the `Editor`.
+
 ```rust
+mod document;
+use document::Row;
+//...
+    pub fn draw_row(&self, row: &Row) {
+        let start = 0;
+        let end = self.terminal.size().width as usize;
+        let row = row.render(start,end);
+        print!("{}\r\n", row)
+    }
+
     fn draw_rows(&self) {
         let height = self.terminal.size().height;
         for terminal_row in 0..height-1 {
             Terminal::clear_current_line();
             if let Some(row) = self.document.row(terminal_row as usize) {
-                self.draw_text(row);
+                self.draw_row(row);
             } else if terminal_row == height / 3 {
                 self.draw_welcome_message()
             } else {
@@ -90,7 +146,7 @@ In `mod.rs`:
         }
     }
 ```
-We have added a new method to `Document` which returns a row to us if we have one, and `None` otherwise. Next, in `draw_rows`, we first rename the variable `row` to `terminal_row` to avoid confusion with the row we are now getting from `Document`. We are then retrieving the `row` and displaying it. `Terminal` takes care of making sure it fits the screen for us as well as appending `\r\n`, so you are now able to confirm that our test string is indeed visible in the editor.
+We have added a new method to `Document` which returns a row to us if we have one, and `None` otherwise. Next, in `draw_rows`, we first rename the variable `row` to `terminal_row` to avoid confusion with the row we are now getting from `Document`. We are then retrieving the `row` and displaying it. The concept here is that `Row` makes sure to return to you a substring that can be displayed, while the `Editor` makes sure that the terminal dimensions are met.
 
 However, our editor name is still displayed. We don't want that when the user is opening a file, so let's add a method `is_empty` to our `Document`:
 
@@ -107,7 +163,7 @@ Now we check against that in `draw_rows`:
         for terminal_row in 0..height-1 {
             Terminal::clear_current_line();
             if let Some(row) = self.document.row(terminal_row as usize) {
-                self.draw_text(row);
+                self.draw_row(row);
             } else if self.document.is_empty() && terminal_row == height / 3 {
                 self.draw_welcome_message()
             } else {
@@ -132,19 +188,19 @@ use std::fs;
         let contents = fs::read_to_string(filename)?;
         let mut rows = Vec::new();
         for value in contents.lines() {
-            rows.push(String::from(value));
+            rows.push(Row::from(value));
         }
         Ok(Document{
             rows
         })
     }
 ```
-We have now restored the original functionality of `new`, and added a new method `open`, which attempts to open a file and returns an error in case of a failure.
+We have now restored the original functionality of `Document::new`, and added a new method `open`, which attempts to open a file and returns an error in case of a failure.
 
 
 `open` reads the lines into our `Document` struct. It's not obvious from our code, but each row in `rows` will not contain the line endings `\n` or `\r\n`, as Rust's `line()` method will cut it away for us. That makes sense: We are already handling new lines ourselves, so we wouldn't want to handle the ones in the file anyways.
 
-Let's use this code in `mod.rs`. 
+Let's use this code to initialize our document in the `Editor`. 
 
 ```rust
     pub fn new() -> Result<Editor, std::io::Error> {
@@ -236,21 +292,15 @@ pub struct Editor {
 
 We initialize it to `0`, which means we'll be scrolled to the top of the file by default.
 
-Now let's have `draw_text()` display the correct range of lines of the file according to the value of `offset.x`.
+Now let's have `draw_row()` display the correct range of lines of the file according to the value of `offset.x`.
 
 ```rust
-    pub fn draw_text(&self, text: &String) {
+    pub fn draw_row(&self, row: &Row) {
         let width = self.terminal.size().width as usize;
-        let mut start = self.offset.x as usize;
-        let mut end = self.offset.x + width;
-        if end > text.len() {
-            end = text.len();
-        }
-        if start > text.len() {
-            start = text.len();
-        }
-        
-        print!("{}\r\n", &text[start..end])
+        let start = self.offset.x as usize;
+        let end = self.offset.x + width;
+        let row = row.render(start,end);
+        print!("{}\r\n", row)
     }
 ```
 
@@ -264,7 +314,7 @@ Similarily, let's make sure we only draw rows which are currently visible.
         for terminal_row in 0..height-1 {
             Terminal::clear_current_line();
             if let Some(row) = self.document.row(terminal_row as usize + self.offset.y) {
-                self.draw_text(row);
+                self.draw_row(row);
             } else if self.document.is_empty() && terminal_row == height / 3 {
                 self.draw_welcome_message()
             } else {
@@ -315,6 +365,13 @@ Where do we set the value of  `offset`? Our strategy will be to check if the cur
     }
 ```
 To `scroll`, we need to know the width and height of the terminal and the current position, and we want to change the values in `self.offset`. If we have moved to the left or to the top, we want to set our offset to the new position in the document. If we have scrolled too far to the right, we are subtracting the current offset from the new position to calculate the new offset. 
+
+To be able to do that, we need to add a method that returns the length of our document.
+```rust
+    pub fn len(&self) -> usize {
+        self.rows.len()
+    }
+```
 
 Now let's allow the cursor to advance past the bottom of the screen (but not past the bottom of the file). We tackle scrolling to the right a bit later.
 
@@ -381,7 +438,15 @@ If you try to scroll back up, you may notice the cursor isn't being positioned p
 ```
 
 
-Now let's fix the horizontal scrolling. The only missing piece here is that we are not yet allowing the cursor to scroll past the right of the screen. Let's do that now.
+Now let's fix the horizontal scrolling. The only missing piece here is that we are not yet allowing the cursor to scroll past the right of the screen. First, we need to add a `len` method to `Row`.
+
+```rust
+    pub fn len(&self) -> usize {
+        self.string.len()
+    }
+```
+
+Then, we use it in the `Editor`. Let's do that now.
 
 ```rust
 
@@ -709,25 +774,76 @@ Here we have to make sure they’re not at the end of the file before moving dow
 ## Rendering Tabs
 If you try opening a file with tabs, you'll notice that the tab character takes up a width of 8 colums or so. As you probably know, there is a long and ongoing debate of whether or not to use tabs or spaces for indendation. Honestly, I don't care, I have always a sufficiently advanced editor that could just roll with any indentation type you throw at it.. If I was forced to pick a side, I would pick "spaces", though, because I find the "pros" for tabs not very convincing - but that's a different matter. What matters, though, is that we are simply replacing tabs with one space for the sake of this tutorial. That's enough for our purpose, as in the Rust ecosystem, you will rarely encounter tabs. Feel free to extend your solution to replace tabs with multiple spaces. Be aware, though, that this means that you need to update the cursor position accordingly, since you don't want the cursor to be positioned within those whitespaces.
 
-Let's replace our tabs with spaces now.
+Let's replace our tabs with spaces now. This is where our `render` method on `Row` becomes useful.
 
 ```rust
-    pub fn draw_text(&self, text: &String) {
-        let width = self.terminal.size().width as usize;
-        let mut start = self.offset.x as usize;
-        let mut end = self.offset.x + width;
-        if end > text.len() {
-            end = text.len();
+    pub fn render(&self, start: usize, end: usize) -> String {
+        let mut end = end;
+        let mut start = start;
+        if end > self.string.len() {
+            end = self.string.len();
         }
-        if start > text.len() {
-            start = text.len();
+        if start > end {
+            start = end;
         }
-        let text =  &text[start..end];
-        let text = text.replace("\t", " ");
-        print!("{}\r\n", text)
+        let mut result = String::new();
+        for c in self.string.chars().skip(start).take(end - start) {
+            if c == '\t' {
+                result.push(' ');
+            } else {
+                result.push(c);
+            }
+        }
+        result
     }
 ```
-Note that we are performing the replacements on the already-shortened string. It does not make sense for us to go through the full string, replacing all the tabs, and then cutting away half of the string.
+Wow, that looks complex! Why aren't we simply calling `replace` on our string and that's it?
+The reason is that under the hood, `replace` would create a new string one by one based on the old. THat is also the same what happens when we create a slice from the old string. So if we would simply extend our old solution by `replace`ing the result, we would go through our string multiple times. So we have now built a solution where we iterate over the string ourselves.  
+We accomplish this by using a few facets of an `Iterator`. As we have seen in an earlier chapter, an iterator allows us to use `for..in` to process its entries. `string.chars()` returns such an iterator. Calling `start(n)` on an iterator also returns an iterator, but only with the first `n` elements skipped. And calling `take(n)` on an iterator returns an iterator as well, but only with `n` elements. The end result is what we want: An iterator going from `start` to `end`.
+
+While we are discussing how hard strings are, let's fix another issue. You can either skip to the next diff, or follow along to learn about the background of the bug that we are seeing. Either create a small throwaway project, or use the [Rust playground](https://play.rust-lang.org/) with the following code:
+
+```rust
+fn main() {
+    let mut vec = String::new();
+    vec.push('a');
+    dbg!(vec.len());
+    vec.push('ä');
+    dbg!(vec.len());
+    vec.push('❤');
+    dbg!(vec.len());
+}
+```
+
+`dbg!` is a macro which is useful for quick and dirty debugging, it prints out the current value of what you give in, and some more. Here's what it returns for that code:
+
+```
+[src/main.rs:4] vec.len() = 1
+[src/main.rs:6] vec.len() = 3
+[src/main.rs:8] vec.len() = 6
+```
+After adding the first character, the length of the string is 1. After adding an umlaut, we see that the lenght has increased by two, and not one. This means that the lenght of the string does not match the number of characters in that string, which is what we are after. You can reproduce that behaviour by creating a `happy.txt` with a long line containing of nothing but ❤, and opening it with `hecto`. You will see that you are allowed to scroll much further to the right than allowed. Let's fix that by changing the output of `len` on our `Row`:
+
+```rust
+    pub fn new() -> Row {
+        Row {
+            string: String::new(),
+            len: 0
+        }
+    }
+    pub fn from(slice: &str) -> Row{
+        let string = String::from(slice);
+        Row {
+            len: string.chars().count(),
+            string
+        }
+    }
+    pub fn len(&self) -> usize {
+        self.len
+    }
+```
+Instead of going through the whole string whenever someone calls `len`, we keep track of the actual length of our row in `len`. We just have to remember to set `len` manually if we are ever going to change `Row`.
+
 
 ## Status bar
 
@@ -751,14 +867,14 @@ In `terminal.rs`:
 ```    
  We will now also fix the issues we have with the rendering of the last line.
 
-In `mod.rs`:
+In `Editor`:
 ```rust
     fn draw_rows(&self) {
         let height = self.terminal.size().height;
         for terminal_row in 0..height {
             Terminal::clear_current_line();
             if let Some(row) = self.document.row(terminal_row as usize + self.offset.y) {
-                self.draw_text(row);
+                self.draw_row(row);
             } else if self.document.is_empty() && terminal_row == height / 3 {
                 self.draw_welcome_message()
             } else {
@@ -787,7 +903,7 @@ use termion::color;
          print!("{}", color::Bg(color::Reset));
     }
 ```
-This is similar to what we have done before: We are simply abstracting away the printing of the chars. With that, our `mod.rs` looks like this:
+This is similar to what we have done before: We are simply abstracting away the printing of the chars. With that, our `Editor` looks like this:
 
 ```rust 
 use termion::color;
