@@ -844,6 +844,8 @@ After adding the first character, the length of the string is 1. After adding an
 ```
 Instead of going through the whole string whenever someone calls `len`, we keep track of the actual length of our row in `len`. We just have to remember to set `len` manually if we are ever going to change `Row`.
 
+That's about all the string handling we are going to do with `hecto` in the scope of this tutorial. THere are other cases that need considering - for instance, `y̆` is a composition of two characters, which show up as one character on the screen. If you need to handle this kind of data, search [crates.io](http://www.crates.io) for crates to handle strings for you.
+
 
 ## Status bar
 

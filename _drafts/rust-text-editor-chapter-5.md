@@ -480,3 +480,344 @@ We also adjust our initial status message, to show the user which key combinatio
 
 ## Save as...
 Currently, when the user runs `hecto` with no arguments, they get a blank file to edit but have no way of saving. Let's make a `prompt()` function that displays a prompt in the status bar, and lets the user input a line of text after the prompt:
+
+```rust
+    fn prompt(&mut self, prompt: &str) -> Result<String, std::io::Error> {
+        
+        let mut result = String::new();
+        loop {
+            self.status_message = StatusMessage::from(format!("{}{}", prompt, result));
+            self.refresh_screen()?;
+            if let Key::Char(c) = Terminal::read_key()? {
+                if c == '\n' {
+                    self.status_message = StatusMessage::from(String::new());
+                    break;
+                }
+                if !c.is_control() {
+                    result.push(c);
+                }
+            }  
+        }
+        Ok(result)
+    }
+```
+
+The user's input is stored in `result`, which we initialize as an empty string. We enter an infinite loop that repeatadly sets the status message, refreshes the screen, and waits for a keypress to handle. When the user presses enter, the status message is cleared and the message is returned. The errors which might occur on the way are propagated up. 
+Now let's prompt the user for a filename before calling `save`, when the filename is `None`. 
+
+```rust
+    fn process_keypress(&mut self) -> Result<(), std::io::Error> {
+        let pressed_key = Terminal::read_key()?;
+        match pressed_key {
+             Key::Ctrl('q') => self.should_quit = true,
+             Key::Ctrl('s') => {
+                if self.document.file_name == None {
+                    self.document.file_name = Some(self.prompt("Save as: ")?);
+                }
+                if let Ok(_) = self.document.save() {
+                    self.status_message = StatusMessage::from("File saved successfully.".to_string());
+                } else {
+                    self.status_message = StatusMessage::from("Error writing file!".to_string());
+                }
+             },
+             Key::Char(c) => {
+                self.document.insert(&self.cursor_position, c);
+                self.move_cursor(&Key::Right);
+             },
+             Key::Delete => self.document.delete(&self.cursor_position),
+             Key::Backspace => {
+                 self.move_cursor(&Key::Left);
+                 self.document.delete(&self.cursor_position);
+             }
+             Key::Up |
+             Key::Down |
+             Key::Left |
+             Key::Right |
+             Key::PageUp |
+             Key::PageDown |
+             Key::End |
+             Key::Home=>  self.move_cursor(&pressed_key),
+             _ => ()
+        }
+        self.scroll();
+        Ok(())
+    }
+```
+
+Great, now the user can save the file! Let's handle a few more cases in our prompt. Let's now allow the user to cancel and backspace, and let's also treat an empty input as cancelling.
+
+```rust
+    fn prompt(&mut self, prompt: &str) -> Result<Option<String>, std::io::Error> {
+        
+        let mut result = String::new();
+        loop {
+            self.status_message = StatusMessage::from(format!("{}{}", prompt, result));
+            self.refresh_screen()?;
+            match Terminal::read_key()?{
+                Key::Backspace => {
+                    if result.len() > 0 {
+                        result.truncate(result.len()-1);
+                    } else {
+                        break;
+                }
+                Key::Char(c) => {
+                    if c == '\n' {
+                        break;
+                    }
+                    if !c.is_control() {
+                        result.push(c);
+                    }
+                },
+                Key::Esc =>{
+                    result.truncate(0);
+                    break;
+                }
+                _ => ()
+            }
+            
+        }
+        self.status_message = StatusMessage::from(String::new());
+        if result.len() == 0 {
+            return Ok(None);
+        }
+        Ok(Some(result))
+    }
+```
+The biggest change to the function is the return type: It is no longer only a `Result` with a `String`, but a `Result` with an `Option` with a `String`, to indicate 1) that something could go wrong in this function, and 2) the result could be undefined.
+
+We have moved setting an emtpy status message to outside of the loop, and we now return `None` if the result is emtpy - which can happen if the user has not entered anything. In case he presses `Esc`, we are also setting the result to `0`, thus also returning `None`. In case of backspace, we are either shortening the result by one character, or, if we had no result, we are also returning `None`, cancelling the prompt.
+
+Now let's adjust our call to `prompt` in `process_keypress`:
+
+```rust
+    fn process_keypress(&mut self) -> Result<(), std::io::Error> {
+        let pressed_key = Terminal::read_key()?;
+        match pressed_key {
+             Key::Ctrl('q') => self.should_quit = true,
+             Key::Ctrl('s') => {
+                if self.document.file_name == None {
+                    let new_name = self.prompt("Save as: ")?;
+                    let new_name = self.prompt("Save as: ")?;
+                    if let None = new_name{
+                        self.status_message = StatusMessage::from("Save aborted.".to_string());    
+                        return Ok(())
+                    } 
+                    self.document.file_name = new_name;
+                    
+                }
+                if let Ok(_) = self.document.save() {
+                    self.status_message = StatusMessage::from("File saved successfully.".to_string());
+                } else {
+                    self.status_message = StatusMessage::from("Error writing file!".to_string());
+                }
+             },
+             Key::Char(c) => {
+                self.document.insert(&self.cursor_position, c);
+                self.move_cursor(&Key::Right);
+             },
+             Key::Delete => self.document.delete(&self.cursor_position),
+             Key::Backspace => {
+                 self.move_cursor(&Key::Left);
+                 self.document.delete(&self.cursor_position);
+             }
+             Key::Up |
+             Key::Down |
+             Key::Left |
+             Key::Right |
+             Key::PageUp |
+             Key::PageDown |
+             Key::End |
+             Key::Home=>  self.move_cursor(&pressed_key),
+             _ => ()
+        }
+        self.scroll();
+        Ok(())
+    }
+```
+
+We are first unwrapping the `Result` with the `?`, passing any potential error up. Then we are looking at `new_name`. If it's `None`, we are displaying a message and returning. If not, we are assigning it to `file_name` and continue. `save` will then use that new file name to try and save the file.
+
+## Dirty flag
+
+We'd like to keep track of whether the text loaded in our editor differs from what's in the file. Then we can warn the user that they might lose unsaved changes when they try to quit.
+
+We call a `Document` "dirty" if it has been modified since opening or saving the file. Let's add a `dirty` variable to the `Document` and initialize it with `false`. We don't want this to be modified from the outside, so we add a read-only `is_dirty` function to `Document`. We're also setting it to `true` on any text change, and to `false` on `save`.
+
+```rust
+  pub fn new() -> Document{
+        Document{
+            rows: Vec::new(),
+            file_name: None,
+            dirty: false
+        }
+    }
+    pub fn is_dirty(&self) -> bool {
+        self.dirty
+    }
+    pub fn open(file_name: &String ) -> Result<Document, Error> {
+        let contents = fs::read_to_string(file_name)?;
+        let mut rows = Vec::new();
+        for value in contents.lines() {
+            rows.push(Row::from(value));
+        }
+        Ok(Document{
+            rows,
+            file_name: Some(file_name.clone()),
+            dirty: false,
+        })
+    }
+    pub fn save(&mut self) -> Result<(), Error> {
+        if let Some(file_name) = &self.file_name {
+            let mut file = fs::File::create(file_name)?;
+            for row in self.rows.iter() {
+                file.write_all(row.to_string().as_bytes())?;
+                file.write_all(b"\n")?;
+            }
+            self.dirty = false;
+        } else {
+            return Err(Error::new(ErrorKind::Other, "Can't save file!"))
+        }
+        Ok(())
+    }
+     pub fn insert(&mut self, at: &Position, c: char){
+        self.dirty = true;
+        if c == '\n' {
+           self.insert_newline(at);
+           return;
+        } 
+
+        if at.y == self.len() {
+            let mut row = Row::new();
+            row.insert(0,c);
+            self.rows.push(row);
+        } else if at.y < self.len() {
+            let row = self.rows.get_mut(at.y).unwrap();
+            row.insert(at.x, c);
+        }
+    }
+    pub fn delete(&mut self, at: &Position) {
+        let len = self.len();
+        if at.y >= len {
+            return;
+        }
+        self.dirty = true;
+        let row = self.rows.get(at.y).unwrap();
+        if at.x == row.len() && at.y < len -1 {
+            let next_row = self.rows.get(at.y + 1).unwrap();
+            let next_string = next_row.to_string();
+            let row = self.rows.get_mut(at.y).unwrap();
+            row.append(&next_string);
+            self.rows.remove(at.y+1);
+            
+        } else {
+            let row = self.rows.get_mut(at.y).unwrap();
+            row.delete(at.x); 
+        }
+        
+    }
+```
+
+
+Now that everything is in place, let's display it.
+
+```rust
+ fn draw_status_bar(&self) {
+        let mut status;
+        let width = self.terminal.size().width as usize;
+        let mut modified_indicator = "";
+        if self.document.is_dirty()  == true {
+            modified_indicator = " (modified)";
+        }
+        if let Some(name) = &self.document.file_name {
+            let mut filename_len = name.len();
+            if filename_len > 20 {
+                filename_len = 20;
+            }
+            status = format!("{} - {} lines{}", &name[..filename_len], self.document.len(), modified_indicator);
+        } else {
+            status = format!("[No Name]{}", modified_indicator);
+        }
+        let line_indicator = format!("{}/{}", self.cursor_position.y+1, self.document.len());
+        let mut num_spaces = 0;
+        let len = status.len() + line_indicator.len();
+        if width > len {
+            num_spaces = width - len;
+        }
+        for _i in 0..num_spaces {
+            status.push_str(" ");
+        }
+        status = format!("{}{}", status, line_indicator);
+        status.truncate(width);
+        Terminal::set_bg_color(STATUS_BG_COLOR);
+        Terminal::set_fg_color(STATUS_FG_COLOR);
+        print!("{}\r\n",status);
+        Terminal::reset_fg_color();
+        Terminal::reset_bg_color();
+    }
+```
+
+You should now be able to confirm that as soon as you edit a file, `(modified)` is displayed next to the file name. It disappears on successful saving of the file.
+
+## Quit confirmation
+
+Now we’re ready to warn the user about unsaved changes when they try to quit. If `document.is_dirty()`  is true, we will display a warning in the status bar, and require the user to press Ctrl-Q three more times in order to quit without saving.
+
+```rust
+    fn process_keypress(&mut self) -> Result<(), std::io::Error> {
+        let pressed_key = Terminal::read_key()?;
+        match pressed_key {
+             Key::Ctrl('q') => {
+                 if self.quit_times > 0 && self.document.is_dirty(){
+                    self.status_message = StatusMessage::from(format!("WARNING! File has unsaved changes. Press Ctrl-Q {} more times to quit.", self.quit_times));;
+                    self.quit_times -=1;
+                     return Ok(());
+                 }
+                 self.should_quit = true
+             },
+             Key::Ctrl('s') => {
+                if self.document.file_name == None {
+                    let new_name = self.prompt("Save as: ")?;
+                    if let None = new_name{
+                        self.status_message = StatusMessage::from("Save aborted.".to_string());    
+                        return Ok(())
+                    } 
+                    self.document.file_name = new_name;
+                    
+                }
+                if let Ok(_) = self.document.save() {
+                    self.status_message = StatusMessage::from("File saved successfully.".to_string());
+                } else {
+                    self.status_message = StatusMessage::from("Error writing file!".to_string());
+                }
+             },
+             Key::Char(c) => {
+                self.document.insert(&self.cursor_position, c);
+                self.move_cursor(&Key::Right);
+             },
+             Key::Delete => self.document.delete(&self.cursor_position),
+             Key::Backspace => {
+                 self.move_cursor(&Key::Left);
+                 self.document.delete(&self.cursor_position);
+             }
+             Key::Up |
+             Key::Down |
+             Key::Left |
+             Key::Right |
+             Key::PageUp |
+             Key::PageDown |
+             Key::End |
+             Key::Home=>  self.move_cursor(&pressed_key),
+             _ => ()
+        }
+        self.scroll();
+        if self.quit_times < QUIT_TIMES {
+            self.quit_times = QUIT_TIMES;
+            self.status_message = StatusMessage::from(String::new());
+        }
+        
+        Ok(())
+    }
+```
+
+## Conclusion
+You have now successfully built a text editor. If you are brave, you can use `hecto` to work on `hecto`. In the next chapter, we will make use of `prompt()` to implement an incremental search feature in our editor.
