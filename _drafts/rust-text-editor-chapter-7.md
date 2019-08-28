@@ -17,7 +17,7 @@ Let's start by just getting some color on the screen, as simply as possible. We'
          self.render_with_renderer(start, end, |c| {
             if c == '\t' {
                ' '.to_string()
-            } else if let Some(_) = c.to_digit(10) {
+            } else if c.is_ascii_digit() {
                 format!("{}{}{}",termion::color::Fg(color::Rgb(220,163,163)),c,color::Fg(color::Reset))
             } else {
                 c.to_string()
@@ -149,7 +149,7 @@ Let's create a new `highlight` function in our row. This function will go throug
      fn highlight(&mut self) {
         let mut highlighting = Vec::new();
         for c in self.string.chars() {
-            if let Some(_) = c.to_digit(10) {
+            if c.is_ascii_digit() {
                 highlighting.push(HighlightingType::Number);
             } else {
                 highlighting.push(HighlightingType::None);
@@ -335,6 +335,791 @@ Now let's call this code from the 'Document' and the 'Editor'.
 
 The `document` simply calls `highlight_word` on all its rows. In the `Editor`, we highlight the word within the searrch closure, and we reset the highlighting after the search has been done.
 
-Try it out, and you will see that all search results light up in your terminal.
+Try it out, and you will see that all search results light up in your editor.
 
 
+## Colorful numbers
+Alright, letäs start working on highlighting numbers properly.
+
+Right now, nubers are highlighted even if they're part of an identifier, such as the 32 in `u32`. To fix that, we'll require that numbers are preceded by a separator character, which includes whitespace or punctuation characters. We can use `is_ascii_punctuation` and `is_ascii_whitespace` for that.
+
+```rust
+    fn highlight(&mut self) {
+        let mut highlighting = Vec::new();
+        let chars: Vec<char> = self.string.chars().collect();
+        let mut index = 0;
+        let mut prev_is_separator = true;
+        loop {
+            if index == self.len() {
+                break;
+            }
+            let previous_highlight;
+            if index > 0 {
+                previous_highlight = highlighting.get(index-1).unwrap_or(&HighlightingType::None);
+            } else {
+                previous_highlight = &HighlightingType::None;
+            }
+
+            let c = chars[index];
+            
+            if c.is_ascii_digit() && (prev_is_separator || previous_highlight == &HighlightingType::Number){
+                highlighting.push(HighlightingType::Number);
+            } else {
+                highlighting.push(HighlightingType::None);
+            }
+
+            prev_is_separator = c.is_ascii_punctuation() || c.is_ascii_whitespace();        
+            index +=1;
+        }        
+        self.highlighting = highlighting;
+    }
+```
+First, we have changed the `for..in` loop to a `loop`. This will help us consuming multiple characters at a time later on. For that, we create a vector of `char`s out of `self.string.chars` by using `collect()`.  
+We set `prev_is_separator` to `true`, otherwise numbers at the beginning of a line won't be highlighted.
+In the loop, we check if the current characters ia digit and the previous character is either a separator or was also highlighted as a number. We do not check directly if the previous characters was a number, because we are soon going to highlight dots as numbers as well, to cover decimal numbers.
+
+At the end of the loop, we set `prev_is_separator` to `true` if the current character is either an ascii punctiation or a whitespace, otherwise it's set to `false`. Then we increment `index` to consume the character.
+
+Now let's support highlighting numbers that contain decimal points.
+
+```rust
+    fn highlight(&mut self) {
+        let mut highlighting = Vec::new();
+        let chars: Vec<char> = self.string.chars().collect();
+        let mut index = 0;
+        let mut prev_is_separator = true;
+        loop {
+            if index == self.len() {
+                break;
+            }
+            let previous_highlight;
+            if index > 0 {
+                previous_highlight = highlighting.get(index-1).unwrap_or(&HighlightingType::None);
+            } else {
+                previous_highlight = &HighlightingType::None;
+            }
+
+            let c = chars[index];
+            
+            if (c.is_ascii_digit() && (prev_is_separator || previous_highlight == &HighlightingType::Number)) ||
+                (c == '.' && previous_highlight == &HighlightingType::Number) {
+                highlighting.push(HighlightingType::Number);
+            } else {
+                highlighting.push(HighlightingType::None);
+            }
+
+            prev_is_separator = c.is_ascii_punctuation() || c.is_ascii_whitespace();        
+            index +=1;
+        }        
+        self.highlighting = highlighting;
+    }
+```
+A `.` character that comes after a character that we just highlighted as a number will now be considered part of the number.
+
+## Detect file type
+Before we go on to highlihgt other things, we're going to add filetype detection to our editor. This will allow us to have different rules for how to highlight different types of files. For example, text files shouldn't have any highlighting, and Rust files should highlight numbers, strings, chars, comments and many keywords specific to Rust.
+
+Let's create a struct `FileType` which will hold our Filetype information for now.
+
+```rust
+#[derive(Default)]
+struct HighlightingOptions {
+    numbers: bool
+}
+
+struct FileType {
+    name: String,
+    hl_opts: HighlightingOptions
+}
+
+impl Default for FileType {
+    fn default() -> Self {
+        Self{
+            name: String::from("No filetype"),
+            hl_opts: HighlightingOptions::default()
+        }
+    }
+}
+
+pub struct Document {
+    rows: Vec<Row>,
+    pub file_name: Option<String>,
+    dirty: bool,
+    file_type: FileType
+}
+
+
+
+impl Document {
+    pub fn new() -> Document{
+        Document{
+            rows: Vec::new(),
+            file_name: None,
+            dirty: false,
+            file_type: FileType::default()
+        }
+    }
+    pub fn is_dirty(&self) -> bool {
+        self.dirty
+    }
+    pub fn open(file_name: &String ) -> Result<Document, Error> {
+        let contents = fs::read_to_string(file_name)?;
+        let mut rows = Vec::new();
+        for value in contents.lines() {
+            rows.push(Row::from(value));
+        }
+        Ok(Document{
+            rows,
+            file_name: Some(file_name.clone()),
+            dirty: false,
+            file_type: FileType::default()
+        })
+    }
+}
+
+```
+
+`HighlightingOptions` will hold a couple of booleans which determine whether or not a certain type should be highlighted. For now, we only add `numbers` to determine whether or not numbers should be highlighted. We use `#[derive(Default)]`  for this struct so that `HighlightOptions::default` returns `HighlightOptions` initialized with default values. Since `HighlightOptions` will only contain `bool`s, and the default for bools is `false`, this suits us well and means that when we add a highlighting option, we only need to change it where we need it, for everything else it will just be unused.
+
+We implement the same trait for `FileType`, this time, we set the string to `"No filetype"` and a default `HighlightingOptions` object. For now, we only use the default file type, even when opening files. Let's get the filetype displayed in the editor.
+
+```rust
+    fn draw_status_bar(&self) {
+        let mut status;
+        let width = self.terminal.size().width as usize;
+        let mut modified_indicator = "";
+        if self.document.is_dirty()  == true {
+            modified_indicator = " (modified)";
+        }
+        if let Some(name) = &self.document.file_name {
+            let mut filename_len = name.len();
+            if filename_len > 20 {
+                filename_len = 20;
+            }
+            status = format!("{} - {} lines{}", &name[..filename_len], self.document.len(), modified_indicator);
+        } else {
+            status = format!("[No Name]{}", modified_indicator);
+        }
+        let line_indicator = format!("{} | {}/{}",self.document.file_type.name, self.cursor_position.y+1, self.document.len());
+        let mut num_spaces = 0;
+        let len = status.len() + line_indicator.len();
+        if width > len {
+            num_spaces = width - len;
+        }
+        for _i in 0..num_spaces {
+            status.push_str(" ");
+        }
+        status = format!("{}{}", status, line_indicator);
+        status.truncate(width);
+        Terminal::set_bg_color(STATUS_BG_COLOR);
+        Terminal::set_fg_color(STATUS_FG_COLOR);
+        print!("{}\r\n",status);
+        Terminal::reset_fg_color();
+        Terminal::reset_bg_color();
+    }
+```
+Now we need a way to detect the file type and set the correct `Highlighting_Options`. 
+
+```rust
+impl FileType {
+    fn from(file_name: &String) -> Self {
+        if file_name.ends_with(".rs") {
+            return Self{
+                name: String::from("Rust"),
+                hl_opts: HighlightingOptions{
+                    numbers: true
+                }
+            }
+        }
+        Self::default()
+    }
+}
+  pub fn open(file_name: &String ) -> Result<Document, Error> {
+        let contents = fs::read_to_string(file_name)?;
+        let mut rows = Vec::new();
+        for value in contents.lines() {
+            rows.push(Row::from(value));
+        }
+        Ok(Document{
+            rows,
+            file_name: Some(file_name.clone()),
+            dirty: false,
+            file_type: FileType::from(file_name)
+        })
+    }
+    pub fn save(&mut self) -> Result<(), Error> {
+        if let Some(file_name) = &self.file_name {
+            let mut file = fs::File::create(file_name)?;
+            for row in self.rows.iter() {
+                file.write_all(row.to_string().as_bytes())?;
+                file.write_all(b"\n")?;
+            }
+            self.dirty = false;
+            self.file_type = FileType::from(file_name);
+        } else {
+            return Err(Error::new(ErrorKind::Other, "Can't save file!"))
+        }
+        Ok(())
+    }
+```
+We add a method to determine the file type from its name. If we can't, we simply return the `default` value. We set the file type on `open` and on `save`. You are now able to open a file, verify it displays the correct file type, and confirm that the file type changes when you change the file ending on save. Very satisfying!
+
+Now, let's actually highlight the files. For that, our rows need to know the highlighting type, which needs to be changed if the user saves, to account for the updated highlighting.
+
+```rust
+use crate::editor::document::HighlightingOptions;
+
+pub struct Row {
+    string: String,
+    highlighting: Vec<HighlightingType>,
+    len: usize,
+    hl_opts: Option<HighlightingOptions>
+}
+
+impl Row {
+    pub fn new() -> Row {
+        Row {
+            string: String::new(),
+            highlighting: Vec::new(),
+            len: 0,
+            hl_opts: None
+        }
+    }
+    pub fn from(slice: &str) -> Row{
+        let string = String::from(slice);
+        let mut row = Row {
+            len: string.chars().count(),
+            highlighting: Vec::new(),
+            string,
+            hl_opts: None
+        };
+        row.highlight();
+        row
+    }
+    pub fn set_highlight(&mut self, hl_opts: HighlightingOptions) {
+        self.hl_opts = Some(hl_opts);
+        self.highlight();
+    }
+}
+```
+We set and update the highlighting whenever the filetype changes in `document`.
+
+```rust
+pub fn open(file_name: &String ) -> Result<Document, Error> {
+        let contents = fs::read_to_string(file_name)?;
+        let file_type = FileType::from(file_name);
+        let mut rows = Vec::new();
+        for value in contents.lines() {
+            let mut row = Row::from(value);
+            row.set_highlight(file_type.hl_opts);
+            rows.push(row);
+        }
+        Ok(Document{
+            rows,
+            file_name: Some(file_name.clone()),
+            dirty: false,
+            file_type
+        })
+    }
+    pub fn save(&mut self) -> Result<(), Error> {
+        if let Some(file_name) = &self.file_name {
+            let mut file = fs::File::create(file_name)?;
+            self.file_type = FileType::from(file_name);
+            for row in self.rows.iter_mut() {
+                row.set_highlight(self.file_type.hl_opts);
+                file.write_all(row.to_string().as_bytes())?;
+                file.write_all(b"\n")?;
+            }
+            self.dirty = false;
+            
+        } else {
+            return Err(Error::new(ErrorKind::Other, "Can't save file!"))
+        }
+        Ok(())
+    }
+    fn insert_newline(&mut self, at: &Position) {
+        if at.y > self.len() {
+            return;
+        }
+        let mut new_row = Row::new();
+        new_row.set_highlight(self.file_type.hl_opts);
+        if at.y < self.len() {
+            let current_row = self.rows.get_mut(at.y).unwrap();
+            new_row.append(&current_row.to_string_range(at.x, current_row.len()));
+            current_row.truncate(at.x);
+        }  
+
+        if  at.y == self.len() ||  at.y + 1 == self.len() {
+            self.rows.push(new_row);
+        } else if at.y < self.len()-1 {
+            self.rows.insert(at.y+1, new_row)
+        }
+    }
+```
+
+Now, let's use the highlighting options to finally highlight numbers in Rust files:
+
+```rust
+ fn highlight(&mut self) {
+        let mut highlighting = Vec::new();
+        let chars: Vec<char> = self.string.chars().collect();
+        let mut index = 0;
+        let mut prev_is_separator = true;
+        loop {
+            if index == self.len() {
+                break;
+            }
+            let opts = self. hl_opts.unwrap_or_default();
+            let previous_highlight;
+            if index > 0 {
+                previous_highlight = highlighting.get(index-1).unwrap_or(&HighlightingType::None);
+            } else {
+                previous_highlight = &HighlightingType::None;
+            }
+
+            let c = chars[index];
+            if opts.numbers {
+                if (c.is_ascii_digit() && (prev_is_separator || previous_highlight == &HighlightingType::Number)) ||
+                    (c == '.' && previous_highlight == &HighlightingType::Number) {
+                        highlighting.push(HighlightingType::Number);            
+                } else {
+                        highlighting.push(HighlightingType::None);
+                }
+            } else {
+                highlighting.push(HighlightingType::None);
+            }
+
+            prev_is_separator = c.is_ascii_punctuation() || c.is_ascii_whitespace();        
+            index +=1;
+        }        
+        self.highlighting = highlighting;
+    }
+
+```
+
+## Colorful strings and characters
+With all that out of the way, we can finally get to highlighting more things! Let's start with strings and characters. We do both at the same time, as they are very similar.
+
+```rust
+#[derive(PartialEq)]
+enum HighlightingType {
+    None,
+    Number,
+    Match,
+    String,
+    Character
+}
+
+impl HighlightingType {
+    fn to_color(&self) -> impl color::Color {
+        match self {
+            HighlightingType::Number => color::Rgb(220,163,163),
+            HighlightingType::Match => color::Rgb(38,139,210),
+            HighlightingType::String => color::Rgb(211,54,130),
+            HighlightingType::Character => color::Rgb(108,113,196),
+            _ => color::Rgb(255,255,255),
+        }
+    }
+}
+
+```
+and in Document:
+
+```rust
+
+#[derive(Default, Clone, Copy)]
+pub struct HighlightingOptions {
+    numbers: bool,
+    strings: bool,
+    characters: bool
+}
+impl FileType {
+    fn from(file_name: &String) -> Self {
+        if file_name.ends_with(".rs") {
+            return Self{
+                name: String::from("Rust"),
+                hl_opts: HighlightingOptions{
+                    numbers: true,
+                    strings: true,
+                    characters: true
+                }
+            }
+        }
+        Self::default()
+    }
+}
+```
+Now for the actual highlighting code. We will use an `in_string` and `in_character` variable to keep track of whether we are currently inside a string or character. If we are, then we'll keep highlighting the current character as a string until we hit the closing quote.
+
+```rust
+ fn highlight(&mut self) {
+        let mut highlighting = Vec::new();
+        let chars: Vec<char> = self.string.chars().collect();
+        let mut index = 0;
+        let mut prev_is_separator = true;
+        let mut in_string = false;
+        let mut in_character = false;
+        loop {
+            if index == self.len() {
+                break;
+            }
+            let opts = self. hl_opts.unwrap_or_default();
+            let previous_highlight;
+            if index > 0 {
+                previous_highlight = highlighting.get(index-1).unwrap_or(&HighlightingType::None);
+            } else {
+                previous_highlight = &HighlightingType::None;
+            }
+
+            let c = chars[index];
+
+
+            if opts.strings {
+                if in_string {
+                    highlighting.push(HighlightingType::String);   
+                    if c == '"' {
+                        in_string = false;
+                        prev_is_separator = true;
+                    } else {
+                        prev_is_separator = false;
+                    }
+                    index +=1;
+                    continue;
+                } else if prev_is_separator && c == '"' {
+                    highlighting.push(HighlightingType::String);   
+                    in_string = true;
+                    prev_is_separator = true;
+                    index +=1;
+                    continue;
+                }
+                 
+            }
+            if opts.characters {
+                if in_character {
+                    highlighting.push(HighlightingType::Character);   
+                    if c == '\'' {
+                        in_character = false;
+                        prev_is_separator = true;
+                    } else {
+                        prev_is_separator = false;
+                    }
+                    index +=1;
+                    continue;
+                } else if prev_is_separator && c == '\'' {
+                    highlighting.push(HighlightingType::Character);   
+                    in_character = true;
+                    prev_is_separator = true;
+                    index +=1;
+                    continue;
+                }
+                 
+            }            
+
+            if opts.numbers {
+                if (c.is_ascii_digit() && (prev_is_separator || previous_highlight == &HighlightingType::Number)) ||
+                    (c == '.' && previous_highlight == &HighlightingType::Number && !prev_is_separator) {
+                        highlighting.push(HighlightingType::Number);            
+                        prev_is_separator = true;
+                        index +=1;
+                        continue;
+                }
+            } 
+
+            
+            
+            highlighting.push(HighlightingType::None);
+            
+
+            prev_is_separator = c.is_ascii_punctuation() || c.is_ascii_whitespace();        
+            index +=1;
+        }        
+        self.highlighting = highlighting;
+    }
+ 
+```
+
+The code for both cases is nearly identical (we will add an exception soon). Going through it from top to bottom: If `in_string` is set, then we know that the current character can be highlighted as a string. Then we check if the current character is the closing quote, and if so, we reset `in_string` to `0`. Then, since we highlighted the current character, we have to consume it by incrementing `index` and `continue`ing out of the current loop iteration. We also set `prev_is_separator` to `true` so that if we're done highlighting the string, the closing quote is considered a separator.
+
+IF we're not currently in a string, then we have to check if we're at the beginning of one by checking for the starting quote. If we are, we set `in_string` to `true`, highlight the quote and consume it. 
+
+Except for the difference in variable names and the quotes, we do the same for characters.
+
+We should probably take escaped quotes into account when highlighting strings and characters. If the sequence `\"` occurs in a string, then the escaped quote doesn't close the string in the vast majority of languages. 
+
+```rust
+   fn highlight(&mut self) {
+        let mut highlighting = Vec::new();
+        let chars: Vec<char> = self.string.chars().collect();
+        let mut index = 0;
+        let mut prev_is_separator = true;
+        let mut in_string = false;
+        let mut in_character = false;
+        loop {
+            if index >= chars.len() {
+                break;
+            }
+            let opts = self. hl_opts.unwrap_or_default();
+            let previous_highlight;
+            if index > 0 {
+                previous_highlight = highlighting.get(index-1).unwrap_or(&HighlightingType::None);
+            } else {
+                previous_highlight = &HighlightingType::None;
+            }
+
+            let c = chars[index];
+
+
+            if opts.strings {
+                if in_string {
+                    highlighting.push(HighlightingType::String); 
+                    if c == '\\' && index + 1 < self.len() {
+                        highlighting.push(HighlightingType::String); 
+                        index +=2;
+                        continue;
+                    }  
+                    if c == '"' {
+                        in_string = false;
+                        prev_is_separator = true;
+                    } else {
+                        prev_is_separator = false;
+                    }
+                    index +=1;
+                    continue;
+                } else if prev_is_separator && c == '"' {
+                    highlighting.push(HighlightingType::String);   
+                    in_string = true;
+                    prev_is_separator = true;
+                    index +=1;
+                    continue;
+                }
+                 
+            }
+            if opts.characters {
+                if in_character {
+                    highlighting.push(HighlightingType::Character);   
+                    if c == '\\' && index + 1 < chars.len() {
+                        highlighting.push(HighlightingType::Character); 
+                        index +=2;
+                        continue;
+                    }                      
+                    if c == '\'' {
+                        in_character = false;
+                        prev_is_separator = true;
+                    } else {
+                        prev_is_separator = false;
+                    }
+                    index +=1;
+                    continue;
+                } else if prev_is_separator && c == '\'' {
+                    highlighting.push(HighlightingType::Character);   
+                    in_character = true;
+                    prev_is_separator = true;
+                    index +=1;
+                    continue;
+                }
+                 
+            }            
+
+            if opts.numbers {
+                if (c.is_ascii_digit() && (prev_is_separator || previous_highlight == &HighlightingType::Number)) ||
+                    (c == '.' && previous_highlight == &HighlightingType::Number && !prev_is_separator) {
+                        highlighting.push(HighlightingType::Number);            
+                        prev_is_separator = true;
+                        index +=1;
+                        continue;
+                }
+            } 
+
+            
+            
+            highlighting.push(HighlightingType::None);
+            
+
+            prev_is_separator = c.is_ascii_punctuation() || c.is_ascii_whitespace();        
+            index +=1;
+        }        
+        self.highlighting = highlighting;
+    }
+```
+If we're in a string and the current character is a `\`, _and_ there is at least one more character in that line that comes after the backslash, then we highligh the character that comes after the backslash with `HighlightingType::String` and consume it. We increment `index` by `2` to consume both characters at once.
+
+In Rust, our character highlighting still has a bug. Rust has a concept called [Lifetimes](https://doc.rust-lang.org/1.9.0/book/lifetimes.html), and a lifetime can be indicated with a single `'`. Our highlighting does not account for this. Our highlighting is a bit overeager for characters anyways, since it allows the same content between two single quotes as strings. Let's make character detection a bit more sophisticated.
+
+```rust
+        if opts.characters {
+                if c == '\'' &&  index + 2 < chars.len()  {
+                    let mut last_index = index + 2;
+                    let next_char = chars[index+1];
+                    if next_char == '\\' && index + 3 < chars.len() {
+                        last_index +=1;
+                    }
+                    let last_char = chars[last_index];
+                    if last_char == '\'' {
+                        for _ in index..last_index + 1 {
+                            highlighting.push(HighlightingType::Character); 
+                            index +=1;
+                            prev_is_separator = true;
+                            
+                        }
+                        continue;
+                    }
+
+                }                 
+            }    
+```
+
+We got rid of `in_character` again. If we encounter a `'`, we now look at the next two characters as well. Then we check if the next character is a `\`. If it is, we also look at another character. Then we check the last character. If it is a closing `'`, we highlight and consume all the characters in between and end the current iteration of the loop. This means that in our syntax highlighting, we only allow one character between two single quotes, unless there is an escaped character.
+
+## Colorful single-line comments
+Next, let's highlight single-line comments. (We'll leave multi-line comments until the end, because they're complicated).
+
+```rust
+
+#[derive(Default, Clone, Copy)]
+pub struct HighlightingOptions {
+    numbers: bool,
+    strings: bool,
+    characters: bool,
+    comments: bool
+}
+impl FileType {
+    fn from(file_name: &String) -> Self {
+        if file_name.ends_with(".rs") {
+            return Self{
+                name: String::from("Rust"),
+                hl_opts: HighlightingOptions{
+                    numbers: true,
+                    strings: true,
+                    characters: true,
+                    comments: true
+                }
+            }
+        }
+        Self::default()
+    }
+}
+
+```
+
+```rust 
+#[derive(PartialEq)]
+enum HighlightingType {
+    None,
+    Number,
+    Match,
+    String,
+    Character,
+    Comments
+}
+
+impl HighlightingType {
+    fn to_color(&self) -> impl color::Color {
+        match self {
+            HighlightingType::Number => color::Rgb(220,163,163),
+            HighlightingType::Match => color::Rgb(38,139,210),
+            HighlightingType::String => color::Rgb(211,54,130),
+            HighlightingType::Character => color::Rgb(108,113,196),
+            HighlightingType::Comments => color::Rgb(133,153,0),
+            _ => color::Rgb(255,255,255),
+        }
+    }
+}
+    fn highlight(&mut self) {
+        let mut highlighting = Vec::new();
+        let chars: Vec<char> = self.string.chars().collect();
+        let mut index = 0;
+        let mut prev_is_separator = true;
+        let mut in_string = false;
+        loop {
+            if index >= chars.len() {
+                break;
+            }
+            let opts = self. hl_opts.unwrap_or_default();
+            let previous_highlight;
+            if index > 0 {
+                previous_highlight = highlighting.get(index-1).unwrap_or(&HighlightingType::None);
+            } else {
+                previous_highlight = &HighlightingType::None;
+            }
+
+            let c = chars[index];
+
+
+            if opts.strings {
+                if in_string {
+                    highlighting.push(HighlightingType::String); 
+                    if c == '\\' && index + 1 < chars.len() {
+                        highlighting.push(HighlightingType::String); 
+                        index +=2;
+                        continue;
+                    }  
+                    if c == '"' {
+                        in_string = false;
+                        prev_is_separator = true;
+                    } 
+
+                    index +=1;
+                    continue;
+                } else if prev_is_separator && c == '"' {
+                    highlighting.push(HighlightingType::String);   
+                    in_string = true;
+                    index +=1;
+                    continue;
+                }
+                 
+            }
+            if opts.characters {
+                if c == '\'' &&  index + 2 < chars.len()  {
+                    let mut last_index = index + 2;
+                    let next_char = chars[index+1];
+                    if next_char == '\\' && index + 3 < chars.len() {
+                        last_index +=1;
+                    }
+                    let last_char = chars[last_index];
+                    if last_char == '\'' {
+                        for _ in index..last_index + 1 {
+                            highlighting.push(HighlightingType::Character); 
+                            index +=1;
+                            prev_is_separator = true;
+                            
+                        }
+                        continue;
+                    }
+
+                }                 
+            }         
+            if opts.comments {
+                if c == '/' && self.find(&"//".to_string(), index, SearchDirection::Forward).unwrap_or(index+1) == index {
+                    for _ in index..chars.len() {
+                        highlighting.push(HighlightingType::Comments);
+                        
+                    }
+                    break;
+                }
+            }   
+
+            if opts.numbers {
+                if (c.is_ascii_digit() && (prev_is_separator || previous_highlight == &HighlightingType::Number)) ||
+                    (c == '.' && previous_highlight == &HighlightingType::Number && !prev_is_separator) {
+                        highlighting.push(HighlightingType::Number);            
+                        prev_is_separator = true;
+                        index +=1;
+                        continue;
+                }
+            } 
+
+            
+            
+            highlighting.push(HighlightingType::None);
+            
+
+            prev_is_separator = c.is_ascii_punctuation() || c.is_ascii_whitespace();        
+            index +=1;
+        }        
+        self.highlighting = highlighting;
+    }
+
+```
+If we are encountering an `/`, we are checking if we can find `//` at our current position. If yes, we highlight the rest of the row as a comment and end the highlihgting of the current row. We are doing comment highlihgting after checking for strings, so that comment starts within strings are not highlighted.
+
+## Colorful keywords
