@@ -1123,3 +1123,408 @@ impl HighlightingType {
 If we are encountering an `/`, we are checking if we can find `//` at our current position. If yes, we highlight the rest of the row as a comment and end the highlihgting of the current row. We are doing comment highlihgting after checking for strings, so that comment starts within strings are not highlighted.
 
 ## Colorful keywords
+Now let's turn to highlighting keywords. We're going to allow languages to specify two types of keywords that will be highlighted in different colors. (IN Rust, we'll highlight actual keywords in one color and common type names in the other color).
+
+```rust
+#[derive(PartialEq)]
+enum HighlightingType {
+    None,
+    Number,
+    Match,
+    String,
+    Character,
+    Comments,
+    PrimaryKeywords,
+    SecondaryKeywords
+}
+
+impl HighlightingType {
+    fn to_color(&self) -> impl color::Color {
+        match self {
+            HighlightingType::Number => color::Rgb(220,163,163),
+            HighlightingType::Match => color::Rgb(38,139,210),
+            HighlightingType::String => color::Rgb(211,54,130),
+            HighlightingType::Character => color::Rgb(108,113,196),
+            HighlightingType::Comments => color::Rgb(133,153,0),
+            HighlightingType::PrimaryKeywords => color::Rgb(181,137,0),
+            HighlightingType::SecondaryKeywords => color::Rgb(42,161,152),
+            _ => color::Rgb(255,255,255),
+        }
+    }
+}
+
+```
+Let's add two `Vector`s to the `HighlightingOptions`, one for primary, one for secondary keywords.
+
+```rust
+use crate::editor::{Position, SearchDirection};
+use std::fs;
+mod row;
+pub use row::Row;
+use std::io::{Error,Write, ErrorKind};
+
+#[derive(Default, Clone)]
+pub struct HighlightingOptions {
+    numbers: bool,
+    strings: bool,
+    characters: bool,
+    comments: bool,
+    primary_keywords: Vec<String>,
+    secondary_keywords: Vec<String>,
+}
+
+
+pub struct FileType {
+    pub name: String,
+    hl_opts: HighlightingOptions
+}
+
+impl Default for FileType {
+    fn default() -> Self {
+        Self{
+            name: String::from("No filetype"),
+            hl_opts: HighlightingOptions::default()
+        }
+    }
+}
+
+impl FileType {
+    fn from(file_name: &String) -> Self {
+        if file_name.ends_with(".rs") {
+            Self{
+                name: String::from("Rust"),
+                hl_opts: HighlightingOptions{
+                    numbers: true,
+                    strings: true,
+                    characters: true,
+                    comments: true,
+                    primary_keywords: vec![
+                        "as".to_string(),
+                        "break".to_string(),
+                        "const".to_string(),
+                        "continue".to_string(),
+                        "crate".to_string(),
+                        "else".to_string(),
+                        "enum".to_string(),
+                        "extern".to_string(),
+                        "false".to_string(),
+                        "fn".to_string(),
+                        "for".to_string(),
+                        "if".to_string(),
+                        "impl".to_string(),
+                        "in".to_string(),
+                        "let".to_string(),
+                        "loop".to_string(),
+                        "match".to_string(),
+                        "mod".to_string(),
+                        "move".to_string(),
+                        "mut".to_string(),
+                        "pub".to_string(),
+                        "ref".to_string(),
+                        "return".to_string(),
+                        "self".to_string(),
+                        "Self".to_string(),
+                        "static".to_string(),
+                        "struct".to_string(),
+                        "super".to_string(),
+                        "trait".to_string(),
+                        "true".to_string(),
+                        "type".to_string(),
+                        "unsafe".to_string(),
+                        "use".to_string(),
+                        "where".to_string(),
+                        "while".to_string(),
+                        "dyn".to_string(),
+                        "abstract".to_string(),
+                        "become".to_string(),
+                        "box".to_string(),
+                        "do".to_string(),
+                        "final".to_string(),
+                        "macro".to_string(),
+                        "override".to_string(),
+                        "priv".to_string(),
+                        "typeof".to_string(),
+                        "unsized".to_string(),
+                        "virtual".to_string(),
+                        "yield".to_string(),
+                        "async".to_string(),
+                        "await".to_string(),
+                        "try".to_string(),
+                        ],
+                    secondary_keywords: vec![
+                        "bool".to_string(),
+                        "char".to_string(),
+                        "i8".to_string(),
+                        "i16".to_string(),
+                        "i32".to_string(),
+                        "i64".to_string(),
+                        "isize".to_string(),
+                        "u8".to_string(),
+                        "u16".to_string(),
+                        "u32".to_string(),
+                        "u64".to_string(),
+                        "usize".to_string(),
+                        "f32".to_string(),
+                        "f64".to_string(),
+                        ],
+                }
+            }
+        } else {
+            Self::default()
+        }
+        
+    }
+}
+```
+
+We can't automatically derive the `Copy` trait any more, so we need to adjust the rest of our code a bit:
+
+```rust
+  pub fn open(file_name: &String ) -> Result<Document, Error> {
+        let contents = fs::read_to_string(file_name)?;
+        let file_type = FileType::from(file_name);
+        let mut rows = Vec::new();
+        for value in contents.lines() {
+            let mut row = Row::from(value);
+            row.set_highlight(file_type.hl_opts.clone());
+            rows.push(row);
+        }
+        Ok(Document{
+            rows,
+            file_name: Some(file_name.clone()),
+            dirty: false,
+            file_type
+        })
+    }
+    pub fn save(&mut self) -> Result<(), Error> {
+        if let Some(file_name) = &self.file_name {
+            let mut file = fs::File::create(file_name)?;
+            self.file_type = FileType::from(file_name);
+            for row in self.rows.iter_mut() {
+                row.set_highlight(self.file_type.hl_opts.clone());
+                file.write_all(row.to_string().as_bytes())?;
+                file.write_all(b"\n")?;
+            }
+            self.dirty = false;
+            
+        } else {
+            return Err(Error::new(ErrorKind::Other, "Can't save file!"))
+        }
+        Ok(())
+    }
+     fn insert_newline(&mut self, at: &Position) {
+        if at.y > self.len() {
+            return;
+        }
+        let mut new_row = Row::new();
+        new_row.set_highlight(self.file_type.hl_opts.clone());
+        if at.y < self.len() {
+            let current_row = self.rows.get_mut(at.y).unwrap();
+            new_row.append(&current_row.to_string_range(at.x, current_row.len()));
+            current_row.truncate(at.x);
+        }  
+
+        if  at.y == self.len() ||  at.y + 1 == self.len() {
+            self.rows.push(new_row);
+        } else if at.y < self.len()-1 {
+            self.rows.insert(at.y+1, new_row)
+        }
+    }
+```
+Now that we have the keywords available, let's highlight them. We start with the primary keywords first.
+
+```rust
+ fn highlight(&mut self) {
+        let mut highlighting = Vec::new();
+        let chars: Vec<char> = self.string.chars().collect();
+        let mut index = 0;
+        let mut prev_is_separator = true;
+        let mut in_string = false;
+        'outer: loop {
+            if index >= chars.len() {
+                break;
+            }
+            let mut opts = &HighlightingOptions::default();
+            if !self.hl_opts.is_none() {
+               opts = self.hl_opts.as_ref().unwrap()
+            } 
+            let previous_highlight;
+            if index > 0 {
+                previous_highlight = highlighting.get(index-1).unwrap_or(&HighlightingType::None);
+            } else {
+                previous_highlight = &HighlightingType::None;
+            }
+
+            let c = chars[index];
+
+
+            if opts.strings {
+                if in_string {
+                    highlighting.push(HighlightingType::String); 
+                    if c == '\\' && index + 1 < chars.len() {
+                        highlighting.push(HighlightingType::String); 
+                        index +=2;
+                        continue;
+                    }  
+                    if c == '"' {
+                        in_string = false;
+                        prev_is_separator = true;
+                    } 
+
+                    index +=1;
+                    continue;
+                } else if prev_is_separator && c == '"' {
+                    highlighting.push(HighlightingType::String);   
+                    in_string = true;
+                    index +=1;
+                    continue;
+                }
+                 
+            }
+            if opts.characters {
+                if c == '\'' &&  index + 2 < chars.len()  {
+                    let mut last_index = index + 2;
+                    let next_char = chars[index+1];
+                    if next_char == '\\' && index + 3 < chars.len() {
+                        last_index +=1;
+                    }
+                    let last_char = chars[last_index];
+                    if last_char == '\'' {
+                        for _ in index..last_index + 1 {
+                            highlighting.push(HighlightingType::Character); 
+                            index +=1;
+                            prev_is_separator = true;
+                            
+                        }
+                        continue;
+                    }
+
+                }                 
+            }         
+            if opts.comments {
+                if c == '/' && self.find(&"//".to_string(), index, SearchDirection::Forward).unwrap_or(index+1) == index {
+                    for _ in index..chars.len() {
+                        highlighting.push(HighlightingType::Comments);
+                        
+                    }
+                    break;
+                }
+            }   
+
+          if  prev_is_separator {
+                for keyword in opts.primary_keywords.iter() {
+                    let length = keyword.chars().count();
+                    if index + length >= self.len() {
+                        continue;
+                    }
+                    if self.string[index..index+keyword.len()].find(keyword).is_none() {
+                        continue;
+                    }
+                    for _ in index..index+length {
+                         highlighting.push(HighlightingType::PrimaryKeywords);
+                    }
+                    index += length;
+                    continue 'outer;
+                    
+                    
+              }
+    
+            }
+            
+
+            if opts.numbers {
+                if (c.is_ascii_digit() && (prev_is_separator || previous_highlight == &HighlightingType::Number)) ||
+                    (c == '.' && previous_highlight == &HighlightingType::Number && !prev_is_separator) {
+                        highlighting.push(HighlightingType::Number);            
+                        prev_is_separator = true;
+                        index +=1;
+                        continue;
+                }
+            } 
+
+            
+            
+            highlighting.push(HighlightingType::None);
+            
+
+            prev_is_separator = c.is_ascii_punctuation() || c.is_ascii_whitespace();        
+            index +=1;
+        }        
+        
+        self.highlighting = highlighting;
+    }
+```
+Let's go through this change step by step. We have positioned our highlighting after the highlighting of comments and strings, to make sure that keywords within a comment or a string are not highlighted. Then, we require that the character before a keyword is a separator, to make sure we do not highlight the `as` in `whereas`. Then we go through all the keywords and check for each keyword if it would fit into the remainder of the current row. If not, we contiunue with the next keyword. Then, we do a few things at once: we slice the row starting with the current index and ending with the length of the keyword, before we check if that remaining slice contains the keyword itself. If not, we continue. If so, we have found the keyword we where looking for, so we highlight the keyword and consume it before continuing.
+
+We are using nested loops here: We are within a `for` loop and want to continue with the outermost loop. In order to do that, we have [labelled](https://doc.rust-lang.org/rust-by-example/flow_control/loop/nested.html) the outer loop to be able to cleanly continue with it from within the inner `for` loop.
+
+Now let's fix a quick bug: We require a keyword to be followed by a separator, so that we do not highlight the `do` in `document`. And we need to make sure that our keyword is not treated as a separator for the following characters.
+
+```rust
+
+      if  prev_is_separator {
+                for keyword in opts.primary_keywords.iter() {
+                    let length = keyword.chars().count();
+                    if index + length >= chars.len() {
+                        continue;
+                    }
+                    if self.string[index..index+keyword.len()].find(keyword).is_none() {
+                        continue;
+                    }
+                    if index + length < chars.len() {
+                        let next_char =  chars[index+length];
+                        if !next_char.is_ascii_punctuation() && !next_char.is_ascii_whitespace() {
+                            continue;
+                        }
+                    }
+
+                    for _ in index..index+length {
+                         highlighting.push(HighlightingType::PrimaryKeywords);
+                         index +=1;
+                    }
+                    prev_is_separator = false;
+                    continue 'outer;
+                    
+                    
+              }
+    
+            }
+```
+
+Now, let's try and highlight secondary keywords as well.
+
+
+```rust
+        if  prev_is_separator {
+              for (keywords, highlighting_type) in [(opts.primary_keywords.iter(), HighlightingType::PrimaryKeywords), (opts.secondary_keywords.iter(), HighlightingType::SecondaryKeywords)].iter_mut(){
+                for keyword in keywords {
+                                let length = keyword.chars().count();
+                                if index + length >= chars.len() {
+                                    continue;
+                                }
+                                if self.string[index..index+keyword.len()].find(keyword).is_none() {
+                                    continue;
+                                }
+                                if index + length < chars.len() {
+                                    let next_char =  chars[index+length];
+                                    if !next_char.is_ascii_punctuation() && !next_char.is_ascii_whitespace() {
+                                        continue;
+                                    }
+                                }
+
+                                for _ in index..index+length {
+                                    highlighting.push(*highlighting_type);
+                                    index +=1;
+                                }
+                                prev_is_separator = false;
+                                continue 'outer;
+                                
+                                
+                 }
+              }
+         
+    
+            }
+```
+
+We have now added another loop around the inner loop, which loops over an array with two tuples. Tuples are collection of different types, and constructed with `()`. Our tuple contains both the iterator and the highlighting type for said iterator. More on tuples [can be found in the documentation.](https://doc.rust-lang.org/rust-by-example/primitives/tuples.html)
