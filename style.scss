@@ -1012,6 +1012,16 @@ kbd:active kbd {
   background: none;
 }
 
+// Diff2HTML
+.diff  table tr td {
+  padding: 0;
+  border-top: none;
+  border: none;
+}
+.diff table tr {
+  border-top: 0px;
+}
+
 // Settled on moving the import of syntax highlighting to the bottom of the CSS
 // ... Otherwise it really bloats up the top of the CSS file and makes it difficult to find the start
 @import "highlights";

@@ -33,3 +33,6 @@ I'm happy that you read my work and would love to [hear from you]({{ site.baseur
 3. Raw User Input and Output
 4. A Text Viewer
 5. A Text Editor
+6. Search
+7. Syntax Highlighting
+8. Appendices
