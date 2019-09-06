@@ -1528,3 +1528,8 @@ Now, let's try and highlight secondary keywords as well.
 ```
 
 We have now added another loop around the inner loop, which loops over an array with two tuples. Tuples are collection of different types, and constructed with `()`. Our tuple contains both the iterator and the highlighting type for said iterator. More on tuples [can be found in the documentation.](https://doc.rust-lang.org/rust-by-example/primitives/tuples.html)
+
+WHen you open your editor now, you should be able to see primary and secondary keywords highlighted.
+
+## Colorful multi-line comments
+Okay, we have one last feature to implement: multi-line comment highlighting.
