@@ -3,7 +3,7 @@
 [
   {% for post in site.posts %}
     {
-      "title"    : "{% if post.title != "" %}{{ post.title | escape }}{% else %}{{ post.excerpt | strip_html |  escape | strip }}{%endif%}",
+      "title"    : "{% if post.title != "" %}{{ post.title | escape }}{% else %}{{ post.excerpt | strip_newlines  | strip_html |  escape | strip }}{%endif%}",
       "url"      : "{{ site.baseurl }}{{ post.url }}",
       "category" : "{{ post.categories | join: ', '}}",
       "date"     : "{{ post.date | date: "%B %e, %Y" }}"
