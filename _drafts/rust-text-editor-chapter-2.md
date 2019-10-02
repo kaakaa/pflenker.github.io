@@ -1,43 +1,35 @@
 ---
-layout: post
+layout: postwithdiff
 title: "Hecto, Chapter 2: Reading User Input"
 categories: [Rust, hecto]
 ---
 
 Let’s try and read keypresses from the user. Remove the line with "Hello, world" from `main` and change your code as follows:
 
-```rust
-use std::io::{self, Read};
+{% include hecto/read-keys.html %}
 
-fn main() {
-    for b in io::stdin().bytes() {
-        let c = b.unwrap() as char;
-        println!("{}", c);
-    }
-}
-```
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/read-keys)</small>
+
 Play around with that program and try to find out how it works. To stop it, press <kbd>Ctrl-C</kbd>.
 
-First, we are using `use` to import things into our program. `use std::io::{self, Read}` is short for:
+First, we are using `use` to import things into our program. We would like to do something with the input/output of the system, `io` in short. So we use  `use std::io::{self, Read}`, which imports `io` for us and is short for:
 
 ```rust
 use std::io;
 use std::io::Read;
 ```
-After this, we are able to use `io` in our code, and bringing `Read` into our code enables us to use `bytes()`. Try running your code without importing `Read`, and the compiler will exit with an error explaining that `Read` needs, in fact, to be in scope, because it brings the implementation of `bytes` with it. This concept is called a *trait*, and while we will be using traits a lot by importing them, we won't be working with them directly in this tutorial. The [documentation on traits](https://doc.rust-lang.org/book/ch10-02-traits.html) is definitely something to add on your reading list!
+After this, we are able to use `io` in our code, and bringing `Read` into our code enables us to use `bytes()`. Try running your code without importing `Read`, and the compiler will exit with an error explaining that `Read` needs, in fact, to be in scope, because it brings the implementation of `bytes` with it. This concept is called a *trait*, and we will take a deeper look at traits later in this tutorial. The [documentation on traits](https://doc.rust-lang.org/book/ch10-02-traits.html) is definitely something to add on your reading list!
 
 If you are new to Rust, don't worry. We have a bit of learning to do in the beginning, but future code additions won't bring as many new concepts at once as this one.
 
-The next line does a lot of things at once, which can be summarized as "For every byte you can read from the keyboard, bind it to `c` and execute the following block".
+The first line in `main` does a lot of things at once, which can be summarized as "For every byte you can read from the keyboard, bind it to `b` and execute the following block".
 
-Let's unravel that statement. `io::stdin()` calls a method called `stdin` from `io`, which we just imported. `stdin` represents the [Standard Input Stream](https://en.wikipedia.org/wiki/Standard_streams#Standard_input_(stdin)), which, simply put, gives you access to everything that can be put into your program.
+Let's unravel that line.  `io::stdin()` means that we want to call a method called `stdin` from `io` - `io` being one of the things we just imported. `stdin` represents the [Standard Input Stream](https://en.wikipedia.org/wiki/Standard_streams#Standard_input_(stdin)), which, simply put, gives you access to everything that can be put into your program.
 
 Calling `bytes()` next returns something we can *iterate over*, or in other words: Something which lets us perform the same task on a series of elements. In Rust, same as many other languages, [this concept is called an Iterator.](https://doc.rust-lang.org/book/ch13-02-iterators.html)
 
-Using an iterator allows us to build a loop with `for..in`. With `for..in` in combination with `bytes()`, we are asking rust to read byte from the standard input into the variable `b`, and to keep doing
-it until there are no more bytes to read. The block after `for..in` returns the byte that it read, and will end when it reaches the end of a file.
-
-We will explain `unwrap` and `println!` later in this tutorial.
+Using an Iterator allows us to build a loop with `for..in`. With `for..in` in combination with `bytes()`, we are asking rust to read byte from the standard input into the variable `b`, and to keep doing
+it until there are no more bytes to read. The two lines after `for..in` print out each character - ee will explain `unwrap` and `println!` later - and return if there is nothing more to read.
 
 When you run `./hecto`, your terminal gets hooked up to the standard input, and so your keyboard input gets read into the `b` variable. However, by default your terminal starts in **canonical mode**, also called **cooked mode**. In this mode, keyboard input is only sent to your program when the user presses <kbd>Enter</kbd>. This is useful for many programs: it lets the user type in a line of text, use <kbd>Backspace</kbd> to fix errors until they get their input exactly the way they want it, and finally press <kbd>Enter</kbd> to send it to the program. But it does not work well for programs with more complex user interfaces, like text editors. We want to process each keypress as it comes in, so we can respond to it immediately.
 
@@ -50,57 +42,49 @@ What we want is **raw mode**. Fortunately, there are external libraries availabl
 To demonstrate how canonical mode works, we'll have the program exit when it
 reads a <kbd>q</kbd> keypress from the user.
 
-```rust
-use std::io::{self, Read};
+{% include hecto/q-to-quit.html %}
 
-fn main() {
-    for b in io::stdin().lock().bytes() {
-        let c = b.unwrap() as char;
-        println!("read char  {}", c);
-        if c == 'q' {
-            break;
-        }
-    }
-}
-```
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/q-to-quit)</small>
+
 Note that in Rust, characters require single quotes, `'` , instead of double quotes, `"`, to work!
 
-To quit this program, you will have to type a line of text that includes a `q` in it, and then press enter. The program will quickly read the line of text one character at a time until it reads the `q`, at which point the `for..in` loop will stop and the program will exit. Any characters after the `q` will be left unread on the input queue, and you may see that input being fed into your shell after your program exits.
+To quit this program, you will have to type a line of text that includes a `q` in it, and then press enter. The program will quickly read the line of text one character at a time until it reads the `q`, at which point the `for..in` loop will stop and the program will exit. Any characters after the `q` will be left unread on the input queue and not printed out. Rust discards them while exiting.
 
 ## Entering raw mode by using termion
-Open the `Cargo.toml` file. Change the `[dependencies]` section of that file to look like this:
-```toml
-[dependencies]
-termion = "1"
-```
+Change your `Cargo.toml` as follows:
+
+{% include hecto/add-termion.html %}
+
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/add-termion)</small>
+
 With this, we are telling `cargo` that we want to have a dependency called `termion`, in the version 1. Cargo follows a concept called [Semantic Versioning](https://semver.org/), where a program version usually consists of three numbers (like 0.1.0), and by convention, no breaking change occurs as long as the first number stays constant. That means that if you develop against `termion v1.5.0`, your program will also work with `termion v1.5.1` or even `termion v1.7.0`. This is useful, because it means that we are getting bugfixes and new features, but the existing features can still be used without us having to change our code.
 By setting `temion = "1"`, we are making sure we are getting the latest version starting with `1`.
 
-Next time you run `cargo build` or `cargo run`, the new dependency, `termion` will be downloaded and compiled.
+Next time you run `cargo build` or `cargo run`, the new dependency, `termion` will be downloaded and compiled, and the output will look something like this:
+```bash
+   Compiling libc v0.2.62
+   Compiling numtoa v0.1.0
+   Compiling termion v1.5.3
+   Compiling hecto v0.1.0 (/home/philipp/repositories/hecto)
+    Finished dev [unoptimized + debuginfo] target(s) in 7.83s
 
-`termion` comes with dependencies itself, and `cargo` downloads and compiles them, too. You might notice that the `Cargo.lock` has also changed: It now contains the exact names and versions of all packages and dependencies which have been installed. This is helpful to avoid "Works on my machine" - bugs if you are working on a team, where you are encountering a bug in, say, `termion v1.2.3`, while your co-worker is on `termion v1.2.4` and doesn't see it.
-
-Now change the `main.rs` as follows:
-```rust
-use std::io::{self,stdout, Read};
-use termion::raw::IntoRawMode;
-
-fn main() {
-    let _stdout = stdout().into_raw_mode().unwrap();
-
-    for b in io::stdin().bytes() {
-        let c = b.unwrap() as char;
-        println!("{}", c);
-        if c == 'q' {
-            break;
-        }
-    }
-}
 ```
 
-There are a few things to note here. First, we are using `termion` to set `stdout`, the [counterpart of `stdin` from above](https://en.wikipedia.org/wiki/Standard_streams#Standard_output_(stdout))  into raw mode. But why are we calling that method on `stdout` to change how we read from `stdin`? The answer is that terminals have their states controlled by the writer, not the reader. The writer is used to draw on the screen or move the cursor, so it is also used to change the mode as well.
+As you can see, `termion` comes with dependencies itself, and `cargo` downloads and compiles them, too. You might notice that the `Cargo.lock` has also changed: It now contains the exact names and versions of all packages and dependencies which have been installed. This is helpful to avoid "Works on my machine" - bugs if you are working on a team, where you are encountering a bug in, say, `termion v1.2.3`, while your co-worker is on `termion v1.2.4` and doesn't see it.
 
-Second, we are not using the value in  `_stdout`. Why? Because this is our first encounter with Rust's [Ownership System](https://doc.rust-lang.org/book/ch04-00-understanding-ownership.html). To brutally summarize a complex concept, functions can *own* certain things. Un-owned things will be removed, and  `into_raw_mode` returns a `RawTerminal` which, once it goes out of scope, will reset the terminal into canonical mode, so we need to keep it around by binding it to `_stdout`. You can try it out by removing `let _stdout =` - the terminal won't stay in raw mode.
+Now change the `main.rs` as follows:
+
+{% include hecto/into-raw-mode.html %}
+
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/into-raw-mode)</small>
+
+Try it out, and you will notice that every character you type in is immediately printed out, and as soon as you type `q`, the program ends.
+
+So what did we do?
+
+There are a few things to note here. First, we are using `termion` to provide `stdout`, the [counterpart of `stdin` from above](https://en.wikipedia.org/wiki/Standard_streams#Standard_output_(stdout)) with a function called `into_raw_mode()`, which we are calling. But why are we calling that method on `stdout` to change how we read from `stdin`? The answer is that terminals have their states controlled by the writer, not the reader. The writer is used to draw on the screen or move the cursor, so it is also used to change the mode as well.
+
+Second, we are assigning the result of `into_raw_mode` to a variable named `_stdout` but we are not using it. Why? Because this is our first encounter with Rust's [Ownership System](https://doc.rust-lang.org/book/ch04-00-understanding-ownership.html). To brutally summarize a complex concept, functions can *own* certain things. Un-owned things will be removed. `into_raw_mode` modifies the terminal and returns a value which, once it is removed, will reset the terminal into canonical mode - so we need to keep it around by binding it to `_stdout`. You can try it out by removing `let _stdout =` - the terminal won't stay in raw mode.
 
 By prefixing the variable with a `_`, we are actually telling others reading our code that we want to hold on to `_stdout` even though we are not using it. Compiling the program with a variable name without `_` will print a helpful warning message.
 
@@ -110,39 +94,23 @@ Though the topic of ownership is complex, you don't need to fully understand it 
 
 To get a better idea of how input in raw mode works, let's improve on how we print out each byte that we read.
 
-```rust
-use std::io::{self,stdout, Read};
-use termion::raw::IntoRawMode;
+{% include hecto/observe-keypresses.html %}
 
-fn main() {
-    let _stdout = stdout().into_raw_mode().unwrap();
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/observe-keypresses)</small>
 
-    for b in io::stdin().bytes() {
-        let b = b.unwrap();
-        let c = b as char;
-        if c.is_control() {
-            print!("{:?} \r\n", b);
-        } else {
-            print!("{:?} ({})\r\n", b,c);
-        }
-        if c == 'q' {
-            break;
-        }
-    }
-}
-```
-In case you are wondering, in Rust, it is perfectly legal to declare a variable twice by doing `let b = ...` twice. This is called variable shadowing, and will be immensely useful later. It saves us now from awkward variable names such as `wrapped_byte` vs `byte`. (I promise, we will get to `unwrap` soon!). Try playing around with this concept by dropping the `let` on the second statement.
+Before we discuss the new functionality, let's go through the changes quickly.
+
+First, we are no longer only printing `c`, but also `b`. In case you are wondering: in Rust, it is perfectly legal to declare a variable twice. We are declaring `b` first in `for b in...`, and then again with `let b = b.unwrap()`.   This is called variable shadowing, and will be immensely useful later. The initial value is not interesting to us, as we are only working with the result of `unrwap` (I promise, we will explain that soon!). Variable shadowing makes sure we don't have to have two variables, like `b_wrapped` and `b`. Try playing around with this concept by dropping the `let`.
 
 By the way, the `as` keyword attempts to transform a primitive value into another one, in this case a byte into a single `char`.
 
 `is_control()` tests whether a character is a control character. Control characters are nonprintable characters that we don't want to print to the screen. ASCII codes 0&ndash;31 are all control characters, and 127 is also a control character. ASCII codes 32&ndash;126 are all printable. (Check out the [ASCII table](http://asciitable.com) to see all of the characters.)
 
-`print!()`, same as `println!` before, is a macro which prints something to the screen.
-`{}` and `{:?}` are placeholders which are filled with the remaining parameters to the macro. `{}` is a placeholer for elements for which a string representation is known, such as a `char`, and `{:?}` is a placeholder for elements for which a string representation is not known, but a "debug string representation" has been implemented. To understand the difference, try running the code with `{}` instead of `{:?}`. Contrast it with the behaviour if you then use `{:?}` instead of `{}`, even for characters.
+`println!` is a macro which prints something to the screen and adds a new line.  
+`{}` and `{:?}` within the argument passed to `println!` are placeholders which are filled with the remaining parameters - so `println!("This is a char: {}", 'c');` will print out "This is a char: c" .  
+The placeholder `{}` is for elements for which a string representation is known, such as a `char`. `{:?}` is a placeholder for elements for which a string representation is not known, but a "debug string representation" has been implemented. To understand the difference, try swapping around `{}` and `{:?}` and vice versa and see what happens.
 
-Instead of using `println!`, which prints its parameters in a new line, we are now using `print!`, and we are manually adding `\r\n`. This makes sure our output is neatly printed line by line without indendation. The reason is that usually, terminals do some kind of output processing for us and convert a newline (`\n`) to carriage return and newline (`\r\n`). The carriage return moves the cursor back to the beginning of the current line, and the newline moves the cursor down a line, scrolling the screen if necessary. (These two distinct operations originated in the days of typewriters and [teletypes](https://en.wikipedia.org/wiki/Teleprinter).)
-
-By switching to Raw Mode, we have disabled this feature, and therefore a newline (as used by `println!`) only moves the cursor down, but not to the left. Try using `println!` without `\r\n` to see the difference!
+We are also printing out  `\r` (Carriage Return) at the end of each line. This makes sure our output is neatly printed line by line without indendation. The carriage return moves the cursor back to the beginning of the current line before `println!` adds a `\n` (newline), which moves the cursor down a line, scrolling the screen if necessary. (These two distinct operations originated in the days of typewriters and [teletypes](https://en.wikipedia.org/wiki/Teleprinter).)
 
 This is a very useful program. It shows us how various keypresses translate into the characters we read. Most ordinary keys translate directly into the characters they represent. But try seeing what happens when you press the arrow keys, or <kbd>Escape</kbd>, or <kbd>Page Up</kbd>, or <kbd>Page Down</kbd>, or <kbd>Home</kbd>, or <kbd>End</kbd>, or <kbd>Backspace</kbd>, or <kbd>Delete</kbd>, or <kbd>Enter</kbd>. Try key combinations with <kbd>Ctrl</kbd>, like <kbd>Ctrl-A</kbd>, <kbd>Ctrl-B</kbd>, etc.
 

@@ -57,6 +57,7 @@ cargo init hecto
 Let's take a look of what else has happened:
 
 {% include hecto/initialization.html %}
+
 <small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/initialization)</small>
 
 Before we go into the details, let's first figure out what we are looking at. This is a `diff`, and it shows you the changes between one code change and the next. Below each step, you will find a link to this current step on Github, where you can also browse the contents of other files at that point of the tutorial. This is very useful in case you are lost.
@@ -102,6 +103,6 @@ That it because rust can tell that the current version of `main.rs` has already 
 
 Try changing the return value in `main.rs` to a string other than `Hello, World`. Then run `cargo run`, and you should see it compile. Check the result to see if you get the string you changed it to. Then change it back to `Hello, World`, recompile,and make sure it's back to returning `Hello, World`.
 
-After most steps in this tutorial, you will want to recompile `main.rs`, see if it finds any errors in your code, and then run `hecto` by calling `cargo run`.
+After most steps in this tutorial, you will want to recompile the code, see if it finds any errors in your code, and then run `hecto` by calling `cargo run`.
 
 In the next chapter, we'll work on reading individual keypresses from the user.
