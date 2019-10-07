@@ -25,7 +25,7 @@ Rust is installed now. Great!
 ```
 To start using Rust, you either need to restart your terminal or type
 ```bash
-source $HOME/.cargo/env
+$ source $HOME/.cargo/env
 ```
 
 ### Adding a linker
@@ -34,12 +34,12 @@ Rust needs a linker of some kind to operate. It's likely that it's already insta
 ### Check your installation
 To verify that Rust has been installed correctly, run the following command:
 ```bash
-rustc --version
+$ rustc --version
 ```
 
 For Cargo, run:
 ```bash
-cargo --version
+$ cargo --version
 ```
 In both cases, you should see the program name, the version number and a few other information. If not, please refer to the Installation chapter of the [official Rust book](https://doc.rust-lang.org/book/ch01-01-installation.html) to troubleshoot your installation.
 
@@ -47,10 +47,8 @@ In both cases, you should see the program name, the version number and a few oth
 Go to a directory where you would like to start building and type
 
 ```bash
-cargo init hecto
+$ cargo init hecto
 ```
-
-
 
 `hecto` is the name of the text editor we will be building. Executing this command will create a folder called `hecto` which has already set up git (and therefore includes a folder called `.git` and a file called `.gitignore`). We are not going to use git for this tutorial, so you can ignore these two files for the duration of this tutorial.
 
@@ -64,7 +62,7 @@ Before we go into the details, let's first figure out what we are looking at. Th
 
 Every diff tells you if files have been added, modified or deleted, and in case of a modification, it shows deleted code in red, and added code in green.
 
-As you can see from the diff, `cargo init` has created a file called `Cargo.toml`, which is pre-filled with some pieces of information. More specifically, the square brackets denote _sections_. The _dependencies_ section below is empty, and the _package_ section contains: 
+As you can see from the diff, `cargo init` has created a file called `Cargo.toml`, which is pre-filled with some pieces of information. More specifically, the square brackets denote _sections_. The _dependencies_ section below is empty, and the _package_ section contains:
 - The name of the program, which defaults to the cargo package name.
 - The current version of the program, which, by default, starts with `0.1.0`.
 - A list of authors, which is in this case prefilled with my name and mail adress
@@ -72,9 +70,15 @@ As you can see from the diff, `cargo init` has created a file called `Cargo.toml
 
  If you are familiar with JavaScript, the `Cargo.toml` is comparable to the `package.json`. It describes your package as well as its dependencies to other packages.
 
-Additionallu, there is a file called `src/main.rs`, which already contains some source code.
+Additionally, there is a file called `src/main.rs`, which already contains some source code:
 
-This code defines a function. The `main()` function is special. It is the default starting point when you run your program. When you return from the `main()` function, the program exits and passes the control back to the operating system. Therefore, without any knowledge of Rust, we can infer that this program [follows the ritual of the ancients](https://en.wikipedia.org/wiki/%22Hello,_World!%22_program) by printing out "Hello, World!" and exit. Let's see how we can do this.
+```rust
+fn main() {
+    println!("Hello, world!");
+}
+```
+
+This code defines a function called `main`. The `main()` function is special. It is the default starting point when you run your program. When you return from the `main()` function, the program exits and passes the control back to the operating system. Therefore, without any knowledge of Rust, we can infer that this program [follows the ritual of the ancients](https://en.wikipedia.org/wiki/%22Hello,_World!%22_program) by printing out "Hello, World!" and exiting. Let's see how we can run this.
 
 Rust is a compiled language. That means we need to run our program through a Rust compiler to turn it into an executable file. We then run that executable like we would run any other program on the command line.
 
@@ -87,12 +91,13 @@ To compile `main.rs`, make sure you are in the `hecto` folder (Run `cd hecto` af
 This will produce an executable named `hecto` and place it in a new folder called `target/debug/`.
 Additionally, a new file will be created called `Cargo.lock`. It is automatically generated and should not be touched. When we add dependencies later to the project, the `Cargo.lock` will also be updated. Its changes are not relevant to this tutorial and are therefore hidden from the diffs.
 
-If you look further at the contents of `target/debug`, you will find that several more files have been generated.  These files are mostly needed by `cargo`to make rebuilding the code more efficient (more on that in a second)
+If you look further at the contents of `target/debug`, you will find that several more files have been generated.  These files are mostly needed by `cargo`to make rebuilding the code more efficient (more on that in a second).
 You won't need any of these files to run `hecto` except for the executable itself, to run `hecto`, type  `./target/debug/hecto` (or `./hecto`, if you have already navigated into `target/debug`) and press <kbd>Enter</kbd>. The program should output `Hello, world!` and then exit.
 
 ### Compiling and running
 Since it's very common that you want to compile and run your program, rust combines both steps with the command `cargo run`.
 If you run that command now after `cargo build`, you might notice that the output changes a bit. It now looks similar to this:
+
 ```
     Finished dev [unoptimized + debuginfo] target(s) in 0.00s
      Running `target/debug/hecto`
