@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: postwithdiff
 title: "Hecto, Chapter 5: A text editor"
 categories: [Rust, hecto]
 ---
@@ -9,633 +9,128 @@ Now that `hecto` can read files, let's see if we can teach it to edit files as w
 
 Let's begin by writing a function that inserts a single character into a `Document`, at a given position. We start by allowing to add a character into our string at a given position.
 
-In `Row`:
+{% include hecto/insert-characters.html %}
 
-```rust
-    pub fn insert(&mut self, at: usize, c: char  ) {
-        if at == self.len() {
-            self.string.push(c);
-            self.len += 1;
-        } else {
-            let mut result = String::new();
-            let mut index = 0;
-            for (i, character) in self.string.chars().enumerate() {
-                index += 1;
-                if i == at {
-                    result.push(c);
-                }
-                result.push(character);
-            }
-            self.string = result;
-            self.len = index;
-        }
-    }
-```
-Here, we handle two cases: If we happen to be at the end of our string, we push the charater onto it. This can happen if the user is at the end of a line and keeps typing. If not, we are rebuilding our string by going through it character by character. As we saw before, this is not the same as going through the String index by index! `enumerate` is a useful function which transforms our iterator in a way that it does not only return each element, but also each index.
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/insert-characters)</small>
 
-Let's use that function in our `Document`. 
+Let's focus first on the changes to `Row`.
 
-```rust
-    pub fn insert(&mut self, at: &Position, c: char){
-        if at.y == self.len() {
-            let mut row = Row::new();
-            row.insert(0,c);
-            self.rows.push(row);
-        } else if at.y < self.len() {
-            let row = self.rows.get_mut(at.y).unwrap();
-            row.insert(at.x, c);
-        }
-    }
-```
+Here, we handle two cases: If we happen to be at the end of our string, we push the charater onto it. This can happen if the user is at the end of a line and keeps typing. If not, we are rebuilding our string by going through it character by character.
 
-Symmetrical to our code in `Row`, we are handling the case where the user is attempting to insert at the bottom of our document, for which case we create a new row.
+We use the iterator's `take` and `skip` functions to create new iterators, one that goes from `0` to `at` (including `at`), and another one that goes from the element after`at` to the end. We use `collect` to combine these iterators into strings. [`collect` is very powerful and can collect into different collections](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.collect). Since there are muiltiple collections `collect` can create, we have to provide the type of `result` and `remainder`, otherwise Rust wouldn't know what kind of collection to create.
 
-T
-Did you notice that we are using `unwrap` here? We use it to get the value returned from `get_mut`. It's safe to do that here, since we know from the if statement that we have a row at that position. We could either have been more cautious, returning on `if let None`, or we could have been more bold, directly accessing the row with `self.rows[at.y]` (which would `panic` if the index is out of bounds). I prefer `unwrap` over the direct access here, even though the result is the same (`panic` if the index is out of bounds). `unwrap` expresses my conscious choice at this point to anyone who maintains the code 
+We're now also deriving `default` for `Row`. We'll use that in `Document`.
 
-Now we need to call that method when a character is entered.
+Similar towhat we did in `Row`, we are handling the case where the user is attempting to insert at the bottom of our document, for which case we create a new row.
 
-```rust
-    fn process_keypress(&mut self) -> Result<(), std::io::Error> {
-        let pressed_key = Terminal::read_key()?;
-        match pressed_key {
-             Key::Ctrl('q') => self.should_quit = true,
-             Key::Char(c) => self.document.insert(&self.cursor_position, c),
-             Key::Up |
-             Key::Down |
-             Key::Left |
-             Key::Right |
-             Key::PageUp |
-             Key::PageDown |
-             Key::End |
-             Key::Home=>  self.move_cursor(&pressed_key),
-             _ => ()
-        }
-        self.scroll();
-        Ok(())
-    }
-```
-We can now add characters anywhere in the document. But our cursor does not move - so we are essentially typing in our text backwards. Let's fix that now by treating "Enter a character" as "Enter a character and go to the right". 
+Now we need to call that method when a character is entered. We do that by extending `process_keypress` in `editor`.
 
-```rust
+With that change, we can now add characters anywhere in the document. But our cursor does not move - so we are essentially typing in our text backwards. Let's fix that now by treating "Enter a character" as "Enter a character and go to the right".
 
-    fn process_keypress(&mut self) -> Result<(), std::io::Error> {
-        let pressed_key = Terminal::read_key()?;
-        match pressed_key {
-             Key::Ctrl('q') => self.should_quit = true,
-             Key::Char(c) => {
-                 self.document.insert(&self.cursor_position, c);
-                 self.move_cursor(&Key::Right);
-             },
-             Key::Up |
-             Key::Down |
-             Key::Left |
-             Key::Right |
-             Key::PageUp |
-             Key::PageDown |
-             Key::End |
-             Key::Home=>  self.move_cursor(&pressed_key),
-             _ => ()
-        }
-        self.scroll();
-        Ok(())
-    }
-```
+{% include hecto/insert-and-move.html %}
+
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/insert-and-move)</small>
 
 You should now be able to confirm that putting in characters works, even at the bottom of the file.
 
 ## Simple deletion
-We now want Backspace and Delete to work Let's start with Delete, which should remove the character in front of the cursor. In reality, "in front of the cursor" means "on the cursor", since the cursor is a blinking line displayed on the left side of its position. Let's start by adding a `delete` function on a `row`.
+We now want Backspace and Delete to work.
 
-```rust
-    pub fn delete(&mut self, at: usize) {
-        if at > self.len {
-            return;
-        }
-        let mut result = String::new();
-        let mut index = 0;
-        for (i, character) in self.string.chars().enumerate() {
-            index += 1;
-            if i != at {
-                result.push(character);
-            }
-        }
-        self.string = result;
-        self.len = index;
-    }
-```
-This is quite similar to `insert` from above. Let's continue with `Document`.
+Let's start with Delete, which should remove the character under the cursor. If your cursor is a  line, `|`, instead of a block, "under the cursor" means "in front of the cursor", since the cursor is a blinking line displayed on the left side of its position. Let's start by adding a `delete` function on a `row`.
 
-```rust
-    pub fn delete(&mut self, at: &Position) {
-        if at.y >= self.len() {
-            return;
-        }
-        let row = self.rows.get_mut(at.y).unwrap();
-        row.delete(at.x);
-    }
-```
+{% include hecto/simple-delete.html %}
 
-Now, we add handling for `Delete` in our `Editor`. 
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/simple-delete)</small>
 
-```rust
-    fn process_keypress(&mut self) -> Result<(), std::io::Error> {
-        let pressed_key = Terminal::read_key()?;
-        match pressed_key {
-             Key::Ctrl('q') => self.should_quit = true,
-             Key::Char(c) => {
-                self.document.insert(&self.cursor_position, c);
-                self.move_cursor(&Key::Right);
-             },
-             Key::Delete => self.document.delete(&self.cursor_position),
-             Key::Up |
-             Key::Down |
-             Key::Left |
-             Key::Right |
-             Key::PageUp |
-             Key::PageDown |
-             Key::End |
-             Key::Home=>  self.move_cursor(&pressed_key),
-             _ => ()
-        }
-        self.scroll();
-        Ok(())
-    }
-```
+As you can see, the code is very similar to the `insert` code we wrote before. The difference is that in `Row`, we are not adding a character, but we are skipping the one we want to delete when glueing together `result` and `remainder`. And in `Document`, we do not need to handle the case where we want to delete a row (yet), which makes that code a bit simpler than the symmertrical `insert` code.
 
-You should now be able to delete characters from with in a line. Let's tackle Backspace next: Essentially, Backspace is a combination of going left and deleting, so we adjust `process_keypress` as follows: 
+You should now be able to delete characters from with in a line. Let's tackle Backspace next: Essentially, Backspace is a combination of going left and deleting, so we adjust `process_keypress` as follows:
 
-```rust
-    fn process_keypress(&mut self) -> Result<(), std::io::Error> {
-        let pressed_key = Terminal::read_key()?;
-        match pressed_key {
-             Key::Ctrl('q') => self.should_quit = true,
-             Key::Char(c) => {
-                self.document.insert(&self.cursor_position, c);
-                self.move_cursor(&Key::Right);
-             },
-             Key::Delete => self.document.delete(&self.cursor_position),
-             Key::Backspace => {
-                 self.move_cursor(&Key::Left);
-                 self.document.delete(&self.cursor_position);
-             }
-             Key::Up |
-             Key::Down |
-             Key::Left |
-             Key::Right |
-             Key::PageUp |
-             Key::PageDown |
-             Key::End |
-             Key::Home=>  self.move_cursor(&pressed_key),
-             _ => ()
-        }
-        self.scroll();
-        Ok(())
-    }
-```
-Backspace now works within a line. If you do it at the beginning of a line, however, it moves up a line without doing anything else. Let's fix that in the next sections.
+{% include hecto/simple-backspace.html %}
+
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/simple-backspace)</small>
+
+Backspace now works within a line. We even make sure that if we are at the beginning of the document, we are not doing a delete - otherwise, we would start removing elements behind the cursor.
+
+If you do a backspace at the beginning of a line, however, it moves up a line without doing anything else. Let's fix that in the next sections.
 
 
 ## Complex deletion
-There are two edge cases which we can't handle right now, and that is either using Backspace at the beginning of a line, or using Delete at the end of a line. Since in our case Backspace _is_ a delete operateion preceded by a cursor move, it's technically only one edge case that we should handle, and it involves copying the contents of one row into another.
+There are two edge cases which we can't handle right now, and that is either using Backspace at the beginning of a line, or using Delete at the end of a line. In our case, Backspace simply goes to the left, which, at the beginning of the line, means to go to the end of the previous line, and then attempts to delete a character. This means that the Backspace case will be solved as soon as we allow a delete at the end of a line.
 
-We start by giving `Row` the ability to return a copy of its own string and append another string:
+{% include hecto/complex-delete.html %}
 
-```rust
-    pub fn to_string(&self) -> String {
-        self.string.clone()
-    }
-    pub fn append(&mut self, string: &String) {
-        self.string = format!("{}{}", self.string, string);
-        self.len = self.string.chars().count();
-    }
-```
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/complex-delete)</small>
 
-Note that since Rust does not abstract the difficulty with Strings away from us, it's plain to see for us how often we are actually cloning or copying our strings around. `to_string` returns a _copy_ of our string, and append_string creates a copy of the former internal string and the input string. After this tutorial is done, you will find several opportunities of improving these matters in the code. 
+We start by giving `Row` the ability to append another row to it. We use this ability in `Document`. Now, the code in `Document` looks a bit complex, and I'm going to explain in a second why this is the case. What it does, though, is checking if we are at the end of a line, and if a line follows after this one. If that's the case, we remove the next line from our `vec` and append it to the current row. If that's not the case, we simply try to delete from the current row.
 
-Now we call these methods from `delete`.
+Now, why does the code look so complicated? Can't we just move the definition of `row` up above the `if` statement to make things clearer?
 
-```rust
-   pub fn delete(&mut self, at: &Position) {
-        let len = self.len();
-        if at.y >= len {
-            return;
-        }
-        let row = self.rows.get(at.y).unwrap();
-        if at.x == row.len() && at.y < len -1 {
-            let next_string = self.rows.get(at.y + 1).unwrap().to_string();
-            let row = self.rows.get_mut(at.y).unwrap();
-            row.append_string(&next_string);
-            self.rows.remove(at.y+1);
-            
-        } else {
-            let row = self.rows.get_mut(at.y).unwrap();
-            row.delete(at.x); 
-        }
-        
-    }
-```
-We make sure that we are at the end of the row, and not on the last line before performing the delete. We get the string of the next row, append it to the current row and then remove the next row.
+This is our second big encounter with Rust's borrow checker. We can't have two mutable references to elements within the vector at the same time, and we can't mutate the vector while we have a mutable reference to an element in it. Why? Because let's say we have a vector with A, B and C in it, and we have a reference to B. A reference is like a pointer which points to where B resides in the memory. Now we remove A, which causes B and C to move to the left. Our reference would suddenly no longer point to B, but to C!
+
+This means that we can't have  a reference to `row` and then delete part of the vector. So we first read `row`'s length directly without retaining a reference. Then we mutate the vector by removing an element from it, and then we create our mutable reference to `row`.
+
+Try rewriting the code if you want to, and check what the compiler tells you in case you are interested.
 
 ## The <kbd>Enter</kbd> key
-The last editor operation we have to implement is the <kbd>Enter</kbd> key. The <kbd>Enter</kbd> key allows the user to insert new lines into the text, or split a line into two lines. The first thing to note is that unlike Delete and Backspace, <kbd>Enter</kbd> is passed to us as a char. You can actually add newlines that way right now, but as you might expect, the handling is less than optimal. This is because the newlines are inserted as part of the row instead of resulting in the creation of a new row.
+The last editor operation we have to implement is the <kbd>Enter</kbd> key. The <kbd>Enter</kbd> key allows the user to insert new lines into the text, or split a line into two lines. You can actually add newlines that way right now, but as you might expect, the handling is less than optimal. This is because the newlines are inserted as part of the row instead of resulting in the creation of a new row.
 
-Let's start with the easy case, adding a new row below the current one. We do this by adding the logic to the `Document` first.
+Let's start with the easy case, adding a new row below the current one.
 
-```rust
-    pub fn insert_newline(&mut self, at: &Position) {
-        let new_row = Row::new();
-        if at.y == self.len() -1  || at.y == self.len(){
-            self.rows.push(new_row);
-        } else if at.y < self.len()-1 {
-            self.rows.insert(at.y+1, new_row)
-        }
-    }
-  pub fn insert(&mut self, at: &Position, c: char){
-        if c == '\n' {
-           self.insert_newline(at);
-           return;
-        } 
-        if at.y == self.len() {
-            let mut row = Row::new();
-            row.insert(0,c);
-            self.rows.push(row);
-        } else if at.y < self.len() {
-            let row = self.rows.get_mut(at.y).unwrap();
-            row.insert(at.x, c);
-        }
-    }
+{% include hecto/simple-enter.html %}
 
-```
-To make the code clearer, we have created a function called `insert_newline` which we are calling based on whether or not the character is a `\n`. This method is symmetrical to `insert`: We check if we are at the edge of the document or not, and are adding our new row at the appropriate place. Unlike in `insert`, we also account for the fact that the user can either push a new row when he is on the last line of the document, or one line below that, since we allow the user to start typing below the document.
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/simple-enter)</small>
 
-We don't need to adjust the code in `Editor`. You can now add new lines, and if you happen to be at the end of the line, your cursor will also positioned correctly.
+We call `insert_newline` from `insert` in case a newline is handed to us. In `insert_newline`, we are checking if enter was pressed either on the last row of the document, or one row below it (remember that we allow navigating there). If that is the case, we push a new row at the end of our `vec`. If that's not the case, we insert a new row at the correct position.
 
-Let's now handle the case where we are in the middle of a row. We start by giving our row the possibility to return only parts of its string, and also the possibiltity to truncate the row to a certain width.
+Let's now handle the case where we are in the middle of a row.
 
-```rust
-    pub fn to_string_range(&self, start: usize, end: usize) -> String {
-        let mut end = end;
-        let mut start = start;
-        if end > self.string.len() {
-            end = self.string.len();
-        }
-        if start > end {
-            start = end;
-        } 
-        let mut result = String::new();
-        for c in self.string.chars().skip(start).take(end - start) {
-                result.push(c);
-        }
-        result
-    }
-```
+{% include hecto/complex-enter.html %}
 
-But wait - isn't that almost just a copy-paste of `render`? Let's try to combine these methods with the following method:
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/complex-enter)</small>
 
-```rust
-    fn render_with_renderer<R>(&self,start: usize, end: usize, renderer: R) -> String where R: Fn(char)->char {
-        let mut end = end;
-        let mut start = start;
-        if end > self.string.len() {
-            end = self.string.len();
-        }
-        if start > end {
-            start = end;
-        }
-        let mut result = String::new();
-        for c in self.string.chars().skip(start).take(end - start) {
-            result.push(renderer(c));
-        }
-        result
-    }
-```
-`render_with_renderer` is a function which accepts a function which is called a `renderer`. This function needs to accept a `char` and return a `char`, which is what we are defining after the `where` keyword. I recommend reading [the chapter on Closures](https://doc.rust-lang.org/1.1.0/book/closures.html) from the official docs if you are interested in why the function signature needs to look like this. Be warned, though, that to fully understand closures, you also need to understand [traits](https://doc.rust-lang.org/1.1.0/book/trait-objects.html), a concept that we haven't used in our code so far.
-
-The idea of `render_with_renderer` is that there might be different representations of the internal string, and `render_with_renderer` is responsible for building the string without caring about the actual representation.
-
-Let's rewrite our two existing methods then:
-
-```rust
-    pub fn to_string_range(&self, start: usize, end: usize) -> String {
-        self.render_with_renderer(start, end, |c| c)
-    }
- 
-    pub fn render(&self, start: usize, end: usize) -> String {
-         self.render_with_renderer(start, end, |c| {
-            if c == '\t' {
-               ' '
-            } else {
-                c
-            }
-         })
-    }
-```
-You can recognize closures by the pipe symbols. `|c| c` is similar to 
-
-```rust
-fn myClosure(c: char) -> char {
-    c
-}
-```
-
-As we will see later, it is not exactly a shorthand, since Closures enable us to do much more. For now, with this knowledge, you can see that `to_string_range` calls `render_with_renderer` with a renderer that doesn't do anything - it is returning the character handed to it. `render`, on the other hand, provides a renderer which returns a whitespace for a tab, or the character otherwise.
-
-Now that we can return parts of the row, we also need a way to shorten a row to a certain value. We do that by implementing a `truncate` method:
-
-```rust
-    pub fn truncate(&mut self, width: usize) {
-        if width > self.len {
-            return;
-        }
-        let mut result = String::new();
-        for character in self.string.chars().take(width) {
-            result.push(character);
-        }
-        self.string = result;
-        self.len = width;
-    }
-```
-
-Now let's use that code from `document` by extending `insert_newline`.
-
-```rust
-    pub fn insert_newline(&mut self, at: &Position) {
-        let mut new_row = Row::new();
-
-        if at.y < self.len() {
-            let current_row = self.rows.get_mut(at.y).unwrap();
-            new_row.append(&current_row.to_string_range(at.x, current_row.len()));
-            current_row.truncate(at.x);
-        }  
-
-        if at.y == self.len() -1  || at.y == self.len(){
-            self.rows.push(new_row);
-        } else if at.y < self.len()-1 {
-            self.rows.insert(at.y+1, new_row)
-        }
-    }
-```
+We have now added a method called `split`, which truncates the current row up until a given index, and returns another row with everything behind that index. On Document, we are now only pushing an empty row if we are below the last line, in any other case, we are changing the current row with `split` and insert the result. This works even at the end of a line, in which case the new row would simply contain an empty string.
 
 Great! Now we can move around our document, add whitespaces, characters, even emojis, remove lines and so on. But editing is obviously useless without saving, so let's handle that next.
 
 ## Save to disk
-Now that we’ve finally made text editable, let’s implement saving to disk. We stat with implementing a `save` method in `Document`:
+Now that we’ve finally made text editable, let’s implement saving to disk. We start with implementing a `save` method in `Document`:
 
-```rust
-    pub fn save(&self) -> Result<(), Error> {
-        
-        if let Some(file_name) = &self.file_name {
-            let mut file = fs::File::create(file_name)?;
-            for row in self.rows.iter() {
-                file.write_all(row.to_string().as_bytes())?;
-                file.write_all(b"\n")?;
+{% include hecto/save-to-disk.html %}
 
-            }
-        } 
-        Ok(())
-    }
-```
-`write_all` takes a byte array, which in case of our rows we provide with `as_bytes`, and in case of the newline, we indicate by prefixing our String literal with `b`.
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/save-to-disk)</small>
 
-Now let's add that to our `Editor`:
+We extend `Row` with a method that allows us to convert the row into a `byte` array. In `Document`, `write_all` takes that byte array and writes it to disk. Since our rows do not contain the newline symbol, we write it out seperately. The `b` in front of the newline string indicates that this is a byte array and not a string.
 
-```rust
+Since writing may cause errors, our `save` function returns a `Result`, and we are using the `?` again to pass any errors that might occur to the caller. 
 
-    pub fn new() -> Result<Editor, std::io::Error> {
-        let args: Vec<String> = env::args().collect();
-        let mut file = None;
-        let mut initial_status = String::from("HELP:  Ctrl-S = save | Ctrl-Q = quit");
-        let mut document;
+In `Document`, we connect `save` to <kbd>Ctrl-S</kbd>. We check if the write was successful by using `is_ok`, which returns `true` in case a `Result` is `Ok` and not an `Err`, and we set the status message accordingly.
 
-        if args.len() > 1 {
-            let file_name = &args[1];
-            if let Ok(new_file) = Document::open( &file_name) {
-                file = Some(new_file);
-            } else {
-                initial_status = format!("ERR: Could not open file:{}", file_name);
-            }
-        } 
+Last but not least, we change the initial status to tell our user how to write a file.
 
-        if let Some(file) = file {
-            document = file;
-        } else {
-            document = Document::new()
-        }
-        
-        Ok(Editor{
-            should_quit: false,
-            terminal: Terminal::new()?,
-            document,
-            cursor_position: Position {
-                x: 0,
-                y: 0
-            },
-            offset: Position {
-                x: 0,
-                y: 0
-            },
-            status_message: StatusMessage::from(initial_status)
-        })
-    }
 
-//...
-    fn process_keypress(&mut self) -> Result<(), std::io::Error> {
-        let pressed_key = Terminal::read_key()?;
-        match pressed_key {
-             Key::Ctrl('q') => self.should_quit = true,
-             Key::Ctrl('s') => {
-                if let Ok(_) = self.document.save() {
-                    self.status_message = StatusMessage::from("File saved successfully.".to_string());
-                } else {
-                    
-                    self.status_message = StatusMessage::from("Error writing file!".to_string());
-                }
-             },
-             Key::Char(c) => {
-                self.document.insert(&self.cursor_position, c);
-                self.move_cursor(&Key::Right);
-             },
-             Key::Delete => self.document.delete(&self.cursor_position),
-             Key::Backspace => {
-                 self.move_cursor(&Key::Left);
-                 self.document.delete(&self.cursor_position);
-             }
-             Key::Up |
-             Key::Down |
-             Key::Left |
-             Key::Right |
-             Key::PageUp |
-             Key::PageDown |
-             Key::End |
-             Key::Home=>  self.move_cursor(&pressed_key),
-             _ => ()
-        }
-        self.scroll();
-        Ok(())
-    }
-```
-
-We also adjust our initial status message, to show the user which key combination to use to save. Great, now we can open, adjust and save our files!
+Great, now we can open, adjust and save our files!
 
 ## Save as...
 Currently, when the user runs `hecto` with no arguments, they get a blank file to edit but have no way of saving. Let's make a `prompt()` function that displays a prompt in the status bar, and lets the user input a line of text after the prompt:
 
-```rust
-    fn prompt(&mut self, prompt: &str) -> Result<String, std::io::Error> {
-        
-        let mut result = String::new();
-        loop {
-            self.status_message = StatusMessage::from(format!("{}{}", prompt, result));
-            self.refresh_screen()?;
-            if let Key::Char(c) = Terminal::read_key()? {
-                if c == '\n' {
-                    self.status_message = StatusMessage::from(String::new());
-                    break;
-                }
-                if !c.is_control() {
-                    result.push(c);
-                }
-            }  
-        }
-        Ok(result)
-    }
-```
+{% include hecto/prompt-for-filename.html %}
 
-The user's input is stored in `result`, which we initialize as an empty string. We enter an infinite loop that repeatadly sets the status message, refreshes the screen, and waits for a keypress to handle. When the user presses enter, the status message is cleared and the message is returned. The errors which might occur on the way are propagated up. 
-Now let's prompt the user for a filename before calling `save`, when the filename is `None`. 
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/prompt-for-filename)</small>
 
-```rust
-    fn process_keypress(&mut self) -> Result<(), std::io::Error> {
-        let pressed_key = Terminal::read_key()?;
-        match pressed_key {
-             Key::Ctrl('q') => self.should_quit = true,
-             Key::Ctrl('s') => {
-                if self.document.file_name == None {
-                    self.document.file_name = Some(self.prompt("Save as: ")?);
-                }
-                if let Ok(_) = self.document.save() {
-                    self.status_message = StatusMessage::from("File saved successfully.".to_string());
-                } else {
-                    self.status_message = StatusMessage::from("Error writing file!".to_string());
-                }
-             },
-             Key::Char(c) => {
-                self.document.insert(&self.cursor_position, c);
-                self.move_cursor(&Key::Right);
-             },
-             Key::Delete => self.document.delete(&self.cursor_position),
-             Key::Backspace => {
-                 self.move_cursor(&Key::Left);
-                 self.document.delete(&self.cursor_position);
-             }
-             Key::Up |
-             Key::Down |
-             Key::Left |
-             Key::Right |
-             Key::PageUp |
-             Key::PageDown |
-             Key::End |
-             Key::Home=>  self.move_cursor(&pressed_key),
-             _ => ()
-        }
-        self.scroll();
-        Ok(())
-    }
-```
+The user's input is stored in `result`, which we initialize as an empty string. We enter an infinite loop that repeatadly sets the status message, refreshes the screen, and waits for a keypress to handle. When the user presses enter, the status message is cleared and the message is returned. The errors which might occur on the way are propagated up.
 
-Great, now the user can save the file! Let's handle a few more cases in our prompt. Let's now allow the user to cancel and backspace, and let's also treat an empty input as cancelling.
+Now that the user can save the file, let's handle a few more cases in our prompt. Let's now allow the user to cancel and backspace, and let's also treat an empty input as cancelling.
 
-```rust
-    fn prompt(&mut self, prompt: &str) -> Result<Option<String>, std::io::Error> {
-        
-        let mut result = String::new();
-        loop {
-            self.status_message = StatusMessage::from(format!("{}{}", prompt, result));
-            self.refresh_screen()?;
-            match Terminal::read_key()?{
-                Key::Backspace => {
-                    if result.len() > 0 {
-                        result.truncate(result.len()-1);
-                    } else {
-                        break;
-                }
-                Key::Char(c) => {
-                    if c == '\n' {
-                        break;
-                    }
-                    if !c.is_control() {
-                        result.push(c);
-                    }
-                },
-                Key::Esc =>{
-                    result.truncate(0);
-                    break;
-                }
-                _ => ()
-            }
-            
-        }
-        self.status_message = StatusMessage::from(String::new());
-        if result.len() == 0 {
-            return Ok(None);
-        }
-        Ok(Some(result))
-    }
-```
-The biggest change to the function is the return type: It is no longer only a `Result` with a `String`, but a `Result` with an `Option` with a `String`, to indicate 1) that something could go wrong in this function, and 2) the result could be undefined.
+{% include hecto/enhance-prompt.html %}
 
-We have moved setting an emtpy status message to outside of the loop, and we now return `None` if the result is emtpy - which can happen if the user has not entered anything. In case he presses `Esc`, we are also setting the result to `0`, thus also returning `None`. In case of backspace, we are either shortening the result by one character, or, if we had no result, we are also returning `None`, cancelling the prompt.
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/enhance-prompt)</small>
 
-Now let's adjust our call to `prompt` in `process_keypress`:
+We have changed a couple of things here, let's go through them one by one.
 
-```rust
-    fn process_keypress(&mut self) -> Result<(), std::io::Error> {
-        let pressed_key = Terminal::read_key()?;
-        match pressed_key {
-             Key::Ctrl('q') => self.should_quit = true,
-             Key::Ctrl('s') => {
-                if self.document.file_name == None {
-                    let new_name = self.prompt("Save as: ")?;
-                    let new_name = self.prompt("Save as: ")?;
-                    if let None = new_name{
-                        self.status_message = StatusMessage::from("Save aborted.".to_string());    
-                        return Ok(())
-                    } 
-                    self.document.file_name = new_name;
-                    
-                }
-                if let Ok(_) = self.document.save() {
-                    self.status_message = StatusMessage::from("File saved successfully.".to_string());
-                } else {
-                    self.status_message = StatusMessage::from("Error writing file!".to_string());
-                }
-             },
-             Key::Char(c) => {
-                self.document.insert(&self.cursor_position, c);
-                self.move_cursor(&Key::Right);
-             },
-             Key::Delete => self.document.delete(&self.cursor_position),
-             Key::Backspace => {
-                 self.move_cursor(&Key::Left);
-                 self.document.delete(&self.cursor_position);
-             }
-             Key::Up |
-             Key::Down |
-             Key::Left |
-             Key::Right |
-             Key::PageUp |
-             Key::PageDown |
-             Key::End |
-             Key::Home=>  self.move_cursor(&pressed_key),
-             _ => ()
-        }
-        self.scroll();
-        Ok(())
-    }
-```
+`prompt` no longer only contains a `Result`, but also an `Option`. The idea is that if the prompt is successful, it can still return `None` to indicate that the user has aborted the prompt. We have traded our `if let` for a `match` to also handle the cases of backspace and `Esc`: In the case of `Esc`, we reset all previously entered text before breaking the loop. In case of `Backspace`, we reduce the input by one, removing the last character in the progress.
 
-We are first unwrapping the `Result` with the `?`, passing any potential error up. Then we are looking at `new_name`. If it's `None`, we are displaying a message and returning. If not, we are assigning it to `file_name` and continue. `save` will then use that new file name to try and save the file.
+Then, we have created a function `save` outside of `process_keypress`. In it, we are now aborting the save operation if the prompt has returned `None`, but also if the prompt has returned an error. 
 
 ## Dirty flag
 
@@ -643,181 +138,144 @@ We'd like to keep track of whether the text loaded in our editor differs from wh
 
 We call a `Document` "dirty" if it has been modified since opening or saving the file. Let's add a `dirty` variable to the `Document` and initialize it with `false`. We don't want this to be modified from the outside, so we add a read-only `is_dirty` function to `Document`. We're also setting it to `true` on any text change, and to `false` on `save`.
 
-```rust
-  pub fn new() -> Document{
-        Document{
-            rows: Vec::new(),
-            file_name: None,
-            dirty: false
-        }
-    }
-    pub fn is_dirty(&self) -> bool {
-        self.dirty
-    }
-    pub fn open(file_name: &String ) -> Result<Document, Error> {
-        let contents = fs::read_to_string(file_name)?;
-        let mut rows = Vec::new();
-        for value in contents.lines() {
-            rows.push(Row::from(value));
-        }
-        Ok(Document{
-            rows,
-            file_name: Some(file_name.clone()),
-            dirty: false,
-        })
-    }
-    pub fn save(&mut self) -> Result<(), Error> {
-        if let Some(file_name) = &self.file_name {
-            let mut file = fs::File::create(file_name)?;
-            for row in self.rows.iter() {
-                file.write_all(row.to_string().as_bytes())?;
-                file.write_all(b"\n")?;
-            }
-            self.dirty = false;
-        } else {
-            return Err(Error::new(ErrorKind::Other, "Can't save file!"))
-        }
-        Ok(())
-    }
-     pub fn insert(&mut self, at: &Position, c: char){
-        self.dirty = true;
-        if c == '\n' {
-           self.insert_newline(at);
-           return;
-        } 
+{% include hecto/dirty-flag.html %}
 
-        if at.y == self.len() {
-            let mut row = Row::new();
-            row.insert(0,c);
-            self.rows.push(row);
-        } else if at.y < self.len() {
-            let row = self.rows.get_mut(at.y).unwrap();
-            row.insert(at.x, c);
-        }
-    }
-    pub fn delete(&mut self, at: &Position) {
-        let len = self.len();
-        if at.y >= len {
-            return;
-        }
-        self.dirty = true;
-        let row = self.rows.get(at.y).unwrap();
-        if at.x == row.len() && at.y < len -1 {
-            let next_row = self.rows.get(at.y + 1).unwrap();
-            let next_string = next_row.to_string();
-            let row = self.rows.get_mut(at.y).unwrap();
-            row.append(&next_string);
-            self.rows.remove(at.y+1);
-            
-        } else {
-            let row = self.rows.get_mut(at.y).unwrap();
-            row.delete(at.x); 
-        }
-        
-    }
-```
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/dirty-flag)</small>
 
-
-Now that everything is in place, let's display it.
-
-```rust
- fn draw_status_bar(&self) {
-        let mut status;
-        let width = self.terminal.size().width as usize;
-        let mut modified_indicator = "";
-        if self.document.is_dirty()  == true {
-            modified_indicator = " (modified)";
-        }
-        if let Some(name) = &self.document.file_name {
-            let mut filename_len = name.len();
-            if filename_len > 20 {
-                filename_len = 20;
-            }
-            status = format!("{} - {} lines{}", &name[..filename_len], self.document.len(), modified_indicator);
-        } else {
-            status = format!("[No Name]{}", modified_indicator);
-        }
-        let line_indicator = format!("{}/{}", self.cursor_position.y+1, self.document.len());
-        let mut num_spaces = 0;
-        let len = status.len() + line_indicator.len();
-        if width > len {
-            num_spaces = width - len;
-        }
-        for _i in 0..num_spaces {
-            status.push_str(" ");
-        }
-        status = format!("{}{}", status, line_indicator);
-        status.truncate(width);
-        Terminal::set_bg_color(STATUS_BG_COLOR);
-        Terminal::set_fg_color(STATUS_FG_COLOR);
-        print!("{}\r\n",status);
-        Terminal::reset_fg_color();
-        Terminal::reset_bg_color();
-    }
-```
-
-You should now be able to confirm that as soon as you edit a file, `(modified)` is displayed next to the file name. It disappears on successful saving of the file.
+Perhaps the only surprising change is that we rearranged the bounds handling in `insert` a bit. It's now similar to the checking in `delete`.
 
 ## Quit confirmation
 
 Now we’re ready to warn the user about unsaved changes when they try to quit. If `document.is_dirty()`  is true, we will display a warning in the status bar, and require the user to press Ctrl-Q three more times in order to quit without saving.
 
+{% include hecto/quit-confirmation.html %}
+
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/quit-confirmation)</small>
+
+We have added a new constant for the additional times we require the user to press <kbd>Ctrl-Q</kbd>, and we use it as an additional field in `Editor`. When the document is dirty and the user attempts to quit, we count down `quit_times` until it reaches `0` - then we finally quit. Note that we are returning within the `match` arm for quit. That way, the code after the `match` is only called if the user pressed another key than <kbd>Ctrl-Q</kbd>, so we can check after the `match` if `quit_times` has been modified and reset it if necessary.
+
+## Final touches
+Congratulations, you have built a text editor! But before we move on and add more functionality in it, let's check if we really covered our bases. Earlier in this tutorial, we cared about overflows and `saturated_adds` and so on, but are we really prepared to handle larger files, or will `hecto` panic? Also, since Rust is all about performance, does our code perform well enough?
+
+First, let's teach Clippy a few new tricks. 
+
+{% include hecto/stricter-clippy.html %}
+
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/stricter-clippy)</small>
+
+`clippy::restriction` contains a lot of warnings that might or might not indicate errors in your code. As you can see when you run `cargo clippy` now, the results are overwhelming!
+
+Lucky for us, each entry comes with a link and with that link come some explanations. Let's disable a few items for `hecto`:
+
+{% include hecto/sensible-clippy.html %}
+
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/sensible-clippy)</small>
+
+If you are interested in what these options are, check their descriptions in the original output of clippy.
+
+The results of Clippy are now much more manageable. There are still many entries regarding integer arithmetic. Before we get to them, let's ask ourselves: Do we really want to fix all of them? My opinion is: Yes, for two reasons. One is that some of our code relies on implicit contracts behind some functions: We rely other portions of our code to do the checking for us so that we don't have to. But what if in the future the other part of the code changes? 
+
+Another consideration is that if you come across code like ``a+1;`, you have to stop and investigate the surrounding code to check if this operation is valid. You have no indication whether or not the author of this code (which could simply be your Past Self) has paid attention to the potential overflow or not! The easiest thing to do is to disable clippy at this line. Even this lazy solution is an indicator for everyone reviewing the code later that you did, in fact, take overflows into account and made a conscious decision on how to deal with it.
+
+Anyways, let's jump right in!
+
+### Making Clippy happy
+
+{% include hecto/integer-arithmetic-1.html %}
+
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/integer-arithmetic-1)</small>
+
+As you can see, these are mainly small changes. I want to point out a few things:
+
+- We have found several potential bugs or headscratchers later. For instance, after one of our last changes, `insert_newline` did not do some bounds checking on its own. From looking at `insert_newline` alone it would not be possible to understand that we removed it because right now, `insert_newline` is only called from `insert`, where we are already doing bounds checking. This means that there was an implicit contract to whoever calls `insert_newline` to make sure `at.y` is not exceeding the current document's length. We have now corrected this.
+- We have replaced a subtraction from `len` with an addition to `at.y` in another place. Why? Because we can easily see in that function that `y` will always be smaller than `len`, so there is always room for a `+1`. It's not as easily visible that, or if, `len` will always be greater than 0.
+- While using `saturating_sub`, we were able to get rid of some size comparisons, which simplifies our code.
+
+Clippy still gives us some warnings, this time about integer divison. The problem is the following: If you divide, for example, `100/3`, the result will be `33`, and the remainder will be removed. That is OK in our case, but the reason to tackle this anyways is the same as before: Anybody reviewing our code can't be sure whether or not we thought about this, or simply forgot. The least we can do is either leave a comment or a clippy directive, which is essentially the same as a comment saying "Trust me, this stuff is working".
+
+{% include hecto/integer-arithmetic-2.html %}
+
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/integer-arithmetic-2)</small>
+
+As you can see, we opted for the "Leave a comment" solution here. We also reidented some code, as the lines tend to get longer now. Let's tackle clippy's next grievances now.
+
+{% include hecto/indexing-panic-1.html %}
+
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/indexing-panic-1)</small>
+
+This change is mainly related to accessing rows at certain positions. We used to use the safe method `get_mut`, which does not panic, even if there was nothing to retrieve, e.g. because the index was wrong. And we called `unwrap()` directly on it, negating the benefits of using `get_mut` in the first place. We have replaced it now with a direct access to `self.rows`. We have left a clippy statement everywhere we did this, to indicate that we did, in fact, check that we're only accessing valid indices at that time. 
+
+If you wanted to make your code even more robust, you could replace these occurances with proper handling in case an index is out of bounds.
+
+We also changed another thing: There was another implicit contract thing going on, and that was that the length of a document always corresponds to the number of rows in it, so we were calling `self.len()` instead of `self.rows.len()` everywhere. Should we ever decide that documents can be longer, all our operations on `self.row` would fail.
+
+This is not a super important change, but it fits the spirit of our current refactorings. All right, two more clippy warnings to go.
+
+{% include hecto/indexing-panic-2.html %}
+
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/indexing-panic-2)</small>
+
+We're taking advantage of the fact that `get`, as discussed above, only returns a value to us if it is there, eliminating the need to perform a check before indexing. Then, we remove `is_ok` in favor of an `if_let`, to save an `unrwap`. Finally, we have convinced both clippy and ourselves that our code is good!
+
+Now, there are a few things that Clippy can't detect, and we should not rely on Clippy alone for our development. We'll deal with them next.
+
+### Performance improvements
+So far, our editor does not do much. But there are already some performance improvements that we could make! Performance tweaks are a difficult topic, as it's hard to draw the line between readable, maintanable code and super-optimized code that is hard to read and maintain. We don't want `hecto` to be the fastest editor out there, but it makes sense to take a look at a few performance aspects. 
+
+I want us to look out for unnecessary iterations over rows when going through the document from top to bottom, as well as unnecessary iterations over characters as we go through a row left to right. That's all that we are going to focus on now - no additional caching, no fancy tricks, just looking for redundant operations.
+
+Let's focus on how we deal with rows. We have a common pattern that we are repeating multiple times. For instance, here's `insert`:
+
 ```rust
-    fn process_keypress(&mut self) -> Result<(), std::io::Error> {
-        let pressed_key = Terminal::read_key()?;
-        match pressed_key {
-             Key::Ctrl('q') => {
-                 if self.quit_times > 0 && self.document.is_dirty(){
-                    self.status_message = StatusMessage::from(format!("WARNING! File has unsaved changes. Press Ctrl-Q {} more times to quit.", self.quit_times));;
-                    self.quit_times -=1;
-                     return Ok(());
-                 }
-                 self.should_quit = true
-             },
-             Key::Ctrl('s') => {
-                if self.document.file_name == None {
-                    let new_name = self.prompt("Save as: ")?;
-                    if let None = new_name{
-                        self.status_message = StatusMessage::from("Save aborted.".to_string());    
-                        return Ok(())
-                    } 
-                    self.document.file_name = new_name;
-                    
-                }
-                if let Ok(_) = self.document.save() {
-                    self.status_message = StatusMessage::from("File saved successfully.".to_string());
-                } else {
-                    self.status_message = StatusMessage::from("Error writing file!".to_string());
-                }
-             },
-             Key::Char(c) => {
-                self.document.insert(&self.cursor_position, c);
-                self.move_cursor(&Key::Right);
-             },
-             Key::Delete => self.document.delete(&self.cursor_position),
-             Key::Backspace => {
-                 self.move_cursor(&Key::Left);
-                 self.document.delete(&self.cursor_position);
-             }
-             Key::Up |
-             Key::Down |
-             Key::Left |
-             Key::Right |
-             Key::PageUp |
-             Key::PageDown |
-             Key::End |
-             Key::Home=>  self.move_cursor(&pressed_key),
-             _ => ()
+pub fn insert(&mut self, at: usize, c: char) {
+        if at >= self.len() {
+            self.string.push(c);
+        } else {
+            let mut result: String = self.string[..].graphemes(true).take(at).collect();
+            let remainder: String = self.string[..].graphemes(true).skip(at).collect();
+            result.push(c);
+            result.push_str(&remainder);
+            self.string = result;
         }
-        self.scroll();
-        if self.quit_times < QUIT_TIMES {
-            self.quit_times = QUIT_TIMES;
-            self.status_message = StatusMessage::from(String::new());
-        }
-        
-        Ok(())
+        self.update_len();
     }
 ```
+In this implementation, we iterate over our string three times: 
+
+- Once from start to `at` to calculate `result`
+- A second time from start to end (ignoring everything between start and `at`) to calculate `remainder`
+- and once through the whole string to update `len`. 
+
+That's not great. Let's change this.
+
+{% include hecto/better-row-performance.html %}
+
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/better-row-performance)</small>
+
+We did two things here:
+
+- We got rid of `update_len`, as we are now manually calculating the length on every row operation.
+- We are looping over `enumerate`, which does not only provide us with the next element, but also with it's index in the iterator. That way, we can easliy calculate the length while we are moving through the row.
+
+### Final considerations
+While we undoubtly have made `hecto` better with these changes, let's put things a bit into perspective: How likely is it that we will ever see an overflow happening on `usize`? Well, that depends on your system. You can check the actual size of `usize` with the following snippet:
+
+```rust
+fn main() {
+    dbg!(std::usize::MAX);        
+}
+```
+
+On my machine, it outputs the following:
+
+```
+[src/main.rs:2] std::usize::MAX = 18446744073709551615
+```
+That means, we are near an overflow as soon as our doc is close to 18,446,744,073,709,551,615 rows, or if a row has close to 18,446,744,073,709,551,615 characters long. 
+
+That is an insanely large number. If every row contained a byte of information, that would be 18 EB of data. EB stands for Exabyte. Good luck finding a hard drive that can handle these data! And even if you could, `hecto` would run into other issues while handling this insane amount of data.
+
+This does not mean that our work was not important. On the contrary, I believe that thinking about these kinds of things should become a habit while you are coding. However, you should not overoptimize your code for an edge case that will never happen.
 
 ## Conclusion
 You have now successfully built a text editor. If you are brave, you can use `hecto` to work on `hecto`. In the next chapter, we will make use of `prompt()` to implement an incremental search feature in our editor.
