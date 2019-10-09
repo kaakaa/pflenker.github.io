@@ -1,685 +1,121 @@
 ---
-layout: post
+layout: postwithdiff
 title: "Hecto, Chapter 6: Search"
 categories: [Rust, hecto]
 ---
 Our text editor is done - we can open, edit and save files. The upcoming two features add more functionality to it. In this chapter, we will implement a minimal search feature.
 
-For that, we use `prompt`. When the user types a search query and presses <kbd>Enter</kbd>, we'll loop through all the rows of our file, and if a row contains their query string, we'll move the cursor to match. For that, we are going to need a method which searchs a single `Row` and returns the position of the match. Let's start with that now.
-
-```rust
-   pub fn find(&self, query: String) -> Option<usize> {
-        self.string.find(&query[..])
-    }
-```
-
-Since `find` takes a `&str` as an argument, we convert `query` to a `&str` by slicing it. Omitting the start and the end index of `query` slices the whole string. 
-
-But wait - did you notice the mistake we just made? We are returning the _byte index_ of the match. As we saw earlier, this does not necessarily correspond to the position of the first character, so we might be returning a wrong position here. We need to convert our byte index to the character index.
-
-```rust
-    pub fn find(&self, query: String) -> Option<usize> {
-       let byte_index = self.string.find(&query[..]);
-       if let Some(byte_index) = byte_index {
-
-        let mut index = 0;
-        for (i, _) in self.string.char_indices() {
-            if i == byte_index {
-                return Some(index);
-            }
-            index += 1;
-        }
-       }
-       None
-    }
-```
+For that, we reuse `prompt()`. When the user types a search query and presses <kbd>Enter</kbd>, we'll loop through all the rows of our file, and if a row contains their query string, we'll move the cursor to match. For that, we are going to need a method which searchs a single `Row` and returns the position of the match. Let's start with that now.
 
 
-Let's call that method from `Document`:
+{% include hecto/simple-search.html %}
 
-```rust
-    pub fn find(&self, query: String) -> Option<Position> {
-        let mut position = Position{ x: 0, y: 0};
-        for (i, row) in self.rows.iter().enumerate() {
-            position.y = i;
-            if let Some(x) = row.find(&query) {
-                position.x = x;
-                return Some(position);
-            }
-        }
-        None
-    }
-```
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/simple-search)</small>
 
-We are building up our `Position` by setting `y` to the value of the row we are currently investigating. If we find a match, we return the position of the match as `x` and the current row as `y`. If there is no match at all, we return `None`.
+Let's go through this change starting at `Row`. We have added a function which returns an `Option`, which contains either the x position of the match or `None`. We then use the `find` method of `String` to retrieve the byte index of the match. Remember that this might not be the same as the index of the grapheme! To convert the byte index into the grapheme index, we use a slightly convoluted loop. Let's unravel that one.
 
-Let's add that to the `Editor`, and adjust our help message along the way:
+`grapheme_indices()` returns an iterator over a pair of `(byte_index, grapheme)` for each grapheme in the string. `enumerate()` enumerates the iterator, so it gives us the grapheme index of each entry of the iterator. 
 
-```rust
-        let mut initial_status = String::from("HELP:  Ctrl-F = find | Ctrl-S = save | Ctrl-Q = quit");
-        //
- fn process_keypress(&mut self) -> Result<(), std::io::Error> {
-        let pressed_key = Terminal::read_key()?;
-        match pressed_key {
-             Key::Ctrl('q') => {
-                 if self.quit_times > 0 && self.document.is_dirty(){
-                    self.status_message = StatusMessage::from(format!("WARNING! File has unsaved changes. Press Ctrl-Q {} more times to quit.", self.quit_times));;
-                    self.quit_times -=1;
-                     return Ok(());
-                 }
-                 self.should_quit = true
-             },
-             Key::Ctrl('s') => {
-                if self.document.file_name == None {
-                    let new_name = self.prompt("Save as: ")?;
-                    if let None = new_name{
-                        self.status_message = StatusMessage::from("Save aborted.".to_string());    
-                        return Ok(())
-                    } 
-                    self.document.file_name = new_name;
-                    
-                }
-                if let Ok(_) = self.document.save() {
-                    self.status_message = StatusMessage::from("File saved successfully.".to_string());
-                } else {
-                    self.status_message = StatusMessage::from("Error writing file!".to_string());
-                }
-             },
-             Key::Ctrl('f') => {
-                 if let Some(query) = self.prompt("Search: ")? { 
-                     if let Some(position) = self.document.find(query) {
-                         self.cursor_position = position;
-                         self.scroll();
-                     }
-                 }
-                 
-             }
-             Key::Char(c) => {
-                self.document.insert(&self.cursor_position, c);
-                self.move_cursor(&Key::Right);
-             },
-             Key::Delete => self.document.delete(&self.cursor_position),
-             Key::Backspace => {
-                 self.move_cursor(&Key::Left);
-                 self.document.delete(&self.cursor_position);
-             }
-             Key::Up |
-             Key::Down |
-             Key::Left |
-             Key::Right |
-             Key::PageUp |
-             Key::PageDown |
-             Key::End |
-             Key::Home=>  self.move_cursor(&pressed_key),
-             _ => ()
-        }
-```
-This code is familiar from our implementation of the save dialog.
+We take this to our advantage and use the iterator until we arrive at the grapheme with the same byte index as our match, and return the corresponding grapheme index.
+
+In `Document`, we try to return a `Position` of the match within the full document, if there is any. We do this by iterating over all rows and performing `match` on each row, until we have a match. We then return the current row index and the index of the match as the position of the match within the document.
+
+In `Editor`, we use a very similar logic as before around `prompt`. We retrieve the search query from the user and pass it to `find`. If we find a match, we move our cursor. If we don't, we display a message to the user.
+
+Last but not least, we also modify our initial welcome message for the user, so that they know how to use our new search functionality.
 
 
 ## Incremental search
 
 Now, let's make our search feature fancy. We want to support incremental search, meaning the file is searched after each keypress when the user is typing in their search query. 
 
-To implement this, we're going to get `prompt` to take a callback function as an argument. We'll have to call this function after each keypress, passing the current search query inputted by the user and the last key they pressed.
+To implement this, we're going to get `prompt` to take a callback function as an argument. We'll have to call this function after each keypress, passing the current search query inputted by the user and the last key they pressed. I'll explain the concept in a bit.
+
+{% include hecto/incremental-search.html %}
+
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/incremental-search)</small>
+
+We are using a new concept here called [closures](https://doc.rust-lang.org/rust-by-example/fn/closures.html). It comes with a new bit of syntax, which makes this code a bit hard to read.
+
+Let's start with the concept. What we want is to pass a _function_ to `prompt`, and we want this function to be called every time the user has modified his query. We want this so that we can perform a search on the partial query while the user is typing.
+
+How do we do that? First, we need to modify the signature for `prompt`. It now looks like this:
 
 ```rust
-    fn prompt<R>(&mut self, prompt: &str, callback: R) -> Result<Option<String>, std::io::Error>
-        where R: Fn(Key, &String) {
-        
-        let mut result = String::new();
-        loop {
-            self.status_message = StatusMessage::from(format!("{}{}", prompt, result));
-            self.refresh_screen()?;
-            let key = Terminal::read_key()?;
-            match key {
-                Key::Backspace => {
-                    if result.len() > 0 {
-                        result.truncate(result.len()-1);
-                    } else {
-                        break;
-                    }
-                }  
-                Key::Char(c) => {
-                    if c == '\n' {
-                        break;
-                    }
-                    if !c.is_control() {
-                        result.push(c);
-                    }
-                },
-                Key::Esc =>{
-                    result.truncate(0);
-                    break;
-                }
-                _ => ()
-            }
-            callback(key, &result)
-            
-        }
-        self.status_message = StatusMessage::from(String::new());
-        if result.len() == 0 {
-            return Ok(None);
-        }
-        Ok(Some(result))
-    }
+ fn prompt<C>(&mut self, prompt: &str, callback: C) -> Result<Option<String>, std::io::Error> where C: Fn(&mut Self, Key, &String) {
+     //...
+ }
+```                        
 
-    //
-    let new_name = self.prompt("Save as: ", |_,_|{})?;
-    //
-    if let Some(query) = self.prompt("Search: ", |_,_|{})? {                  
+The initial `<C>` comes from the concept of Traits. We won't be implementing any complex traits in the scope of this tutorial, so you won't be seeing this syntax anywhere else. Essentially, the `C` is a placeholder for the callback, and you can see it repeated as the type for the paramter `callback`. Another new thing is the `where` at the end of the method definition, and this is where we define what kind of function `C` should be. It should essentially take three parameters: The `Editor`, the `Key` which has been pressed (we ignore it for now, but we are going to use it later), and a `&String`, which will be the (partial) search query. We can see `callback` being called with these parameters after the user has pressed a key.
 
-```
+How do we define a callback? Well, we can see the easiest case in the `prompt` for `save`: `|_, _, _| {}`.  This is a closure which takes three parameters, ignores all of them and does nothing.
 
-The syntax of creating a function with a callback argument should be familiar from the previous chapter. We have also added a call to `callback` everytime we register a key press. We have also adjusted our previous calls to `prompt`. It looks a bit strange now, but essentially, `|_,_|{}` means: A closure with two parameters, which we both ignore and in which we do nothing. Let's start doing something during search now!
+A more meaningful example is the addition to our Search-Prompt: Here, the closure takes three parameters (ignoring the middle parameter) and actually does something. As it's called with every partial query, we are performing  a search and setting the cursor with every key press.
 
-```rust
-             Key::Ctrl('f') => {
-                 self.prompt("Search: ", |_ ,query|{
-                     if let Some(position) = self.document.find(&query) {
-                         self.cursor_position = position;
-                         self..scroll();
-                     }
-                 })?;
-                 
-                 
-             }
-```
+Maybe you are familiar with closures in other languages, and you might ask yourself: Can't we just access `self` directly within the closure, instead of passing it to `prompt` and then to the callback?
 
-However, if we try to do it like this, we run into an error. The compiler complains about multiple things, but it all boils down to one thing: We can't mutate `self` in the closure. Even if we had a mutable reference to it (which we haven't), we couldn't! 
+Well, yes and no. Yes, because a major feature of closures is that they allow you to access variables from outside of the closure definition, but no, because that does not work in this case.
 
-The reason is Rusts's borrowing mechanism, which only allows one mutable reference to something at a time. Essentially, this prevents bugs like this: You have reference A and reference B. You delete an object using reference A. Reference B is now invalid, interacting with it would cause an error.
-
-In this case, however, it is not easy to see where those two mutable references come from, because both are hidden. One comes from the Closure: A Closure "captures" the variables referenced within, so by mutating `self` in the closure, we make need a mutable reference. The other reference is hidden in `self.prompt`. As we saw earlier, `self.prompt` is roughly equivalent to calling a function with a signature like `fn prompt(editor: &Editor ...)`. And when we look at the signature of our `prompt`, we can actually see that it requires `self` to be mutable.
-
-We can fix this easily by passing the reference to `self` to the closure.
-
-```rust
-    fn prompt<R>(&mut self, prompt: &str, callback: R) -> Result<Option<String>, std::io::Error>
-        where R: Fn(&mut Editor, Key, &String) {
-        
-        let mut result = String::new();
-        loop {
-            self.status_message = StatusMessage::from(format!("{}{}", prompt, result));
-            self.refresh_screen()?;
-            let key = Terminal::read_key()?;
-            match key {
-                Key::Backspace => {
-                    if result.len() > 0 {
-                        result.truncate(result.len()-1);
-                    } else {
-                        break;
-                    }
-                }  
-                Key::Char(c) => {
-                    if c == '\n' {
-                        break;
-                    }
-                    if !c.is_control() {
-                        result.push(c);
-                    }
-                },
-                Key::Esc =>{
-                    result.truncate(0);
-                    break;
-                }
-                _ => ()
-            }
-            callback(self, key, &result);
-            
-        }
-        self.status_message = StatusMessage::from(String::new());
-        if result.len() == 0 {
-            return Ok(None);
-        }
-        Ok(Some(result))
-    }
-
-    //...
-
-     fn process_keypress(&mut self) -> Result<(), std::io::Error> {
-        let pressed_key = Terminal::read_key()?;
-        match pressed_key {
-             Key::Ctrl('q') => {
-                 if self.quit_times > 0 && self.document.is_dirty(){
-                    self.status_message = StatusMessage::from(format!("WARNING! File has unsaved changes. Press Ctrl-Q {} more times to quit.", self.quit_times));;
-                    self.quit_times -=1;
-                     return Ok(());
-                 }
-                 self.should_quit = true
-             },
-             Key::Ctrl('s') => {
-                if self.document.file_name == None {
-                    let new_name = self.prompt("Save as: ", |_,_,_|{})?;
-                    if let None = new_name{
-                        self.status_message = StatusMessage::from("Save aborted.".to_string());    
-                        return Ok(())
-                    } 
-                    self.document.file_name = new_name;
-                    
-                }
-                if let Ok(_) = self.document.save() {
-                    self.status_message = StatusMessage::from("File saved successfully.".to_string());
-                } else {
-                    self.status_message = StatusMessage::from("Error writing file!".to_string());
-                }
-             },
-             Key::Ctrl('f') => {
-                 self.prompt("Search: ", |editor, _ ,query|{
-                     if let Some(position) = editor.document.find(&query) {
-                         editor.cursor_position = position;
-                         editor.scroll();
-                     }
-                 })?;
-                 
-                 
-             }
-             Key::Char(c) => {
-                self.document.insert(&self.cursor_position, c);
-                self.move_cursor(&Key::Right);
-             },
-             Key::Delete => self.document.delete(&self.cursor_position),
-             Key::Backspace => {
-                 self.move_cursor(&Key::Left);
-                 self.document.delete(&self.cursor_position);
-             }
-             Key::Up |
-             Key::Down |
-             Key::Left |
-             Key::Right |
-             Key::PageUp |
-             Key::PageDown |
-             Key::End |
-             Key::Home=>  self.move_cursor(&pressed_key),
-             _ => ()
-        }
-```
+The reason is that `prompt` takes a mutable reference to `self`, as it sets the status message, and it would also pass a mutable reference to `callback`. That is not allowed.
 
 That’s all there is to it. We now have incremental search.
 
 ## Restore cursor position when cancelling search
 If the user cancels his search, we want to reset the cursor to the old position. For that, we are going to save the position before we start the `prompt`, and we check the return value. If it's `None´, the user has cancelled his query, and we want to restore his old cursor position and scroll to it.
 
-```rust
-  fn process_keypress(&mut self) -> Result<(), std::io::Error> {
-        let pressed_key = Terminal::read_key()?;
-        match pressed_key {
-             Key::Ctrl('q') => {
-                 if self.quit_times > 0 && self.document.is_dirty(){
-                    self.status_message = StatusMessage::from(format!("WARNING! File has unsaved changes. Press Ctrl-Q {} more times to quit.", self.quit_times));;
-                    self.quit_times -=1;
-                     return Ok(());
-                 }
-                 self.should_quit = true
-             },
-             Key::Ctrl('s') => {
-                if self.document.file_name == None {
-                    let new_name = self.prompt("Save as: ", |_,_,_|{})?;
-                    if let None = new_name{
-                        self.status_message = StatusMessage::from("Save aborted.".to_string());    
-                        return Ok(())
-                    } 
-                    self.document.file_name = new_name;
-                    
-                }
-                if let Ok(_) = self.document.save() {
-                    self.status_message = StatusMessage::from("File saved successfully.".to_string());
-                } else {
-                    self.status_message = StatusMessage::from("Error writing file!".to_string());
-                }
-             },
-             Key::Ctrl('f') => {
-                 let old_position = Position {
-                     ..self.cursor_position
-                 };
-                 let query = self.prompt("Search: ", |editor, _ ,query|{
-                     if let Some(position) = editor.document.find(&query) {
-                         editor.cursor_position = position;
-                         editor.scroll();
-                     }
-                 })?;
-                 if query == None {
-                     self.cursor_position = old_position;
-                     self.scroll();
-                 }
-                 
-                 
-             }
-             Key::Char(c) => {
-                self.document.insert(&self.cursor_position, c);
-                self.move_cursor(&Key::Right);
-             },
-             Key::Delete => self.document.delete(&self.cursor_position),
-             Key::Backspace => {
-                 self.move_cursor(&Key::Left);
-                 self.document.delete(&self.cursor_position);
-             }
-             Key::Up |
-             Key::Down |
-             Key::Left |
-             Key::Right |
-             Key::PageUp |
-             Key::PageDown |
-             Key::End |
-             Key::Home=>  self.move_cursor(&pressed_key),
-             _ => ()
-        }
-        self.scroll();
-        if self.quit_times < QUIT_TIMES {
-            self.quit_times = QUIT_TIMES;
-            self.status_message = StatusMessage::from(String::new());
-        }
-        
-        Ok(())
-    }
-```
+{% include hecto/reset-position.html %}
 
-We use the [Struct Update Syntax](https://doc.rust-lang.org/book/ch05-01-defining-structs.html#creating-instances-from-other-instances-with-struct-update-syntax) to create `old_position` from the values of `cursor_position`. 
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/reset-position)</small>
+
+To clone the old position, we derive the Clone trait. This allows us to clone all values of the `Position` struct by calling `clone`.
 
 ## Search forward and backward
 
 The last feature we'd like to add is to allow th euser to advance to the next or previous match in the file using the arrow keys. 
 The <kbd>&uarr;</kbd> and <kbd>&larr;</kbd> keys will go to the previous match, and the <kbd>&darr;</kbd> and <kbd>&rarr;</kbd> keys will go to the next match.
 
-We start by accepting a `start` position in our `find` methods, indicating that we want to search the next match after that position.
+{% include hecto/navigate-right.html %}
 
-```rust
-    pub fn find(&self, query: &String, after: usize) -> Option<usize> {
-       if after >= self.len() {
-           return None;
-       }
-       let byte_index = self.to_string_range(after, self.len()).find(&query[..]);
-       if let Some(byte_index) = byte_index {
-        let mut index = 0;
-        for (i, _) in self.string.char_indices() {
-            if i == byte_index {
-                return Some(index + after);
-            }
-            index += 1;
-        }
-       }
-       None
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/navigate-right)</small>
 
-    }
-```
-We are returning `index + after` instead of `after` on the success case, because `index` is the index relative to the shortened string. `find`, however, should return the absolute position of the index in the string.
+We start by accepting a `start` position in our `find` methods, indicating that we want to search the next match after that position. For `row`, this means that we skip everything in the string up until `after` before performing `find`. We need to add `after` to the grapheme index of the match, since the grapheme index indicates the position in the substring without the first part of the string.
 
-Next, we implement the functionality in `Document`:
-```rust
-    pub fn find(&self, query: &String, after: &Position) -> Option<Position> {
-        let mut position = Position{x: after.x, y: after.y};
-        for row in self.rows.iter().skip(position.y) {
-            if let Some(x) = row.find(&query, position.x) {
-                position.x = x;
-                return Some(position);
-            } 
-            position.x = 0;
-            position.y +=1;
-        }
-        None
-    }
-```
-After we have processed the first row in our `for..in` statement without a mathc, we are resetting `x` to `0` to ensure we start searching the next row on the left. Now, let's look at the changes to `Editor`. 
+In `Document`, we are now skipping the first `y` rows when performing the search. We then try to find a match in the current row with the current `x` position. If we can't find anything, we proceed to the next line, but we set x to 0 there, to make sure we start looking from the start of the next row.
 
-```rust
-    fn process_keypress(&mut self) -> Result<(), std::io::Error> {
-        let pressed_key = Terminal::read_key()?;
-        match pressed_key {
-             Key::Ctrl('q') => {
-                 if self.quit_times > 0 && self.document.is_dirty(){
-                    self.status_message = StatusMessage::from(format!("WARNING! File has unsaved changes. Press Ctrl-Q {} more times to quit.", self.quit_times));;
-                    self.quit_times -=1;
-                     return Ok(());
-                 }
-                 self.should_quit = true
-             },
-             Key::Ctrl('s') => {
-                if self.document.file_name == None {
-                    let new_name = self.prompt("Save as: ", |_,_,_|{})?;
-                    if let None = new_name{
-                        self.status_message = StatusMessage::from("Save aborted.".to_string());    
-                        return Ok(())
-                    } 
-                    self.document.file_name = new_name;
-                    
-                }
-                if let Ok(_) = self.document.save() {
-                    self.status_message = StatusMessage::from("File saved successfully.".to_string());
-                } else {
-                    self.status_message = StatusMessage::from("Error writing file!".to_string());
-                }
-             },
-             Key::Ctrl('f') => {
-                 let old_position = Position {
-                     ..self.cursor_position
-                 };
-                 let query = self.prompt("Search (ESC to cancel, Arrows to navigate): ", |editor, key, query|{
-                     let mut moved = false;
-                     match  key {
-                         Key::Right | Key::Down  => {
-                             editor.move_cursor(&Key::Right);
-                             moved = true;
-                         }
-                         _ => ()
-                     }
-                     if let Some(position) = editor.document.find(&query, &editor.cursor_position) {
-                        editor.cursor_position = position;
-                        editor.scroll();
-                     }  else if moved == true {
-                         editor.move_cursor(&Key::Left);
-                     } 
-                   
-                 })?;
-                 if query == None {
-                     self.cursor_position = old_position;
-                     self.scroll();
-                 }
-                 
-                 
-             }
-             Key::Char(c) => {
-                self.document.insert(&self.cursor_position, c);
-                self.move_cursor(&Key::Right);
-             },
-             Key::Delete => self.document.delete(&self.cursor_position),
-             Key::Backspace => {
-                 self.move_cursor(&Key::Left);
-                 self.document.delete(&self.cursor_position);
-             }
-             Key::Up |
-             Key::Down |
-             Key::Left |
-             Key::Right |
-             Key::PageUp |
-             Key::PageDown |
-             Key::End |
-             Key::Home=>  self.move_cursor(&pressed_key),
-             _ => ()
-        }
-        self.scroll();
-        if self.quit_times < QUIT_TIMES {
-            self.quit_times = QUIT_TIMES;
-            self.status_message = StatusMessage::from(String::new());
-        }
-        
-        Ok(())
-    }
-```
 
 We have adjusted our error message and are calling `find` now with the cursor position. We are also now using the formerly unused `key` parameter of our closure and match against the user input. If the user presses down or right, we are moving the cursor to the right as well before continuing the search with the updated parameter. Why? Because if our cursor is already at the position of a search match, we don't want the current position to be returned to us, so we start one step to the left of the current position.  
 In case our find did not return a match, we want the cursor to stay on its previous position. So we track if we have moved the cursor in `moved` and move it back in case there is no result.
 
-Now let's take a look at searching backwards. To do that, we are going to create an Enum which tells us in which direction we want to search. We place that on top of `editor`:
+## Searching backwards
 
-```rust
-#[derive(PartialEq, Copy, Clone)]
-pub enum SearchDirection {
-   Forward,
-   Backward
-}
-```
-Here, we are using something called a Trait Annotation. On very simple structures, like this enum, certain traits can be derived automatically. We are interested in `Copy`, so that we can pass our enum as a parameter without needing to worry about manually copying it or passing references around. To use `Copy`, we also have to use `Clone`, which is used under the hood. Last but not least, we are interested in comparing `enum` entries, so we derive `PartialEq`. Without that trait, something like `if foo == SearchDirection::Forward` would not be possible.
+Now let's take a look at searching backwards. 
 
-Let's start using this enum in our rows first.
+{% include hecto/navigate-left.html %}
 
-```rust
- pub fn find(&self, query: &String, at: usize, direction: SearchDirection) -> Option<usize> {
-       let mut start = 0;
-       let mut end = self.len();
-       if direction == SearchDirection::Forward {
-           start = at;
-       } else {
-           end = at;
-       }
-       
-       let range = self.to_string_range(start, end);       
-       let byte_index;
-       if direction == SearchDirection::Forward {
-           byte_index = range.find(&query[..]);
-       } else {
-           byte_index = range.rfind(&query[..]);
-       }
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/navigate-left)</small>
 
-       if let Some(byte_index) = byte_index {
-        let mut index = 0;
-        for (i, _) in self.string.char_indices() {
-            if i == byte_index {
-                 return Some(index + start);
-            }
-            index += 1;
-        }
-       }
-       None
+That is quite a big change for something that should just be the opposite of what we just implemented!
 
-    }
-```
+Let's unravel the change step by step, starting at `Row`. 
 
-We are using `direction` to determine whether we are looking at `0..at` (for backward searches) or at `at..len` (for forward searches). We use it also to determine whether or not to use `find` or `rfind`. `rfind` is searching from the back, so if we have a string `foo bar baz` and we search for `ba`, we want the index of `baz` and not of `bar` to be returned to us.
+We have renamed `after` to `at`, since we are not necessarily looking at something after, but also before the given index. We are then calculating the size of our substring which we want to search based on the search direction: Either we want to search from the beginning to our current position, or from our current position to the end of the row. Once we have the right length, we use an iterator to collect our actual substring into a string. We allow integer arithmetics here since we have made sure that end is always bigger than or equal to start, and always smaller than or equal to the length of the current row.
 
-Let's call this logic from our document.
-```rust
-    pub fn find(&self, query: &String, at: &Position, direction: SearchDirection) -> Option<Position> {
-        let mut position = Position{x: at.x, y: at.y};
-        let mut start = 0;
-        let mut end = self.len();
-        if direction == SearchDirection::Forward {
-            start = position.y;
-        } else {
-            end = position.y;
-        }
-        for _ in start..end {
-            let row = &self.rows[position.y];
-            if let Some(x) = row.find(&query, position.x, direction) {
-                position.x = x;
-                return Some(position);
-            } 
-            if direction == SearchDirection::Forward{
-                position.y +=1; 
-                position.x = 0;
-            } else {
-                position.y -=1;
-                position.x = self.rows[position.y].len();
-            } 
-    
-            
-        }
-        None
-    }
-```
+You can see an enum in action: `SearchDirection`. We will see its definition in a bit. For now, we use it to determine whether or not we should find the first occurence in a given string, with `find`, or the last, with `rfind`. This ensures that we are finding matches in the correct direction.
 
-We have now built our own iterator instead of using `iter`. Similar to what we did in `row`, we use the direction to set whether we are looking at `0..current row` or at `current row..end of file`  Then we get the current row, search in it and return the position if we have a match. If not, depending on our direction we either advance one row and set our search cursor, `x`, to the left, or we go one row up and set our search cursor to the far right.
+In `Document`, we are building our own iterator, since depending on the search direction we either need to search forward or backward through the document. 
 
-Now let's call it from the `editor`.
+We determine the range of rows through which we will be iterating based on the search direction, and then we perform the search. Same as before: If we have a match, then we can return the position we are currently on. If not, we have to set `y` to the next or previous row, and have to set x either to 0, in case we are searching forward, or to the length of the previous line, in case we are searching backwards.
 
-```rust
-    fn process_keypress(&mut self) -> Result<(), std::io::Error> {
-        let pressed_key = Terminal::read_key()?;
-        match pressed_key {
-             Key::Ctrl('q') => {
-                 if self.quit_times > 0 && self.document.is_dirty(){
-                    self.status_message = StatusMessage::from(format!("WARNING! File has unsaved changes. Press Ctrl-Q {} more times to quit.", self.quit_times));;
-                    self.quit_times -=1;
-                     return Ok(());
-                 }
-                 self.should_quit = true
-             },
-             Key::Ctrl('s') => {
-                if self.document.file_name == None {
-                    let new_name = self.prompt("Save as: ", |_,_,_|{})?;
-                    if let None = new_name{
-                        self.status_message = StatusMessage::from("Save aborted.".to_string());    
-                        return Ok(())
-                    } 
-                    self.document.file_name = new_name;
-                    
-                }
-                if let Ok(_) = self.document.save() {
-                    self.status_message = StatusMessage::from("File saved successfully.".to_string());
-                } else {
-                    self.status_message = StatusMessage::from("Error writing file!".to_string());
-                }
-             },
-             Key::Ctrl('f') => {
-                 let old_position = Position {
-                     ..self.cursor_position
-                 };
-                 let mut direction = SearchDirection::Forward;
-                 let query = self.prompt("Search (ESC to cancel, Arrows to navigate): ", |editor, key, query|{
-                     let mut moved = false;
-                     match  key {
-                         Key::Right | Key::Down  => {
-                             direction = SearchDirection::Forward;
-                             editor.move_cursor(&Key::Right);
-                             moved = true;
-                         },
-                         Key::Left | Key::Up => direction = SearchDirection::Backward,
-                         _ => direction = SearchDirection::Forward
-                     }
-                     if let Some(position) = editor.document.find(&query, &editor.cursor_position, direction) {
-                        editor.cursor_position = position;
-                        editor.scroll();
-                     }  else if moved == true {
-                         editor.move_cursor(&Key::Left);
-                     } 
-                   
-                 })?;
-                 if query == None {
-                     self.cursor_position = old_position;
-                     self.scroll();
-                 }
-                 
-                 
-             }
-             Key::Char(c) => {
-                self.document.insert(&self.cursor_position, c);
-                self.move_cursor(&Key::Right);
-             },
-             Key::Delete => self.document.delete(&self.cursor_position),
-             Key::Backspace => {
-                 self.move_cursor(&Key::Left);
-                 self.document.delete(&self.cursor_position);
-             }
-             Key::Up |
-             Key::Down |
-             Key::Left |
-             Key::Right |
-             Key::PageUp |
-             Key::PageDown |
-             Key::End |
-             Key::Home=>  self.move_cursor(&pressed_key),
-             _ => ()
-        }
-        self.scroll();
-        if self.quit_times < QUIT_TIMES {
-            self.quit_times = QUIT_TIMES;
-            self.status_message = StatusMessage::from(String::new());
-        }
-        
-        Ok(())
-    }
-```
+In `editor`, you can see the definition of our new struct, `SearchDirection`. It derives `Copy` and `Clone`, which allows it to be passed around (the structure is small enough that copying it instead of passing a reference does not really matter), and `PartialEq` ensures that we can actually compare two search directions to one another.
 
-Note here that we had to change the signature of our callback to `FnMut` to allow mutating the search direction from within the closure. Then we use the keys Left and Up to change the search direction to backward. Note that we set the direction to forward again on any other keypress. If we wouldn't do that, the search behaviour would be weird: Let's say the cursor is on `baz` of `foo bar baz`, the user has entered `b` and the Search Direction is backward. If you typed `a`, the query would be `ba` and the user would jump back to `bar` instead of staying on `baz`, even though `baz` also matches the query.
+Then, we are defining a new variable, `direction`, which we intend to set from within the `prompt` closure. We set the search direction to `backward` in case the back or left key have been pressed, and to `forward` on right and down. Then we pass the search direction to the adjusted `find` method.
+ 
+Note that we also set the direction to forward again on any other keypress. If we wouldn't do that, the search behaviour would be weird: Let's say the cursor is on `baz` of `foo bar baz`, the user has entered `b` and the Search Direction is backward. If you typed `a`, the query would be `ba` and the user would jump back to `bar` instead of staying on `baz`, even though `baz` also matches the query.
+
+We have also removed the final search and the "Not found" message in case the user cancels the search. We are already searching within the closure, so an additional search at the end does not bring us any benefit. 
+
+Last but not least, we needed to update the signature for our callback (and thus, for `prompt`), so that `callback` is able to modify variables accessed within it. That's being done by changing `callback` to `FnMut`.
 
 Congratulation, our search feature works now!
 
