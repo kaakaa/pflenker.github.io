@@ -1,423 +1,121 @@
 ---
-layout: post
+layout: postwithdiff
 title: "Hecto, Chapter 7: Syntax Highlighting"
 categories: [Rust, hecto]
 ---
 We are almost done with our text editor - we're only missing some syntax highlighting.
 
 ## Colorful Digits
-Let's start by just getting some color on the screen, as simply as possible. We'll attempt to highlight numbers by coloring each digit character red. 
+Let's start by just getting some color on the screen, as simply as possible. We'll attempt to highlight numbers by coloring each digit character red.
 
-```rust
-    pub fn to_string_range(&self, start: usize, end: usize) -> String {
-        self.render_with_renderer(start, end, |c| c.to_string())
-    }
- 
-    pub fn render(&self, start: usize, end: usize) -> String {
-         self.render_with_renderer(start, end, |c| {
-            if c == '\t' {
-               ' '.to_string()
-            } else if c.is_ascii_digit() {
-                format!("{}{}{}",termion::color::Fg(color::Rgb(220,163,163)),c,color::Fg(color::Reset))
-            } else {
-                c.to_string()
-            }
-         })
-    }
-    fn render_with_renderer<R>(&self,start: usize, end: usize, renderer: R) -> String  where R: Fn(char)->String {
-        let mut end = end;
-        let mut start = start;
-        if end > self.string.len() {
-            end = self.string.len();
-        }
-        if start > end {
-            start = end;
-        }
-        let mut result = String::new();
-        for c in self.string.chars().skip(start).take(end - start) {
-            result = format!("{}{}", result, renderer(c));
-        }
-        result
-    }
-```
+{% include hecto/simple-number-highlighting.html %}
 
-We have refactored the callback of `render_with_renderer` to return a `String` instead of a character, to allow any transformation during rendering where we can add invisible characters, such as coloring, to the output. We have also adjusted `render` to check if the current character is a digit, and we are coloring said digit if it is.
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/simple-number-highlighting)</small>
+
+We have now converted our grapheme into a character, so that we can use `is_ascii_digit` - which determines whether or not a character is a digit. If it is, we change the foreground color to [a shade of red](https://rgb.to/rgb/220,163,205) and reset it immediately afterwards.
 
 ## Refactor syntax highlighting
 Now we know how to color text, but we’re going to have to do a lot more work to actually highlight entire strings, keywords, comments, and so on. We can’t just decide what color to use based on the class of each character, like we’re doing with digits currently. What we want to do is figure out the highlighting for each row of text before we display it, and then rehighlight a line whenever it gets changed. What makes things more complicated is that the highlighting depends on characters currently out of view - for instance, if a `String` starts to the left of the currently visible portion of the row, we want to treat a `"` on screen as the end of a string, and not as the start of one. Our current strategy to look at each visible character is therefore not sufficient.
 
 Instead, we are going to store the highlighting of each character of a row in a vector. Let's start by adding an enum which will hold our different highlighting types as well as a vector to hold them.
 
-```rust
-enum HighlightingType {
-    None,
-    Number
-}
+{% include hecto/highlighting-type.html %}
 
-pub struct Row {
-    string: String,
-    highlighting: Vec<HighlightingType>,
-    len: usize
-}
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/highlighting-type)</small>
 
-impl Row {
-    pub fn new() -> Row {
-        Row {
-            string: String::new(),
-            highlighting: Vec::new(),
-            len: 0
-        }
-    }
-    pub fn from(slice: &str) -> Row{
-        let string = String::from(slice);
-        Row {
-            len: string.chars().count(),
-            highlighting: Vec::new(),
-            string
-        }
-    }
-    //...
-}
-```
-For now, we’ll focus on highlighting numbers only. So we want every character that’s part of a number to have a corresponding `HighlightingType::Number` value in the `highlighting` vector, and we want every other value in `highlighting` to be `HighlightingType::None`.
+Highlighting will be controlled by the `Document`, the rows do not "highlight themselves". The reason will become clearer as we add more code - essentially, to highlight a row, more information than what is present in the `Row` is needed. This means that any operation on the `Row` from the outside can potentially render the highlighting invalid. When developing functionality for `Row`, we are going to pay special attention so that the worst that can happen is a wrong highlighting (as opposed to a crash).
+
+This is why we are not setting the highlight for example in `split`.
+
+For now, we’ll focus on highlighting numbers only. So we want every character that’s part of a number to have a corresponding `Type::Number` value in the `highlighting` vector, and we want every other value in `highlighting` to be `Type::None`.
 
 Let's create a new `highlight` function in our row. This function will go through the characters of the `string` and highlight them by setting each value in the `highlighting` vector.
 
-```rust
-    pub fn from(slice: &str) -> Row{
-        let string = String::from(slice);
-        let mut row = Row {
-            len: string.chars().count(),
-            highlighting: Vec::new(),
-            string
-        };
-        row.highlight();
-        row
-    }
-        pub fn insert(&mut self, at: usize, c: char  ) {
-        if at == self.len() {
-            self.string.push(c);
-            self.len += 1;
-        } else {
-            let mut result = String::new();
-            let mut index = 0;
-            for (i, character) in self.string.chars().enumerate() {
-                index += 1;
-                if i == at {
-                    result.push(c);
-                }
-                result.push(character);
-            }
-            self.string = result;
-            self.len = index;
-        }
-        self.highlight();
-    }
-    pub fn delete(&mut self, at: usize) {
-        if at > self.len {
-            return;
-        }
-        let mut result = String::new();
-        let mut index = 0;
-        for (i, character) in self.string.chars().enumerate() {
-            index += 1;
-            if i != at {
-                result.push(character);
-            }
-        }
-        self.string = result;
-        self.len = index;
-        self.highlight();
-    }
-    pub fn truncate(&mut self, width: usize) {
-        if width > self.len {
-            return;
-        }
-        let mut result = String::new();
-        for character in self.string.chars().take(width) {
-            result.push(character);
-        }
-        self.string = result;
-        self.len = width;
-        self.highlight();
-    }
-      pub fn append(&mut self, string: &String) {
-        self.string = format!("{}{}", self.string, string);
-        self.len = self.string.chars().count();
-        self.highlight();
-    }
-     fn highlight(&mut self) {
-        let mut highlighting = Vec::new();
-        for c in self.string.chars() {
-            if c.is_ascii_digit() {
-                highlighting.push(HighlightingType::Number);
-            } else {
-                highlighting.push(HighlightingType::None);
-            }
-        }
-        self.highlighting = highlighting;
-    }
-```
-The code of `highlight` is straightforward: If a character is a digit, we push `HighlightingType::Number`, otherwise, we push `HighlightingType::None`. We now have an array which has the same length as `self.string.chars()`. We call `highlight` on every row construction and modification, to make sure our highlighting stays in synch with the changes.
+{% include hecto/add-highlighting-to-row.html %}
 
-Now we want to have a function which returns the color we want to use for the actual highlighting for an enum. We can implement that directly on our enum:
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/add-highlighting-to-row)</small>
 
-```rust
-impl HighlightingType {
-    fn to_color(&self) -> impl color::Color {
-        match self {
-            HighlightingType::Number => color::Rgb(220,163,163),
-            _ => color::Rgb(255,255,255),
-        }
-    }
-}
-```
+The code of `highlight` is straightforward: If a character is a digit, we push `Type::Number`, otherwise, we push `Type::None`.
+
+Now we want to have a function which maps the `Type` to a color. Let's implement that as a method of `Type`:
+
+{% include hecto/color-mapping.html %}
+
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/color-mapping)</small>
+
 We are returning red now for numbers and white for all other cases. Now let's finally draw the highlighted text to the screen!
 
-```rust
-pub fn to_string_range(&self, start: usize, end: usize) -> String {
-        self.render_with_renderer(start, end, |c,_| c.to_string())
-    }
- 
-    pub fn render(&self, start: usize, end: usize) -> String {
-         self.render_with_renderer(start, end, |c, index| {
-             let  highlighting =  self.highlighting.get(index).unwrap_or(&HighlightingType::None);                
-            format!("{}{}{}",termion::color::Fg(highlighting.to_color()),c,color::Fg(color::Reset))
-         })
-    }
-    fn render_with_renderer<R>(&self,start: usize, end: usize, renderer: R) -> String  where R: Fn(char, usize)->String {
-        let mut end = end;
-        let mut start = start;
-        if end > self.string.len() {
-            end = self.string.len();
-        }
-        if start > end {
-            start = end;
-        }
-        let mut result = String::new();
-        let mut index = start;
-        for c in self.string.chars().skip(start).take(end - start) {
-            result = format!("{}{}", result, renderer(c, index));
-            index +=1;
-        }
-        result
-    }
-```
-First, we are changing `render_with_renderer` to return the current index to the closure. We use that in `render` to get the current highlight and apply it. Even though we are pretty sure that `get` will always return the right value to us, we are using `unwrap_or`, which returns the value in case there is one, or a default value, in this case `HighlightingType::None`, if not. 
+{% include hecto/apply-highlighting.html %}
+
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/apply-highlighting)</small>
+
+First, we call `highlight` everywhere in `Document` where we modify a row. Then, we refactor our rendering: We get the correct highlighting for the current index (which we obtain by using `enumerate`). We change the color, append to the string which we return, and change the color back again.
 
 This works, but do we really have to write out an escape sequence before every single character? In practice, most characters are going to be the same color as the previous character, so most of the escape sequences are redundant. Let’s keep track of the current text color as we loop through the characters, and only print out an escape sequence when the color changes.
 
-```rust
-    pub fn render(&self, start: usize, end: usize) -> String {
-        let mut current_highlighting = &HighlightingType::None;
-        let rendered_string = self.render_with_renderer(start, end, |c, index| {
-            let highlighting =  self.highlighting.get(index).unwrap_or(&HighlightingType::None); 
-            let mut start ;
-            if highlighting != current_highlighting {
-                current_highlighting = highlighting;
-                start = color::Fg(highlighting.to_color()).to_string();
-            } else {
-                start = String::new();
-            }
-            format!("{}{}",start,c)
-         });
-         
-         format!("{}{}", rendered_string, color::Fg(color::Reset))
-    }
+{% include hecto/improve-highlighting.html %}
 
-```
-We use `current_highlighting` to keep track of what we are currently rendering. We needed to change the signature of `render_with_renderer` to take an `FnMut` callback to be able to capture `current_highlighting` in the closure.  We are also resetting the foreground color after rendering, to make sure we are not messing up the screen for everything that comes after us.
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/improve-highlighting)</small>
+
+We use `current_highlighting` to keep track of what we are currently rendering. When it changes, we add the color change to the render string. We have also moved the ending of the highlighting outside of the loop, so that we reset the color at the end of each line. To allow comparison between `Type`s, we derive `PartialEq` again.
 
 ## Colorful search results
 
-Before we start highlighting strings and keywords and all that, let's use our highlighting system to highlight search results. We'll start by adding `Match` to the `HighlightingType` enum, and mapping it to the color blue in `to_color`. 
+Before we start highlighting strings and keywords and all that, let's use our highlighting system to highlight search results. We'll start by adding `Match` to the `HighlightingType` enum, and mapping it to the color blue in `to_color`.
+{% include hecto/add-match-type.html %}
 
-```rust
-#[derive(PartialEq)]
-enum HighlightingType {
-    None,
-    Number,
-    Match
-}
-
-impl HighlightingType {
-    fn to_color(&self) -> impl color::Color {
-        match self {
-            HighlightingType::Number => color::Rgb(220,163,163),
-            HighlightingType::Match => color::Rgb(38,139,210),
-            _ => color::Rgb(255,255,255),
-        }
-    }
-}
-```
-
-Next, we want to add a method called `highlight_string` to our row, which accepts an optional word. If no word is given, the original highlighting is restored.
-
-```rust
-    pub fn highlight_word(&mut self, word: Option<&String>) {
-        self.highlight();
-        if let Some(word) = word {
-            let length = word.chars().count();
-            if length == 0 {
-                return;
-            }
-            let mut search_index = 0;
-            loop {
-                if let Some(next_match) = self.find(word, search_index, SearchDirection::Forward){
-                    for i in next_match..next_match + length {
-                        if i < self.highlighting.len() {
-                            self.highlighting[i] = HighlightingType::Match;
-                        }
-                    }  
-                    search_index = next_match + 1;
-                    if search_index > self.len() {
-                        break;
-                    }
-                } else {
-                    break;
-                }
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/add-match-type)</small>
 
 
-            }
-        } 
+Next, we want to change `highlight` so that it accepts an optional word. If no word is given, no match is highlighted.
 
-    }
-```
+{% include hecto/highlight-matches.html %}
 
-We start by resetting the highlighting, to avoid effects where the previous highlighting stays visible (for example, when the user is changing his search query). Then, we are getting the length of the word. If it is an empty string, there is nothing to do. Otherwise, we use `self.find` to find all occurences of the word in the current row. If we have a match, we set the whole word to `HighlightingType::Match` by using the position of the match as the starting point, and the position of the end of the match, calculated by `next_match + length`, as the end. Then we advance the cursor of our search by one and continue the search. We break the loop if either we have no match left, or our search index grows too large.
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/highlight-matches)</small>
 
-Now let's call this code from the 'Document' and the 'Editor'.
+Before we investigate the changes in `highlight`, let's first focus on the other changes: We allow an optional parameter to `highlight`, which we provide as `None` everywhere we call `highlight`. We then add a method called `highlight` to the document, which triggers a highlighting of all rows in the doc.
 
-```rust
-    pub fn highlight_word(&mut self, word: Option<&String>) {
-        for row in self.rows.iter_mut() {
-            row.highlight_word(word);
-        }
-    }
-```
+We use that method during our search by passing the current query in, and `None` as soon as the search has been aborted.
 
-```rust
+Now, what about `highlight`?
 
-  Key::Ctrl('f') => {
-                 let old_position = Position {
-                     ..self.cursor_position
-                 };
-                 let mut direction = SearchDirection::Forward;
-                 let query = self.prompt("Search (ESC to cancel, Arrows to navigate): ", |editor, key, query|{
-                     let mut moved = false;
-                     match  key {
-                         Key::Right | Key::Down  => {
-                             direction = SearchDirection::Forward;
-                             editor.move_cursor(&Key::Right);
-                             moved = true;
-                         },
-                         Key::Left | Key::Up => direction = SearchDirection::Backward,
-                         _ => direction = SearchDirection::Forward
-                     }
-                     if let Some(position) = editor.document.find(&query, &editor.cursor_position, direction) {
-                        editor.cursor_position = position;
-                        editor.scroll();
-                     }  else if moved == true {
-                         editor.move_cursor(&Key::Left);
-                     }
-                     editor.document.highlight_word(Some(query)); 
-                   
-                 })?;
-                 if query == None {
-                     self.cursor_position = old_position;
-                     self.scroll();
-                 }
-                 self.document.highlight_word(None);
-                 
-                 
-             }
-```
+First, we collect all the matches of the word we have in the current row. That is more efficient than performing the search on every character.
 
-The `document` simply calls `highlight_word` on all its rows. In the `Editor`, we highlight the word within the searrch closure, and we reset the highlighting after the search has been done.
+We are using two new concepts while doing so. One is `while..let`, which is similar to `if..let`, but it loops as long as the condition is satisifed. We use that to loop through our current row, advancing the starting point for our search directly behind the last match on every turn.
+
+We are also using a new method to add `1`: `checked_add`. This function returns an `Option` with the result if no overflow occured, or `None` otherwise. Why can't we use `saturating_add` here? 
+Well, let's assume our match happens to be the very last part of the row, and we are also at the end of `usize`. Then we can't advance `next_index` any further with `saturading_add`, it would return the same result over and over, the `while` condition would never be false and we would loop indefinitely.
+
+Speaking of loops, we also changed our loop for processing characters. This allows us to consume multiple characters at a time. We use this to push multiple highlighting types at once while we are at the index of a match which we want to highlight.
 
 Try it out, and you will see that all search results light up in your editor.
 
 
 ## Colorful numbers
-Alright, letäs start working on highlighting numbers properly.
+Alright, let's start working on highlighting numbers properly.
 
 Right now, nubers are highlighted even if they're part of an identifier, such as the 32 in `u32`. To fix that, we'll require that numbers are preceded by a separator character, which includes whitespace or punctuation characters. We can use `is_ascii_punctuation` and `is_ascii_whitespace` for that.
 
-```rust
-    fn highlight(&mut self) {
-        let mut highlighting = Vec::new();
-        let chars: Vec<char> = self.string.chars().collect();
-        let mut index = 0;
-        let mut prev_is_separator = true;
-        loop {
-            if index == self.len() {
-                break;
-            }
-            let previous_highlight;
-            if index > 0 {
-                previous_highlight = highlighting.get(index-1).unwrap_or(&HighlightingType::None);
-            } else {
-                previous_highlight = &HighlightingType::None;
-            }
+{% include hecto/highlight-numbers-after-separator.html %}
 
-            let c = chars[index];
-            
-            if c.is_ascii_digit() && (prev_is_separator || previous_highlight == &HighlightingType::Number){
-                highlighting.push(HighlightingType::Number);
-            } else {
-                highlighting.push(HighlightingType::None);
-            }
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/highlight-numbers-after-separator)</small>
 
-            prev_is_separator = c.is_ascii_punctuation() || c.is_ascii_whitespace();        
-            index +=1;
-        }        
-        self.highlighting = highlighting;
-    }
-```
-First, we have changed the `for..in` loop to a `loop`. This will help us consuming multiple characters at a time later on. For that, we create a vector of `char`s out of `self.string.chars` by using `collect()`.  
-We set `prev_is_separator` to `true`, otherwise numbers at the beginning of a line won't be highlighted.
-In the loop, we check if the current characters ia digit and the previous character is either a separator or was also highlighted as a number. We do not check directly if the previous characters was a number, because we are soon going to highlight dots as numbers as well, to cover decimal numbers.
+We're adding a new variable `prev_separator` to check if the last character we saw was a valid separator, after which we want to  highlight numbers properly, or any other character, after which we don't want to highlight numbers.
+
+We are also accessing the previous highlighting so that even if we are not behind a separator, we continue highlighting numbers as numbers - which allows us to highlight numbers with more than one digit.
 
 At the end of the loop, we set `prev_is_separator` to `true` if the current character is either an ascii punctiation or a whitespace, otherwise it's set to `false`. Then we increment `index` to consume the character.
 
 Now let's support highlighting numbers that contain decimal points.
 
-```rust
-    fn highlight(&mut self) {
-        let mut highlighting = Vec::new();
-        let chars: Vec<char> = self.string.chars().collect();
-        let mut index = 0;
-        let mut prev_is_separator = true;
-        loop {
-            if index == self.len() {
-                break;
-            }
-            let previous_highlight;
-            if index > 0 {
-                previous_highlight = highlighting.get(index-1).unwrap_or(&HighlightingType::None);
-            } else {
-                previous_highlight = &HighlightingType::None;
-            }
+{% include hecto/highlight-dot-in-numbers.html %}
 
-            let c = chars[index];
-            
-            if (c.is_ascii_digit() && (prev_is_separator || previous_highlight == &HighlightingType::Number)) ||
-                (c == '.' && previous_highlight == &HighlightingType::Number) {
-                highlighting.push(HighlightingType::Number);
-            } else {
-                highlighting.push(HighlightingType::None);
-            }
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/highlight-dot-in-numbers)</small>
 
-            prev_is_separator = c.is_ascii_punctuation() || c.is_ascii_whitespace();        
-            index +=1;
-        }        
-        self.highlighting = highlighting;
-    }
-```
 A `.` character that comes after a character that we just highlighted as a number will now be considered part of the number.
 
 ## Detect file type
-Before we go on to highlihgt other things, we're going to add filetype detection to our editor. This will allow us to have different rules for how to highlight different types of files. For example, text files shouldn't have any highlighting, and Rust files should highlight numbers, strings, chars, comments and many keywords specific to Rust.
+Before we go on to highlight other things, we're going to add filetype detection to our editor. This will allow us to have different rules for how to highlight different types of files. For example, text files shouldn't have any highlighting, and Rust files should highlight numbers, strings, chars, comments and many keywords specific to Rust.
 
 Let's create a struct `FileType` which will hold our Filetype information for now.
 
@@ -518,7 +216,7 @@ We implement the same trait for `FileType`, this time, we set the string to `"No
         Terminal::reset_bg_color();
     }
 ```
-Now we need a way to detect the file type and set the correct `Highlighting_Options`. 
+Now we need a way to detect the file type and set the correct `Highlighting_Options`.
 
 ```rust
 impl FileType {
@@ -631,7 +329,7 @@ pub fn open(file_name: &String ) -> Result<Document, Error> {
                 file.write_all(b"\n")?;
             }
             self.dirty = false;
-            
+
         } else {
             return Err(Error::new(ErrorKind::Other, "Can't save file!"))
         }
@@ -647,7 +345,7 @@ pub fn open(file_name: &String ) -> Result<Document, Error> {
             let current_row = self.rows.get_mut(at.y).unwrap();
             new_row.append(&current_row.to_string_range(at.x, current_row.len()));
             current_row.truncate(at.x);
-        }  
+        }
 
         if  at.y == self.len() ||  at.y + 1 == self.len() {
             self.rows.push(new_row);
@@ -681,7 +379,7 @@ Now, let's use the highlighting options to finally highlight numbers in Rust fil
             if opts.numbers {
                 if (c.is_ascii_digit() && (prev_is_separator || previous_highlight == &HighlightingType::Number)) ||
                     (c == '.' && previous_highlight == &HighlightingType::Number) {
-                        highlighting.push(HighlightingType::Number);            
+                        highlighting.push(HighlightingType::Number);
                 } else {
                         highlighting.push(HighlightingType::None);
                 }
@@ -689,9 +387,9 @@ Now, let's use the highlighting options to finally highlight numbers in Rust fil
                 highlighting.push(HighlightingType::None);
             }
 
-            prev_is_separator = c.is_ascii_punctuation() || c.is_ascii_whitespace();        
+            prev_is_separator = c.is_ascii_punctuation() || c.is_ascii_whitespace();
             index +=1;
-        }        
+        }
         self.highlighting = highlighting;
     }
 
@@ -776,7 +474,7 @@ Now for the actual highlighting code. We will use an `in_string` and `in_charact
 
             if opts.strings {
                 if in_string {
-                    highlighting.push(HighlightingType::String);   
+                    highlighting.push(HighlightingType::String);
                     if c == '"' {
                         in_string = false;
                         prev_is_separator = true;
@@ -786,17 +484,17 @@ Now for the actual highlighting code. We will use an `in_string` and `in_charact
                     index +=1;
                     continue;
                 } else if prev_is_separator && c == '"' {
-                    highlighting.push(HighlightingType::String);   
+                    highlighting.push(HighlightingType::String);
                     in_string = true;
                     prev_is_separator = true;
                     index +=1;
                     continue;
                 }
-                 
+
             }
             if opts.characters {
                 if in_character {
-                    highlighting.push(HighlightingType::Character);   
+                    highlighting.push(HighlightingType::Character);
                     if c == '\'' {
                         in_character = false;
                         prev_is_separator = true;
@@ -806,45 +504,45 @@ Now for the actual highlighting code. We will use an `in_string` and `in_charact
                     index +=1;
                     continue;
                 } else if prev_is_separator && c == '\'' {
-                    highlighting.push(HighlightingType::Character);   
+                    highlighting.push(HighlightingType::Character);
                     in_character = true;
                     prev_is_separator = true;
                     index +=1;
                     continue;
                 }
-                 
-            }            
+
+            }
 
             if opts.numbers {
                 if (c.is_ascii_digit() && (prev_is_separator || previous_highlight == &HighlightingType::Number)) ||
                     (c == '.' && previous_highlight == &HighlightingType::Number && !prev_is_separator) {
-                        highlighting.push(HighlightingType::Number);            
+                        highlighting.push(HighlightingType::Number);
                         prev_is_separator = true;
                         index +=1;
                         continue;
                 }
-            } 
+            }
 
-            
-            
+
+
             highlighting.push(HighlightingType::None);
-            
 
-            prev_is_separator = c.is_ascii_punctuation() || c.is_ascii_whitespace();        
+
+            prev_is_separator = c.is_ascii_punctuation() || c.is_ascii_whitespace();
             index +=1;
-        }        
+        }
         self.highlighting = highlighting;
     }
- 
+
 ```
 
 The code for both cases is nearly identical (we will add an exception soon). Going through it from top to bottom: If `in_string` is set, then we know that the current character can be highlighted as a string. Then we check if the current character is the closing quote, and if so, we reset `in_string` to `0`. Then, since we highlighted the current character, we have to consume it by incrementing `index` and `continue`ing out of the current loop iteration. We also set `prev_is_separator` to `true` so that if we're done highlighting the string, the closing quote is considered a separator.
 
-IF we're not currently in a string, then we have to check if we're at the beginning of one by checking for the starting quote. If we are, we set `in_string` to `true`, highlight the quote and consume it. 
+IF we're not currently in a string, then we have to check if we're at the beginning of one by checking for the starting quote. If we are, we set `in_string` to `true`, highlight the quote and consume it.
 
 Except for the difference in variable names and the quotes, we do the same for characters.
 
-We should probably take escaped quotes into account when highlighting strings and characters. If the sequence `\"` occurs in a string, then the escaped quote doesn't close the string in the vast majority of languages. 
+We should probably take escaped quotes into account when highlighting strings and characters. If the sequence `\"` occurs in a string, then the escaped quote doesn't close the string in the vast majority of languages.
 
 ```rust
    fn highlight(&mut self) {
@@ -871,12 +569,12 @@ We should probably take escaped quotes into account when highlighting strings an
 
             if opts.strings {
                 if in_string {
-                    highlighting.push(HighlightingType::String); 
+                    highlighting.push(HighlightingType::String);
                     if c == '\\' && index + 1 < self.len() {
-                        highlighting.push(HighlightingType::String); 
+                        highlighting.push(HighlightingType::String);
                         index +=2;
                         continue;
-                    }  
+                    }
                     if c == '"' {
                         in_string = false;
                         prev_is_separator = true;
@@ -886,22 +584,22 @@ We should probably take escaped quotes into account when highlighting strings an
                     index +=1;
                     continue;
                 } else if prev_is_separator && c == '"' {
-                    highlighting.push(HighlightingType::String);   
+                    highlighting.push(HighlightingType::String);
                     in_string = true;
                     prev_is_separator = true;
                     index +=1;
                     continue;
                 }
-                 
+
             }
             if opts.characters {
                 if in_character {
-                    highlighting.push(HighlightingType::Character);   
+                    highlighting.push(HighlightingType::Character);
                     if c == '\\' && index + 1 < chars.len() {
-                        highlighting.push(HighlightingType::Character); 
+                        highlighting.push(HighlightingType::Character);
                         index +=2;
                         continue;
-                    }                      
+                    }
                     if c == '\'' {
                         in_character = false;
                         prev_is_separator = true;
@@ -911,33 +609,33 @@ We should probably take escaped quotes into account when highlighting strings an
                     index +=1;
                     continue;
                 } else if prev_is_separator && c == '\'' {
-                    highlighting.push(HighlightingType::Character);   
+                    highlighting.push(HighlightingType::Character);
                     in_character = true;
                     prev_is_separator = true;
                     index +=1;
                     continue;
                 }
-                 
-            }            
+
+            }
 
             if opts.numbers {
                 if (c.is_ascii_digit() && (prev_is_separator || previous_highlight == &HighlightingType::Number)) ||
                     (c == '.' && previous_highlight == &HighlightingType::Number && !prev_is_separator) {
-                        highlighting.push(HighlightingType::Number);            
+                        highlighting.push(HighlightingType::Number);
                         prev_is_separator = true;
                         index +=1;
                         continue;
                 }
-            } 
+            }
 
-            
-            
+
+
             highlighting.push(HighlightingType::None);
-            
 
-            prev_is_separator = c.is_ascii_punctuation() || c.is_ascii_whitespace();        
+
+            prev_is_separator = c.is_ascii_punctuation() || c.is_ascii_whitespace();
             index +=1;
-        }        
+        }
         self.highlighting = highlighting;
     }
 ```
@@ -956,16 +654,16 @@ In Rust, our character highlighting still has a bug. Rust has a concept called [
                     let last_char = chars[last_index];
                     if last_char == '\'' {
                         for _ in index..last_index + 1 {
-                            highlighting.push(HighlightingType::Character); 
+                            highlighting.push(HighlightingType::Character);
                             index +=1;
                             prev_is_separator = true;
-                            
+
                         }
                         continue;
                     }
 
-                }                 
-            }    
+                }
+            }
 ```
 
 We got rid of `in_character` again. If we encounter a `'`, we now look at the next two characters as well. Then we check if the next character is a `\`. If it is, we also look at another character. Then we check the last character. If it is a closing `'`, we highlight and consume all the characters in between and end the current iteration of the loop. This means that in our syntax highlighting, we only allow one character between two single quotes, unless there is an escaped character.
@@ -1001,7 +699,7 @@ impl FileType {
 
 ```
 
-```rust 
+```rust
 #[derive(PartialEq)]
 enum HighlightingType {
     None,
@@ -1047,26 +745,26 @@ impl HighlightingType {
 
             if opts.strings {
                 if in_string {
-                    highlighting.push(HighlightingType::String); 
+                    highlighting.push(HighlightingType::String);
                     if c == '\\' && index + 1 < chars.len() {
-                        highlighting.push(HighlightingType::String); 
+                        highlighting.push(HighlightingType::String);
                         index +=2;
                         continue;
-                    }  
+                    }
                     if c == '"' {
                         in_string = false;
                         prev_is_separator = true;
-                    } 
+                    }
 
                     index +=1;
                     continue;
                 } else if prev_is_separator && c == '"' {
-                    highlighting.push(HighlightingType::String);   
+                    highlighting.push(HighlightingType::String);
                     in_string = true;
                     index +=1;
                     continue;
                 }
-                 
+
             }
             if opts.characters {
                 if c == '\'' &&  index + 2 < chars.len()  {
@@ -1078,44 +776,44 @@ impl HighlightingType {
                     let last_char = chars[last_index];
                     if last_char == '\'' {
                         for _ in index..last_index + 1 {
-                            highlighting.push(HighlightingType::Character); 
+                            highlighting.push(HighlightingType::Character);
                             index +=1;
                             prev_is_separator = true;
-                            
+
                         }
                         continue;
                     }
 
-                }                 
-            }         
+                }
+            }
             if opts.comments {
                 if c == '/' && self.find(&"//".to_string(), index, SearchDirection::Forward).unwrap_or(index+1) == index {
                     for _ in index..chars.len() {
                         highlighting.push(HighlightingType::Comments);
-                        
+
                     }
                     break;
                 }
-            }   
+            }
 
             if opts.numbers {
                 if (c.is_ascii_digit() && (prev_is_separator || previous_highlight == &HighlightingType::Number)) ||
                     (c == '.' && previous_highlight == &HighlightingType::Number && !prev_is_separator) {
-                        highlighting.push(HighlightingType::Number);            
+                        highlighting.push(HighlightingType::Number);
                         prev_is_separator = true;
                         index +=1;
                         continue;
                 }
-            } 
+            }
 
-            
-            
+
+
             highlighting.push(HighlightingType::None);
-            
 
-            prev_is_separator = c.is_ascii_punctuation() || c.is_ascii_whitespace();        
+
+            prev_is_separator = c.is_ascii_punctuation() || c.is_ascii_whitespace();
             index +=1;
-        }        
+        }
         self.highlighting = highlighting;
     }
 
@@ -1272,7 +970,7 @@ impl FileType {
         } else {
             Self::default()
         }
-        
+
     }
 }
 ```
@@ -1306,7 +1004,7 @@ We can't automatically derive the `Copy` trait any more, so we need to adjust th
                 file.write_all(b"\n")?;
             }
             self.dirty = false;
-            
+
         } else {
             return Err(Error::new(ErrorKind::Other, "Can't save file!"))
         }
@@ -1322,7 +1020,7 @@ We can't automatically derive the `Copy` trait any more, so we need to adjust th
             let current_row = self.rows.get_mut(at.y).unwrap();
             new_row.append(&current_row.to_string_range(at.x, current_row.len()));
             current_row.truncate(at.x);
-        }  
+        }
 
         if  at.y == self.len() ||  at.y + 1 == self.len() {
             self.rows.push(new_row);
@@ -1347,7 +1045,7 @@ Now that we have the keywords available, let's highlight them. We start with the
             let mut opts = &HighlightingOptions::default();
             if !self.hl_opts.is_none() {
                opts = self.hl_opts.as_ref().unwrap()
-            } 
+            }
             let previous_highlight;
             if index > 0 {
                 previous_highlight = highlighting.get(index-1).unwrap_or(&HighlightingType::None);
@@ -1360,26 +1058,26 @@ Now that we have the keywords available, let's highlight them. We start with the
 
             if opts.strings {
                 if in_string {
-                    highlighting.push(HighlightingType::String); 
+                    highlighting.push(HighlightingType::String);
                     if c == '\\' && index + 1 < chars.len() {
-                        highlighting.push(HighlightingType::String); 
+                        highlighting.push(HighlightingType::String);
                         index +=2;
                         continue;
-                    }  
+                    }
                     if c == '"' {
                         in_string = false;
                         prev_is_separator = true;
-                    } 
+                    }
 
                     index +=1;
                     continue;
                 } else if prev_is_separator && c == '"' {
-                    highlighting.push(HighlightingType::String);   
+                    highlighting.push(HighlightingType::String);
                     in_string = true;
                     index +=1;
                     continue;
                 }
-                 
+
             }
             if opts.characters {
                 if c == '\'' &&  index + 2 < chars.len()  {
@@ -1391,25 +1089,25 @@ Now that we have the keywords available, let's highlight them. We start with the
                     let last_char = chars[last_index];
                     if last_char == '\'' {
                         for _ in index..last_index + 1 {
-                            highlighting.push(HighlightingType::Character); 
+                            highlighting.push(HighlightingType::Character);
                             index +=1;
                             prev_is_separator = true;
-                            
+
                         }
                         continue;
                     }
 
-                }                 
-            }         
+                }
+            }
             if opts.comments {
                 if c == '/' && self.find(&"//".to_string(), index, SearchDirection::Forward).unwrap_or(index+1) == index {
                     for _ in index..chars.len() {
                         highlighting.push(HighlightingType::Comments);
-                        
+
                     }
                     break;
                 }
-            }   
+            }
 
           if  prev_is_separator {
                 for keyword in opts.primary_keywords.iter() {
@@ -1425,32 +1123,32 @@ Now that we have the keywords available, let's highlight them. We start with the
                     }
                     index += length;
                     continue 'outer;
-                    
-                    
+
+
               }
-    
+
             }
-            
+
 
             if opts.numbers {
                 if (c.is_ascii_digit() && (prev_is_separator || previous_highlight == &HighlightingType::Number)) ||
                     (c == '.' && previous_highlight == &HighlightingType::Number && !prev_is_separator) {
-                        highlighting.push(HighlightingType::Number);            
+                        highlighting.push(HighlightingType::Number);
                         prev_is_separator = true;
                         index +=1;
                         continue;
                 }
-            } 
+            }
 
-            
-            
+
+
             highlighting.push(HighlightingType::None);
-            
 
-            prev_is_separator = c.is_ascii_punctuation() || c.is_ascii_whitespace();        
+
+            prev_is_separator = c.is_ascii_punctuation() || c.is_ascii_whitespace();
             index +=1;
-        }        
-        
+        }
+
         self.highlighting = highlighting;
     }
 ```
@@ -1484,10 +1182,10 @@ Now let's fix a quick bug: We require a keyword to be followed by a separator, s
                     }
                     prev_is_separator = false;
                     continue 'outer;
-                    
-                    
+
+
               }
-    
+
             }
 ```
 
@@ -1518,12 +1216,12 @@ Now, let's try and highlight secondary keywords as well.
                                 }
                                 prev_is_separator = false;
                                 continue 'outer;
-                                
-                                
+
+
                  }
               }
-         
-    
+
+
             }
 ```
 
