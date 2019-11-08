@@ -1,15 +1,20 @@
 ---
 layout: postwithdiff
 title: "Hecto, Chapter 6: Search"
-categories: [Rust, hecto]
+categories: [Rust, hecto, Tutorial]
+permalink: /hecto-chapter-6/
+image: /assets/2019-11-08-hecto-chapter-6.png
+date: 2019-11-08 00:00:07
 ---
+[Previous chapter]({% post_url 2019-11-08-rust-text-editor-chapter-5%}) - [Overview]({% post_url 2019-11-08-rust-text-editor%}) - [Appendices]({% post_url 2019-11-08-rust-text-editor-appendix%}) - [Next Chapter]({% post_url 2019-11-08-rust-text-editor-chapter-7%}) 
+{: style="text-align: center"}
 Our text editor is done - we can open, edit and save files. The upcoming two features add more functionality to it. In this chapter, we will implement a minimal search feature.
 
 For that, we reuse `prompt()`. When the user types a search query and presses <kbd>Enter</kbd>, we'll loop through all the rows of our file, and if a row contains their query string, we'll move the cursor to match. For that, we are going to need a method which searchs a single `Row` and returns the position of the match. Let's start with that now.
 
 {% include hecto/simple-search.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/simple-search)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/simple-search)</small>
 
 Let's go through this change starting at `Row`. We have added a function which returns an `Option`, which contains either the x position of the match or `None`. We then use the `find` method of `String` to retrieve the byte index of the match. Remember that this might not be the same as the index of the grapheme! To convert the byte index into the grapheme index, we use a slightly convoluted loop. Let's unravel that one.
 
@@ -32,7 +37,7 @@ To implement this, we're going to get `prompt` to take a callback function as an
 
 {% include hecto/incremental-search.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/incremental-search)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/incremental-search)</small>
 
 We are using a new concept here called [closures](https://doc.rust-lang.org/rust-by-example/fn/closures.html). It comes with a new bit of syntax, which makes this code a bit hard to read.
 
@@ -65,7 +70,7 @@ If the user cancels his search, we want to reset the cursor to the old position.
 
 {% include hecto/reset-position.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/reset-position)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/reset-position)</small>
 
 To clone the old position, we derive the Clone trait. This allows us to clone all values of the `Position` struct by calling `clone`.
 
@@ -76,7 +81,7 @@ The <kbd>&uarr;</kbd> and <kbd>&larr;</kbd> keys will go to the previous match, 
 
 {% include hecto/navigate-right.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/navigate-right)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/navigate-right)</small>
 
 We start by accepting a `start` position in our `find` methods, indicating that we want to search the next match after that position. For `row`, this means that we skip everything in the string up until `after` before performing `find`. We need to add `after` to the grapheme index of the match, since the grapheme index indicates the position in the substring without the first part of the string.
 
@@ -92,7 +97,7 @@ Now let's take a look at searching backwards.
 
 {% include hecto/navigate-left.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/navigate-left)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/navigate-left)</small>
 
 That is quite a big change for something that should just be the opposite of what we just implemented!
 
@@ -119,4 +124,4 @@ Last but not least, we needed to update the signature for our callback (and thus
 Congratulation, our search feature works now!
 
 ## Conclusion
-Since our functionality is now complete, we used this chapter again to focus a bit more on Rust topics and brushed the topic of Closures and Traits. Our editor is almost complete - in the next chapter, we are going to implement Syntax Highlighting and File Type Detection, to complete our text editor.
+Since our functionality is now complete, we used this chapter again to focus a bit more on Rust topics and brushed the topic of Closures and Traits. Our editor is almost complete - in the [next chapter]({% post_url 2019-11-08-rust-text-editor-chapter-7%}), we are going to implement Syntax Highlighting and File Type Detection, to complete our text editor.

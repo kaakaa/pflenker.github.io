@@ -1,8 +1,13 @@
 ---
 layout: postwithdiff
 title: "Hecto, Chapter 4: A text viewer"
-categories: [Rust, hecto]
+categories: [Rust, hecto, Tutorial]
+permalink: /hecto-chapter-4/
+image: /assets/2019-11-08-hecto-chapter-4.png
+date: 2019-11-08 00:00:05
 ---
+[Previous chapter]({% post_url 2019-11-08-rust-text-editor-chapter-3%}) - [Overview]({% post_url 2019-11-08-rust-text-editor%}) - [Appendices]({% post_url 2019-11-08-rust-text-editor-appendix%}) - [Next Chapter]({% post_url 2019-11-08-rust-text-editor-chapter-5%}) 
+{: style="text-align: center"}
 Let's see if we can turn `hecto` into a text viewer in this chapter.
 
 ## A line viewer
@@ -10,7 +15,7 @@ We need a few more data structures: A `Document` which will represent the docume
 
 {% include hecto/add-document-rows.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/add-document-rows)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/add-document-rows)</small>
 
 In this change, we have introduced two new concepts to our code: First, we are using a data structure called a Vector  which will hold our rows. A Vector is a dynamic structure: It can grow and shrink on runtime, as we are adding to or removing from it. The syntax `Vec<Row>` means that this vector will hold entries of the type `Row`.
 
@@ -23,7 +28,7 @@ It means that the rust compiler is supposed to derive an implementation for `def
 
 {% include hecto/use-default.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/use-default)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/use-default)</small>
 
 By deriving `default` for `Position`, we have removed the duplication of initializing the cursor position to `0`, `0`. If, in the future, we would decide to intialize  `Position` in a different way, then we could implement `default` ourselves without needint to touch any other code.
 
@@ -33,7 +38,7 @@ Let's fill the Document with some text now. We won't worry about reading from a 
 
 {% include hecto/hardcoded-document.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/hardcoded-document)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/hardcoded-document)</small>
 
 
 You might be wondering about the `From<&str>` part in the `impl` block for the row. We are now not only implementing a `from` function, but we do so by implementing the `From` trait for `Row`. We won't need it in the scope of this tutorial, but implementing a trait enables us to use certain functionalities in a certain way. We will handle traits a bit later in even more detail, but if you are interested now, check out [this part of the docs](https://doc.rust-lang.org/rust-by-example/conversion/from_into.html) - we get `into` for free while implementing `from`.
@@ -43,7 +48,7 @@ We will later implement a method to open a `Document` from file. At that point, 
 
 {% include hecto/display-row.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/display-row)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/display-row)</small>
 
 Let's unravel this change starting with `Row`. We have added a method called `render`. We call it `render`, beause eventually it will be responsible for a few more things than just returning a substring. Our `render` method is very user friendly as it normalizes bogus input - essentially, it returns the biggest possible sub string it can generate. We're also routinely using `unwrap_or_default`, even though it's not necessary here, as we sanitized the start and end parameters beforehand. What happens in the last line is that we try to create a substring from the string and either convert it or the default value (`""`) to a string. (In Rust, there is a difference between a String and something called a `str`. We will get to this soon.)
 
@@ -56,7 +61,7 @@ However, our welcome message is still displayed. We don't want that when the use
 
 {% include hecto/remove-welcome-message.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/remove-welcome-message)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/remove-welcome-message)</small>
 
 You should be able to confirm that the message is no longer shown in the middle of the screen.
 
@@ -64,7 +69,7 @@ Next, let's allow the user to open and display actual file. We start by changing
 
 {% include hecto/open-file.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/open-file)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/open-file)</small>
 
 We are now using a default `Document` on start, and added a new method `open`, which attempts to open a file and returns an error in case of a failure.
 
@@ -74,7 +79,7 @@ Let's now actually use `open` to open a file which will be passed to `hecto` by 
 
 {% include hecto/open-file-from-params.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/open-file-from-params)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/open-file-from-params)</small>
 
 Try it out by running `cargo run` in contrast to `cargo run Cargo.toml`!
 
@@ -92,7 +97,7 @@ Next we want to enable the user to scroll through the whole file, instead of jus
 
 {% include hecto/add-offset.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/add-offset)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/add-offset)</small>
 
 We initialize it with the default value. which means we'll be scrolled to the top left of the file by default.
 
@@ -100,7 +105,7 @@ Now let's have `draw_row()` display the correct range of lines of the file accor
 
 {% include hecto/use-offset-for-drawing.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/use-offset-for-drawing)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/use-offset-for-drawing)</small>
 
 We are adding the offset to the start and to the end, to get the slice of the string we're after. We are also making sure that we can handle situations where our string is not long enough to fit the screen. If the current row has ended to the left of the current screen (which can happen if we are in a long row and scroll to the right), the `render` method of `Row` will return an empty string.
 
@@ -108,7 +113,7 @@ Where do we set the value of  `offset`? Our strategy will be to check if the cur
 
 {% include hecto/set-offset-in-scroll.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/set-offset-in-scroll)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/set-offset-in-scroll)</small>
 
 
 To `scroll`, we need to know the width and height of the terminal and the current position, and we want to change the values in `self.offset`. If we have moved to the left or to the top, we want to set our offset to the new position in the document. If we have scrolled too far to the right, we are subtracting the current offset from the new position to calculate the new offset.
@@ -117,20 +122,20 @@ Now let's allow the cursor to advance past the bottom of the screen (but not pas
 
 {% include hecto/scroll-down.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/scroll-down)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/scroll-down)</small>
 
 You should be able to scroll through the entire file now, when you run `cargo run src/editor.rs`. The handling of the last line will be a bit strange, since we place our cursor there, but are not rendering there. This will be fixed when we add the status bar later in this chapter.
 If you try to scroll back up, you may notice the cursor isn't being positioned properly. That is because `Position` in the state no longer refers to the position of the cursor on the screen. It refers to the position of the cursor within the text file, but we are still passing it to `cursor_position`. To position the cursor on the screen, we now have to subtract the `offset` from the position within the document.
 
 {% include hecto/scroll-up.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/scroll-up)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/scroll-up)</small>
 
 Now let's fix the horizontal scrolling. The missing piece here is that we are not yet allowing the cursor to scroll past the right of the screen. We fix that symmetrical to what we did for scrolling down:
 
 {% include hecto/scroll-right.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/scroll-right)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/scroll-right)</small>
 
 All we had to do is changing the width used by `move_cursor`. Horizontral scrolling does now work. In case you are wondering, it's a best practice to implement `is_empty` as soon as you have a `len` function. We're not using it for now, but Clippy pointed it out, and it was easy for us to implement.
 
@@ -146,7 +151,7 @@ Let's add some code to `move_cursor()` that corrects `cursor_position` if it end
 
 {% include hecto/snap-to-line.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/snap-to-line)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/snap-to-line)</small>
 
 We have to set `width` again, since `row` can have changed during the key processing. We then set the new value of `x`, making sure that x does not exceed the current row's width.
 
@@ -155,7 +160,7 @@ Now that we have scrolling, let's make the <kbd>Page Up</kbd> and <kbd>Page Down
 
 {% include hecto/page-through-doc.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/page-through-doc)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/page-through-doc)</small>
 
 We were able to get rid of unnecessary saturating arithmetics. Why? For example, `y` and `height` have the same type. If `y.saturating_add(terminal_height)` is less than `height`, then `y + terminal_height` is also less than `height`.
 
@@ -175,7 +180,7 @@ Similarly, let's allow the user to press <kbd>&rarr;</kbd> at the end of a line 
 
 {% include hecto/right-at-line-end.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/right-at-line-end)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/right-at-line-end)</small>
 
 Here we have to make sure they’re not at the end of the file before moving down a line. We were also able to remove `saturated_add` here. `height` and `y` are of the same type, so if `y` is smaller than `height`, then we have enough room to add `1` to it.
 
@@ -217,7 +222,7 @@ So what _is_ the length of a row for us? Fundamentally, it's one element on the 
 
 {% include hecto/use-unicode-segmentation.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/use-unicode-segmentation)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/use-unicode-segmentation)</small>
 
 We have introduced two changes. In both cases, we are performing `graphemes()` on the slice of the full String (indicated by [..]) and then use that iterator. In the case of `len()`, we are calling `count()` on the iterator, which tells us how many graphemes there are. In case of `render`, we are now starting to build our own string instead of using the built-in methods. For that, we skip the first graphemes (the ones to the left of the screen), and we only take `end-start` many graphemes (the visible portion of the row). These graphemes are then pushed into the return value.
 
@@ -225,7 +230,7 @@ While this works, the performance is not optimal. `count` actually goes through 
 
 {% include hecto/manually-calculate-len.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/manually-calculate-len)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/manually-calculate-len)</small>
 
 Now we only have to remember to call `update_len` whenever our row changes. Scrolling works now - or does it? Turns out we have to jump through one more hoop to get all of it right.
 
@@ -236,7 +241,7 @@ Let's replace our tabs with spaces now.
 
 {% include hecto/render-tabs.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/render-tabs)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/render-tabs)</small>
 
 That's it - we have finally solved all the edge cases we care about. Now let's tackle one last issue which has been bugging us for quite some time: Let's fix that last line.
 
@@ -248,7 +253,7 @@ First we'll simply make room for a two-line status bar at the bottom of the scre
 
 {% include hecto/make-room-for-status-bar.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/make-room-for-status-bar)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/make-room-for-status-bar)</small>
 
 You should now be able to confirm that two lines are cleared at the bottom and that Page Up and Down works as expected. 
 
@@ -260,7 +265,7 @@ We're going to use `termion`'s capability to provide RGB colors, which fall back
 
 {% include hecto/draw-status-bar.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/draw-status-bar)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/draw-status-bar)</small>
 
 We have started by extending our `terminal` with a few new functions, to set and to reset the background color. We need to reset the colors after we use them, otherwise the rest of the screen will also be rendered in the same color. 
 
@@ -270,7 +275,7 @@ We want to display the file name next. Let's adjust our `Document` to have an op
 
 {% include hecto/add-file-name.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/add-file-name)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/add-file-name)</small>
 
 Note that we have not used a `String` as a type for the file name, but an `Option`, to indicate that we either have a filename or `None`, in case no file name is set.
 
@@ -278,7 +283,7 @@ Now we’re ready to display some information in the status bar. We’ll display
 
 {% include hecto/show-filename.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/show-filename)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/show-filename)</small>
 
 We make sure to cut the status string short in case it doesn’t fit inside the width of the window. Notice how we still use code that draws spaces up to the end of the screen, so that the entire status bar has a white background.
 
@@ -288,7 +293,7 @@ Now let’s show the current line number, and align it to the right edge of the 
 
 {% include hecto/show-line-indicator.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/show-line-indicator)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/show-line-indicator)</small>
 
 The current line is stored in `cursor_position.y`, which we add 1 to since the position is 0-indexed. We are subtracting the length of the new part of the status bar from the number of spaces we want to produce, and add it to the final formatted string.
 
@@ -298,7 +303,7 @@ We're going to add one more line below our status bar. This will be for displayi
 
 {% include hecto/show-status-bar.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/show-status-bar)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/show-status-bar)</small>
 
 
 We initialize `status_message` to a help message with the key bindings. We also take the opportunity and set the status message to an error if we can't open the file, something that we silently ignored before. To do that, we have to rearrange the code to open a document a bit, so that the correct doc is loaded and the correct status message is set.
@@ -316,4 +321,4 @@ In the next chapter, we will turn our text viewer into a text editor, allowing t
 ## Conclusion
 In this chapter, all the refactoring of the previous chapters has paid off, as we where able to extend our editor effortlessly
 
-I hope that, like in the last chapter, you are looking at your new text viewer with pride. It's coming along! Let's focus on editing text in the next chapter.
+I hope that, like in the last chapter, you are looking at your new text viewer with pride. It's coming along! Let's focus on editing text in [next chapter]({% post_url 2019-11-08-rust-text-editor-chapter-5%}).

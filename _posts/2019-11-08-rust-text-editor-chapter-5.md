@@ -1,8 +1,13 @@
 ---
 layout: postwithdiff
 title: "Hecto, Chapter 5: A text editor"
-categories: [Rust, hecto]
+categories: [Rust, hecto, Tutorial]
+permalink: /hecto-chapter-5/
+image: /assets/2019-11-08-hecto-chapter-5.png
+date: 2019-11-08 00:00:06
 ---
+[Previous chapter]({% post_url 2019-11-08-rust-text-editor-chapter-4%}) - [Overview]({% post_url 2019-11-08-rust-text-editor%}) - [Appendices]({% post_url 2019-11-08-rust-text-editor-appendix%}) - [Next Chapter]({% post_url 2019-11-08-rust-text-editor-chapter-6%}) 
+{: style="text-align: center"}
 Now that `hecto` can read files, let's see if we can teach it to edit files as well.
 
 ## Insert ordinary characters
@@ -11,7 +16,7 @@ Let's begin by writing a function that inserts a single character into a `Docume
 
 {% include hecto/insert-characters.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/insert-characters)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/insert-characters)</small>
 
 Let's focus first on the changes to `Row`.
 
@@ -29,7 +34,7 @@ With that change, we can now add characters anywhere in the document. But our cu
 
 {% include hecto/insert-and-move.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/insert-and-move)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/insert-and-move)</small>
 
 You should now be able to confirm that putting in characters works, even at the bottom of the file.
 
@@ -40,7 +45,7 @@ Let's start with Delete, which should remove the character under the cursor. If 
 
 {% include hecto/simple-delete.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/simple-delete)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/simple-delete)</small>
 
 As you can see, the code is very similar to the `insert` code we wrote before. The difference is that in `Row`, we are not adding a character, but we are skipping the one we want to delete when glueing together `result` and `remainder`. And in `Document`, we do not need to handle the case where we want to delete a row (yet), which makes that code a bit simpler than the symmertrical `insert` code.
 
@@ -48,7 +53,7 @@ You should now be able to delete characters from with in a line. Let's tackle Ba
 
 {% include hecto/simple-backspace.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/simple-backspace)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/simple-backspace)</small>
 
 Backspace now works within a line. We even make sure that if we are at the beginning of the document, we are not doing a delete - otherwise, we would start removing elements behind the cursor.
 
@@ -60,7 +65,7 @@ There are two edge cases which we can't handle right now, and that is either usi
 
 {% include hecto/complex-delete.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/complex-delete)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/complex-delete)</small>
 
 We start by giving `Row` the ability to append another row to it. We use this ability in `Document`. Now, the code in `Document` looks a bit complex, and I'm going to explain in a second why this is the case. What it does, though, is checking if we are at the end of a line, and if a line follows after this one. If that's the case, we remove the next line from our `vec` and append it to the current row. If that's not the case, we simply try to delete from the current row.
 
@@ -79,7 +84,7 @@ Let's start with the easy case, adding a new row below the current one.
 
 {% include hecto/simple-enter.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/simple-enter)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/simple-enter)</small>
 
 We call `insert_newline` from `insert` in case a newline is handed to us. In `insert_newline`, we are checking if enter was pressed either on the last row of the document, or one row below it (remember that we allow navigating there). If that is the case, we push a new row at the end of our `vec`. If that's not the case, we insert a new row at the correct position.
 
@@ -87,7 +92,7 @@ Let's now handle the case where we are in the middle of a row.
 
 {% include hecto/complex-enter.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/complex-enter)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/complex-enter)</small>
 
 We have now added a method called `split`, which truncates the current row up until a given index, and returns another row with everything behind that index. On Document, we are now only pushing an empty row if we are below the last line, in any other case, we are changing the current row with `split` and insert the result. This works even at the end of a line, in which case the new row would simply contain an empty string.
 
@@ -98,7 +103,7 @@ Now that we’ve finally made text editable, let’s implement saving to disk. W
 
 {% include hecto/save-to-disk.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/save-to-disk)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/save-to-disk)</small>
 
 We extend `Row` with a method that allows us to convert the row into a `byte` array. In `Document`, `write_all` takes that byte array and writes it to disk. Since our rows do not contain the newline symbol, we write it out seperately. The `b` in front of the newline string indicates that this is a byte array and not a string.
 
@@ -116,7 +121,7 @@ Currently, when the user runs `hecto` with no arguments, they get a blank file t
 
 {% include hecto/prompt-for-filename.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/prompt-for-filename)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/prompt-for-filename)</small>
 
 The user's input is stored in `result`, which we initialize as an empty string. We enter an infinite loop that repeatadly sets the status message, refreshes the screen, and waits for a keypress to handle. When the user presses enter, the status message is cleared and the message is returned. The errors which might occur on the way are propagated up.
 
@@ -124,7 +129,7 @@ Now that the user can save the file, let's handle a few more cases in our prompt
 
 {% include hecto/enhance-prompt.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/enhance-prompt)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/enhance-prompt)</small>
 
 We have changed a couple of things here, let's go through them one by one.
 
@@ -140,7 +145,7 @@ We call a `Document` "dirty" if it has been modified since opening or saving the
 
 {% include hecto/dirty-flag.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/dirty-flag)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/dirty-flag)</small>
 
 Perhaps the only surprising change is that we rearranged the bounds handling in `insert` a bit. It's now similar to the checking in `delete`.
 
@@ -150,7 +155,7 @@ Now we’re ready to warn the user about unsaved changes when they try to quit. 
 
 {% include hecto/quit-confirmation.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/quit-confirmation)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/quit-confirmation)</small>
 
 We have added a new constant for the additional times we require the user to press <kbd>Ctrl-Q</kbd>, and we use it as an additional field in `Editor`. When the document is dirty and the user attempts to quit, we count down `quit_times` until it reaches `0` - then we finally quit. Note that we are returning within the `match` arm for quit. That way, the code after the `match` is only called if the user pressed another key than <kbd>Ctrl-Q</kbd>, so we can check after the `match` if `quit_times` has been modified and reset it if necessary.
 
@@ -161,7 +166,7 @@ First, let's teach Clippy a few new tricks.
 
 {% include hecto/stricter-clippy.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/stricter-clippy)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/stricter-clippy)</small>
 
 `clippy::restriction` contains a lot of warnings that might or might not indicate errors in your code. As you can see when you run `cargo clippy` now, the results are overwhelming!
 
@@ -169,7 +174,7 @@ Lucky for us, each entry comes with a link and with that link come some explanat
 
 {% include hecto/sensible-clippy.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/sensible-clippy)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/sensible-clippy)</small>
 
 If you are interested in what these options are, check their descriptions in the original output of clippy.
 
@@ -183,7 +188,7 @@ Anyways, let's jump right in!
 
 {% include hecto/integer-arithmetic-1.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/integer-arithmetic-1)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/integer-arithmetic-1)</small>
 
 As you can see, these are mainly small changes. I want to point out a few things:
 
@@ -195,13 +200,13 @@ Clippy still gives us some warnings, this time about integer divison. The proble
 
 {% include hecto/integer-arithmetic-2.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/integer-arithmetic-2)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/integer-arithmetic-2)</small>
 
 As you can see, we opted for the "Leave a comment" solution here. We also reidented some code, as the lines tend to get longer now. Let's tackle clippy's next grievances now.
 
 {% include hecto/indexing-panic-1.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/indexing-panic-1)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/indexing-panic-1)</small>
 
 This change is mainly related to accessing rows at certain positions. We used to use the safe method `get_mut`, which does not panic, even if there was nothing to retrieve, e.g. because the index was wrong. And we called `unwrap()` directly on it, negating the benefits of using `get_mut` in the first place. We have replaced it now with a direct access to `self.rows`. We have left a clippy statement everywhere we did this, to indicate that we did, in fact, check that we're only accessing valid indices at that time. 
 
@@ -213,7 +218,7 @@ This is not a super important change, but it fits the spirit of our current refa
 
 {% include hecto/indexing-panic-2.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/indexing-panic-2)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/indexing-panic-2)</small>
 
 We're taking advantage of the fact that `get`, as discussed above, only returns a value to us if it is there, eliminating the need to perform a check before indexing. Then, we remove `is_ok` in favor of an `if_let`, to save an `unrwap`. Finally, we have convinced both clippy and ourselves that our code is good!
 
@@ -250,7 +255,7 @@ That's not great. Let's change this.
 
 {% include hecto/better-row-performance.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/better-row-performance)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/better-row-performance)</small>
 
 We did two things here:
 
@@ -278,4 +283,4 @@ That is an insanely large number. If every row contained a byte of information, 
 This does not mean that our work was not important. On the contrary, I believe that thinking about these kinds of things should become a habit while you are coding. However, you should not overoptimize your code for an edge case that will never happen.
 
 ## Conclusion
-You have now successfully built a text editor. If you are brave, you can use `hecto` to work on `hecto`. In the next chapter, we will make use of `prompt()` to implement an incremental search feature in our editor.
+You have now successfully built a text editor. If you are brave, you can use `hecto` to work on `hecto`. In the [next chapter]({% post_url 2019-11-08-rust-text-editor-chapter-6%}), we will make use of `prompt()` to implement an incremental search feature in our editor.

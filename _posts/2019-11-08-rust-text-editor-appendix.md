@@ -1,9 +1,13 @@
 ---
 layout: postwithdiff
-title: "Hecto, Chapter 8: Appendices"
-categories: [Rust, hecto]
+title: "Hecto: Appendices"
+categories: [Rust, hecto, Tutorial]
+permalink: /hecto-appendices/
+date: 2019-11-08 00:00:09
 ---
-# How the diffs work
+[First chapter]({% post_url 2019-11-08-rust-text-editor-chapter-1%}) - [Overview]({% post_url 2019-11-08-rust-text-editor%}) - [Last chapter]({% post_url 2019-11-08-rust-text-editor-chapter-7%})
+{: style="text-align: center"}
+## How the diffs work
 Most steps in this tutorial are presented as a diff. A diff shows you the changes you need to make to the previous step’s code to get to the current step. Here’s a sample diff:
 
 {% include hecto/read-keys.html %}
@@ -16,17 +20,17 @@ In this example, you need to add a new line on top of the file, leave the next l
 
 At the bottom of each diff, you find a link to github. If you follow that link, you can see the project on github with the code changes applied.
 
-# What to do if you are stuck
+## What to do if you are stuck
 
 Some of the code in this tutorial is very tricky to type in exactly, especially if you’re not used to Rust. It’s  specially easy to make a mistake when you’re making a change to a line, and you think you’re done changing that line, but you missed one little change to another part of that same line. It’s important to take your time, and compare the changed parts of the diff character-by-character with your code to make sure they’re the same.
 
 If you suspect you made an error, but don't know where it is, you should do a diff between your version and the tutorial's version. The easiest way to do so is to use an online diffing tool like [DiffChecker](https://www.diffchecker.com/). You paste the code from the tutorial to the left (you can obtain it from github by following the "See this change on github" link), and your code to the right and check the differences.
 
-# Where to get help
+## Where to get help
 
 If you are having trouble, feel free to [email me]({{ site.baseurl }}/about).
 
-# Ideas for improvements and features
+## Ideas for improvements and features
 
 If you want to extend hecto on your own, I suggest trying to actually use hecto as your text editor for a while. You will very quickly become painfully aware of all sorts of features you’re used to having in a text editor, but are missing in hecto. Those are the features you should try to add. And you should use hecto when you work on hecto.
 
@@ -43,10 +47,10 @@ If you're still looking for ideas, here's a small list.
 - Multiple buffers: Allow having multiple files open at once, and have some way of switching between them.
 
 
-# Credits
+## Credits
 As written in the beginning, this tutorial has been heavily inspired by this [Build your own text editor](https://viewsourcecode.org/snaptoken/kilo/index.html) tutorial. The nifty diffs have been done with [diff2html](https://github.com/rtfpessoa/diff2html).
 
-# License
+## License
 - `kilo` was distributed under the [BSD-2 Clause License](https://opensource.org/licenses/BSD-2-Clause)
 - The [original tutorial](https://viewsourcecode.org/snaptoken/kilo/) was distributed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 - `hecto` and this tutorial are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)

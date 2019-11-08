@@ -1,14 +1,19 @@
 ---
 layout: postwithdiff
 title: "Hecto, Chapter 2: Reading User Input"
-categories: [Rust, hecto]
+categories: [Rust, hecto, Tutorial]
+permalink: /hecto-chapter-2/
+image: /assets/2019-11-08-hecto-chapter-2.png
+date: 2019-11-08 00:00:03
 ---
+[Previous chapter]({% post_url 2019-11-08-rust-text-editor-chapter-1%}) - [Overview]({% post_url 2019-11-08-rust-text-editor%}) - [Appendices]({% post_url 2019-11-08-rust-text-editor-appendix%}) - [Next Chapter]({% post_url 2019-11-08-rust-text-editor-chapter-3%}) 
+{: style="text-align: center"}
 
 Let’s try and read keypresses from the user. Remove the line with "Hello, world" from `main` and change your code as follows:
 
 {% include hecto/read-keys.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/read-keys)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/read-keys)</small>
 
 Play around with that program and try to find out how it works. To stop it, press <kbd>Ctrl-C</kbd>.
 
@@ -44,7 +49,7 @@ reads a <kbd>q</kbd> keypress from the user.
 
 {% include hecto/q-to-quit.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/q-to-quit)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/q-to-quit)</small>
 
 Note that in Rust, characters require single quotes, `'` , instead of double quotes, `"`, to work!
 
@@ -55,7 +60,7 @@ Change your `Cargo.toml` as follows:
 
 {% include hecto/add-termion.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/add-termion)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/add-termion)</small>
 
 With this, we are telling `cargo` that we want to have a dependency called `termion`, in the version 1. Cargo follows a concept called [Semantic Versioning](https://semver.org/), where a program version usually consists of three numbers (like 0.1.0), and by convention, no breaking change occurs as long as the first number stays the same. That means that if you develop against `termion v1.5.0`, your program will also work with `termion v1.5.1` or even `termion v1.7.0`. This is useful, because it means that we are getting bugfixes and new features, but the existing features can still be used without us having to change our code.
 By setting `temion = "1"`, we are making sure we are getting the latest version starting with `1`.
@@ -76,7 +81,7 @@ Now change the `main.rs` as follows:
 
 {% include hecto/into-raw-mode.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/into-raw-mode)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/into-raw-mode)</small>
 
 Try it out, and you will notice that every character you type in is immediately printed out, and as soon as you type `q`, the program ends.
 
@@ -96,7 +101,7 @@ To get a better idea of how input in raw mode works, let's improve on how we pri
 
 {% include hecto/observe-keypresses.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/observe-keypresses)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/observe-keypresses)</small>
 
 Before we discuss the new functionality, let's go through the changes quickly.
 
@@ -127,7 +132,7 @@ We now know that the <kbd>Ctrl</kbd> key combined with the alphabetic keys seems
 
 {% include hecto/ctrl-q-to-quit.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/ctrl-q-to-quit)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/ctrl-q-to-quit)</small>
 
 If you think that this whole bitwise-voodoo is too low-level for the task, then you are right! We are doing this now to get a better understanding about the fundamentals, but we will refactor it in the next chapter.
 
@@ -141,7 +146,7 @@ It's time to think about how we handle errors. First, we add a `die()` function 
 
 {% include hecto/die-on-error.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/die-on-error)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/die-on-error)</small>
 
 `panic!` is a macro which crashes the program with an error message.  Unlike some other programming languages, Rust does not allow you to add some kind of `try..catch` block around the code to catch any error that might occur. Instead, we are propagating errors up alongside the function return values, which will allow us to treat errors at the highest level.
 
@@ -154,7 +159,7 @@ Let's implement that now.
 
 {% include hecto/die-on-input-error.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/die-on-input-error)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/die-on-input-error)</small>
 
 
 Here are a few more things to observe.
@@ -179,4 +184,4 @@ This code can be read as: If the variable `foo` is an `Ok` value, unwrap its con
 We will investigate `match` more deeply later. [Here's the link to the docs in case you are interested.](https://doc.rust-lang.org/book/ch06-02-match.html)
 
 ## Conclusion
-That concludes this chapter on entering raw mode. We have learned a lot about the terminal and about the fundamentals of Rust along the way.  In the next chapter, we'll do some more terminal input/output handling, and use that to draw to the screen and allow the user to move the cursor around. We will also refactor our code to be more idiomatic, but first, we need to clarify what _idiomatic_ means.
+That concludes this chapter on entering raw mode. We have learned a lot about the terminal and about the fundamentals of Rust along the way.  In the [next chapter]({% post_url 2019-11-08-rust-text-editor-chapter-3%}), we'll do some more terminal input/output handling, and use that to draw to the screen and allow the user to move the cursor around. We will also refactor our code to be more idiomatic, but first, we need to clarify what _idiomatic_ means.

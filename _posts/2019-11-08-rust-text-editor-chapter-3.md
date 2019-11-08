@@ -1,8 +1,13 @@
 ---
 layout: postwithdiff
 title: "Hecto, Chapter 3: Raw input and output"
-categories: [Rust, hecto]
+categories: [Rust, hecto, Tutorial]
+permalink: /hecto-chapter-3/
+image: /assets/2019-11-08-hecto-chapter-3.png
+date: 2019-11-08 00:00:04
 ---
+[Previous chapter]({% post_url 2019-11-08-rust-text-editor-chapter-2%}) - [Overview]({% post_url 2019-11-08-rust-text-editor%}) - [Appendices]({% post_url 2019-11-08-rust-text-editor-appendix%}) - [Next Chapter]({% post_url 2019-11-08-rust-text-editor-chapter-4%}) 
+{: style="text-align: center"}
 In this chapter, we will tackle reading from and writing to the terminal. But first, we need to make our code more idiomatically. Beware! The beginning of this chapter will contain a lot of prose, which you can safely skip if you are not interested.
 
 ## Writing idiomatic code
@@ -25,7 +30,7 @@ Fortunately for us, our dependency, `termion`, makes things already a lot easier
 
 {% include hecto/use-termion-keys.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/use-termion-keys)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/use-termion-keys)</small>
 
 We are now working with keys instead of bytes.
 With that change, we where able to get rid of manually checking if <kbd>Ctrl</kbd> has been pressed, as all keys are now properly handled for us. Termion provides us with values which represent keys: `Key::Char(c)` represents single character presses, `Key::Ctrl(c)` represents all characters pressed together with <kbd>Ctrl</kbd>, `Key::Alt(c)` represents all characters pressed together with <kbd>Alt</kbd> and so on.
@@ -51,7 +56,7 @@ Let's start with a new file:
 
 {% include hecto/create-struct.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/create-struct)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/create-struct)</small>
 
 A `struct` is a collection of variables and, eventually, functions which are grouped together to form a meaningful entity - in our case, the Editor (It's not very meaningful yet, but we'll get to that!). The `pub` keyword tells us that this struct can be accessed from outside the `editor.rs`. We want to use it from `main`, so we use `pub`. This is already the next advantage of separating our code: We can make sure that certain functions are only called internally, while we expose others to other parts of the system.
 
@@ -59,7 +64,7 @@ Now, our editor needs some functionality. Let's provide it with a `run()` functi
 
 {% include hecto/editor-run-implementation.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/editor-run-implementation)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/editor-run-implementation)</small>
 
 You already know the implementation of `run` - it's copy-pasted from our `main`, and so are the imports and `die`.
 
@@ -70,7 +75,7 @@ Let's see this working in practice by refactoring our `main.rs`:
 
 {% include hecto/use-editor-struct.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/use-editor-struct)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/use-editor-struct)</small>
 
 
 As you can see, we have removed nearly everything from the `main.rs`. We are creating a new instance of `Editor` and we call `run()` on it. If you run the code now, you should see that it works just fine.
@@ -80,7 +85,7 @@ Here is the change:
 
 {% include hecto/default-editor.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/default-editor)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/default-editor)</small>
 
 We have now created a new function called `default`, which constructs a new `Editor` for us. Note that the one line in `default` does not contain the keyword `return`, and it does not end with a `;`. Rust treats the result of the last line in a function as its output, and by omitting the `;`, we are telling rust that we are interested in the value of that line, and not only in executing it. Play around with that by adding the `;` and seeing what happens.
 
@@ -126,7 +131,7 @@ We can tell Clippy which flags we want to be used by default, for instance by ad
 
 {% include hecto/use-clippy.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/use-clippy)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/use-clippy)</small>
 
 The pedantic setting is really valuable for beginners: As we don't know yet how to write code idiomatically, we need someone at our side who points out how things could be done better.
 
@@ -136,7 +141,7 @@ Let's make a function for keypress reading, and another function for mapping key
 
 {% include hecto/reading-evaluating.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/reading-evaluating)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/reading-evaluating)</small>
 
 We have now added a `loop` to `run`. Loops are repeated forever until they are explicitly interrupted.
 Within that loop we use another feature of Rust: `if let`. This is a shortcut for using a `match` where we only want to handle one case and ignore all other possible cases. Look at the code of `process_keypress()` to see a case of `match` which could be fully replaced by `if let`.
@@ -170,13 +175,13 @@ We could instead call the proper method to end the program (`std::process::exit`
 
 {% include hecto/add-should-quit.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/add-should-quit)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/add-should-quit)</small>
 
 We have to initialize `should_quit` in `default` right away, or we won't be able to compile our code. Let's set the boolean now and quit the program when it is `true`.
 
 {% include hecto/exit-without-panic.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/exit-without-panic)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/exit-without-panic)</small>
 
 Instead of panicking, we are now setting `should_quit`, which we check in `run`. If it's `true`, we use the keyword `break` to end the loop. You should confirm that exiting the program is now cleaner than it was before.
 
@@ -194,7 +199,7 @@ We're going to render the editor's user interface to the screen after each keypr
 
 {% include hecto/clear-screen.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/clear-screen)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/clear-screen)</small>
 
 We add a new function `refresh_screen` which we are calling before exiting the program. We move `process_keypress()` down, which means that after a user exits the program, we still refresh the screen one more time before exiting. This will allow us to print an exit message later.
 
@@ -213,7 +218,7 @@ After writing out to the terminal, we call `flush()`, which forces `stdout` to p
 
 {% include hecto/clear-screen-with-termion.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/clear-screen-with-termion)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/clear-screen-with-termion)</small>
 
 From here on out, we will be using `termion` directly in the code instead of the escape characters.
 
@@ -225,7 +230,7 @@ You may notice that the `\x1b[2J` command left the cursor at the bottom of the s
 
 {% include hecto/reposition-cursor.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/reposition-cursor)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/reposition-cursor)</small>
 
 The escape sequence behind `termion::cursor::Goto`  uses the `H` command ([Cursor Position](http://vt100.net/docs/vt100-ug/chapter3.html#CUP)) to position the cursor. The `H` command actually takes two arguments: the row number and the column number at which to position the cursor. So if you have an 80&times;24 size terminal and you want the cursor in the center of the screen, you could use the command `\x1b[12;40H`. (Multiple arguments are separated by a `;` character.) As rows and columns are numbered starting at `1`, not `0`, the `termion` method is also 1-based.
 
@@ -235,14 +240,14 @@ Let's clear the screen and reposition the cursor when our program crashes. If an
 
 {% include hecto/clear-on-exit.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/clear-on-exit)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/clear-on-exit)</small>
 
 ## Tildes
 It's time to start drawing. Let's draw a column of tildes (`~`) on the left hand side of the screen, like [vim](http://www.vim.org/) does. In our text editor, we'll draw a tilde at the beginning of any lines that come after the end of the file being edited.
 
 {% include hecto/draw-tildes.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/draw-tildes)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/draw-tildes)</small>
 
 `draw_rows()` will handle drawing each row of the buffer of text being edited. For now it draws a tilde in each row, which means that row is not part of the file and can't contain any text.
 
@@ -255,7 +260,7 @@ Our next goal is to get the size of the terminal, so we know how many rows to dr
 
 {% include hecto/add-terminal-struct.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/add-terminal-struct)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/add-terminal-struct)</small>
 
 Let's focus first on the contents of the new file. In it, we define `Terminal` and a helper struct called `Size`. In `default`, we are getting termion's `terminal_size`, convert it to a `Size` and return the new instance of `Terminal`. To account for the potential error, we wrap it into `Ok`. 
 
@@ -275,7 +280,7 @@ Now that we have a representation of the terminal in our code, let's move a bit 
 
 {% include hecto/more-terminal-functions.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/more-terminal-functions)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/more-terminal-functions)</small>
 
 What did we do? We moved all the low-level terminal stuff to `Terminal`, leaving all the higher-level stuff in the `mod.rs`. Along the way, we have cleaned up a few things:
 
@@ -315,7 +320,7 @@ Maybe you noticed the last line of the screen doesn't seem to have a tilde. That
 
 {% include hecto/ignore-last-line.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/ignore-last-line)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/ignore-last-line)</small>
 
 ## Hide the cursor when repainting
 
@@ -323,7 +328,7 @@ There is another possible source of the annoying flicker effect we will take car
 
 {% include hecto/hide-cursor-on-refresh.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/hide-cursor-on-refresh)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/hide-cursor-on-refresh)</small>
 
 Under the hood, we use escape sequences to tell the terminal to hide and show the cursor by writing `\x1b[25h`,  the `h` command ([Set Mode](http://vt100.net/docs/vt100-ug/chapter3.html#SM)) and `\x1b[25l`, the `l` command ([Reset Mode](http://vt100.net/docs/vt100-ug/chapter3.html#RM)). These commands are used to turn on and turn off various terminal features or ["modes"](http://vt100.net/docs/vt100-ug/chapter3.html#S3.3.4). The VT100 User Guide just linked to doesn't document argument `?25` which we use above. It appears the cursor hiding/showing feature appeared in [later VT models](http://vt100.net/docs/vt510-rm/DECTCEM.html).
 
@@ -333,7 +338,7 @@ Instead of clearing the entire screen before each refresh, it seems more optimal
 
 {% include hecto/clear-current-line.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/clear-current-line)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/clear-current-line)</small>
 
 Note that we are now clearing the screen before displaying our goodbye message, to avoid the effect of showing the message on top of the other lines before the program finally terminates.
 
@@ -343,7 +348,7 @@ Perhaps it's time to display a welcome message. Let's display the name of our ed
 
 {% include hecto/show-welcome-message.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/show-welcome-message)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/show-welcome-message)</small>
 
 We have added a constant called `VERSION` to our code.  Since our `Cargo.toml` already contains our version number, we use the `env!` macro to retrieve it. We add it to our welcome message. 
 
@@ -351,7 +356,7 @@ However, we need to deal with the fact that our message might be cut off due to 
 
 {% include hecto/slice-welcome-message.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/slice-welcome-message)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/slice-welcome-message)</small>
 
 The `[...width]` syntax means that we want to slice the string from its beginning until `width`. `width` has been calculated as the minimum of the screen width or the welcome message length, which makes sure that we are never slicing more of a string than what is already there.
 
@@ -359,7 +364,7 @@ Now let's center the welcome message, and while we're at it, let's move our code
 
 {% include hecto/center-welcome-message.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/center-welcome-message)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/center-welcome-message)</small>
 
 To center a string, you divide the screen width by `2`, and then subtract half of the string's length from that. In other words: `width/2 - welcome_len/2`, which simplifies to `(width - welcome_len) / 2`. That tells you how far from the left edge of the screen you should start printing the string. So we fill that space with space characters, except for the first character, which should be a tilde. `repeat` is a nice helper function which repeats the character we pass to i, and `truncate` shortenes a string to a specific width if necessary.
 
@@ -371,7 +376,7 @@ Let's focus on input now. We want the user to be able to move the cursor around.
 
 {% include hecto/add-position-struct.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/add-position-struct)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/add-position-struct)</small>
 
 `cursor_position` is a struct where `x` will hold the horiozontal coordinate of the cursor (the column), and `y` will hold the vertical coordinate (the row), where `(0,0)` is at the top left of the screen. We initialize both of them to `0`, as we want the cursor to start at the top-left of the screen.
 
@@ -383,7 +388,7 @@ Now, let's add code to `refresh_screen()` to move the cursor to the position sto
 
 {% include hecto/use-cursor-position.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/use-cursor-position)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/use-cursor-position)</small>
 
 
 We are using [destructuring](https://doc.rust-lang.org/rust-by-example/flow_control/match/destructuring.html) to initialitze `x` and `y` in `cursor_position`: `let Position{mut x, mut y} = position;` creates new variables x and y and binds their values to the fields of the same name in `position`.
@@ -397,7 +402,7 @@ Speaking of annoying Clippy warnings, we are carrying around an old warning from
 
 {% include hecto/navigate-with-arrow-keys.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/navigate-with-arrow-keys)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/navigate-with-arrow-keys)</small>
 
 Now you should be able to move the cursor around with those keys.
 
@@ -407,7 +412,7 @@ Currently, you can cause the `cursor_position` values to go past the right and b
 
 {% include hecto/navigate-within-bounds.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/navigate-within-bounds)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/navigate-within-bounds)</small>
 
 You should be able to confirm that you can now move around the visible area, with the cursor staying within the terminal bounds. You can also place it on the last line, which still does not have a tilde, a fact that is not forgotten and will be fixed later during this tutorial.
 
@@ -416,9 +421,9 @@ To complete our low-level terminal code, we need to detect a few more special ke
 
 {% include hecto/navigate-with-additional-keys.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/navigate-with-additional-keys)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/navigate-with-additional-keys)</small>
 
 ## Conclusion
 I hope this chapter has given you a first feeling of pride when you saw how your text editor was taking shape. We were talking a lot about idiomatic code in the beginning, and where busy refactoring our code into separate files for quite some time, but the payoff is visible: The code is cleanly structured and therefore easy to maintain. Since we now know our way around Rust, we won't have to worry that much about refactoring in the upcoming chapters and can focus on adding functionality.
 
-In the next chapter, we will get our program to display text files.
+In the [next chapter]({% post_url 2019-11-08-rust-text-editor-chapter-4%}), we will get our program to display text files.

@@ -1,8 +1,13 @@
 ---
 layout: postwithdiff
 title: "Hecto, Chapter 7: Syntax Highlighting"
-categories: [Rust, hecto]
+categories: [Rust, hecto, Tutorial]
+permalink: /hecto-chapter-7/
+image: /assets/2019-11-08-hecto-chapter-7.png
+date: 2019-11-08 00:00:08
 ---
+[Previous chapter]({% post_url 2019-11-08-rust-text-editor-chapter-6%}) - [Overview]({% post_url 2019-11-08-rust-text-editor%}) - [Appendices]({% post_url 2019-11-08-rust-text-editor-appendix%})
+{: style="text-align: center"}
 We are almost done with our text editor - we're only missing some syntax highlighting.
 
 ## Colorful Digits
@@ -10,7 +15,7 @@ Let's start by just getting some color on the screen, as simply as possible. We'
 
 {% include hecto/simple-number-highlighting.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/simple-number-highlighting)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/simple-number-highlighting)</small>
 
 We have now converted our grapheme into a character, so that we can use `is_ascii_digit` - which determines whether or not a character is a digit. If it is, we change the foreground color to [a shade of red](https://rgb.to/rgb/220,163,205) and reset it immediately afterwards.
 
@@ -21,7 +26,7 @@ Instead, we are going to store the highlighting of each character of a row in a 
 
 {% include hecto/highlighting-type.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/highlighting-type)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/highlighting-type)</small>
 
 Highlighting will be controlled by the `Document`, the rows do not "highlight themselves". The reason will become clearer as we add more code - essentially, to highlight a row, more information than what is present in the `Row` is needed. This means that any operation on the `Row` from the outside can potentially render the highlighting invalid. When developing functionality for `Row`, we are going to pay special attention so that the worst that can happen is a wrong highlighting (as opposed to a crash).
 
@@ -33,7 +38,7 @@ Let's create a new `highlight` function in our row. This function will go throug
 
 {% include hecto/add-highlighting-to-row.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/add-highlighting-to-row)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/add-highlighting-to-row)</small>
 
 The code of `highlight` is straightforward: If a character is a digit, we push `Type::Number`, otherwise, we push `Type::None`.
 
@@ -41,13 +46,13 @@ Now we want to have a function which maps the `Type` to a color. Let's implement
 
 {% include hecto/color-mapping.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/color-mapping)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/color-mapping)</small>
 
 We are returning red now for numbers and white for all other cases. Now let's finally draw the highlighted text to the screen!
 
 {% include hecto/apply-highlighting.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/apply-highlighting)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/apply-highlighting)</small>
 
 First, we call `highlight` everywhere in `Document` where we modify a row. Then, we refactor our rendering: We get the correct highlighting for the current index (which we obtain by using `enumerate`). We change the color, append to the string which we return, and change the color back again.
 
@@ -55,7 +60,7 @@ This works, but do we really have to write out an escape sequence before every s
 
 {% include hecto/improve-highlighting.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/improve-highlighting)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/improve-highlighting)</small>
 
 We use `current_highlighting` to keep track of what we are currently rendering. When it changes, we add the color change to the render string. We have also moved the ending of the highlighting outside of the loop, so that we reset the color at the end of each line. To allow comparison between `Type`s, we derive `PartialEq` again.
 
@@ -64,14 +69,14 @@ We use `current_highlighting` to keep track of what we are currently rendering. 
 Before we start highlighting strings and keywords and all that, let's use our highlighting system to highlight search results. We'll start by adding `Match` to the `HighlightingType` enum, and mapping it to the color blue in `to_color`.
 {% include hecto/add-match-type.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/add-match-type)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/add-match-type)</small>
 
 
 Next, we want to change `highlight` so that it accepts an optional word. If no word is given, no match is highlighted.
 
 {% include hecto/highlight-matches.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/highlight-matches)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/highlight-matches)</small>
 
 Before we investigate the changes in `highlight`, let's first focus on the other changes: We allow an optional parameter to `highlight`, which we provide as `None` everywhere we call `highlight`. We then add a method called `highlight` to the document, which triggers a highlighting of all rows in the doc.
 
@@ -98,7 +103,7 @@ Right now, nubers are highlighted even if they're part of an identifier, such as
 
 {% include hecto/highlight-numbers-after-separator.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/highlight-numbers-after-separator)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/highlight-numbers-after-separator)</small>
 
 We're adding a new variable `prev_separator` to check if the last character we saw was a valid separator, after which we want to  highlight numbers properly, or any other character, after which we don't want to highlight numbers.
 
@@ -110,7 +115,7 @@ Now let's support highlighting numbers that contain decimal points.
 
 {% include hecto/highlight-dot-in-numbers.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/highlight-dot-in-numbers)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/highlight-dot-in-numbers)</small>
 
 A `.` character that comes after a character that we just highlighted as a number will now be considered part of the number.
 
@@ -121,7 +126,7 @@ Let's create a struct `FileType` which will hold our Filetype information for no
 
 {% include hecto/introduce-filetype.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/introduce-filetype)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/introduce-filetype)</small>
 
 `HighlightingOptions` will hold a couple of booleans which determine whether or not a certain type should be highlighted. Since it's closely related to the file type, we keep both in the same file. For now, we only add `numbers` to determine whether or not numbers should be highlighted. We use `#[derive(Default)]`  for this struct so that `HighlightOptions::default` returns `HighlightOptions` initialized with default values. Since `HighlightOptions` will only contain `bool`s, and the default for bools is `false`, this suits us well and means that when we add a highlighting option, we only need to change it where we need it, for everything else it will just be unused.
 
@@ -129,7 +134,7 @@ We implement `default` for `FileType`, this time, we set the string to `"No file
 
 {% include hecto/show-filetype.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/show-filetype)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/show-filetype)</small>
 
 We have decided against making the name property of `FileType` directly editable by `Document`, and we have further decided to hide away the fact that `FileType` is a `struct` from `Editor`. As far as the editor is concerned, `FileType` is simply a string.
 
@@ -137,7 +142,7 @@ Now we need a way to detect the file type and set the correct `Highlighting_Opti
 
 {% include hecto/detect-filetype.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/detect-filetype)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/detect-filetype)</small>
 
 We add `from` to `FileType` to determine the file type from its name. If we don't know the type, we simply return the `default` value. We set the file type on `open` and on `save`. You are now able to open a file, verify it displays the correct file type, and confirm that the file type changes when you change the file ending on save. Very satisfying!
 
@@ -145,7 +150,7 @@ Now, let's actually highlight the files. For that, we need to actually do someth
 
 {% include hecto/highlight-with-filetype.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/highlight-with-filetype)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/highlight-with-filetype)</small>
 
 The bulk of this change deals with passing around the highlighting options, so that `Row` has it available when its being highlighted. Then, within `highlight`, we simply wrap the highlighting for numbers in another `if` statement which checks whether or not `numbers` is enabled.
 
@@ -155,7 +160,7 @@ While we're at it, let's also fix another minor nit-pick: We have taken great ef
 
 {% include hecto/fix-filetype.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/fix-filetype)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/fix-filetype)</small>
 
 We are now re-highlighting each row as we save the file, and our `number` property is now finally read-only.
 
@@ -166,13 +171,13 @@ With all that out of the way, we can finally get to highlighting more things! Le
 
 {% include hecto/add-string-options.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/add-string-options)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/add-string-options)</small>
 
 Now for the actual highlighting code. We will use an `in_string` variable to keep track of whether we are currently inside a string. If we are, then we'll keep highlighting the current character as a string until we hit the closing quote.
 
 {% include hecto/highlight-strings.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/highlight-strings)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/highlight-strings)</small>
 
 
 Let'sa go through this change from top to bottom: If `in_string` is set, then we know that the current character can be highlighted as a string. Then we check if the current character is the closing quote, and if so, we reset `in_string` to `false`. Then, since we highlighted the current character, we have to consume it by incrementing `index` and `continue`ing out of the current loop iteration. We also set `prev_is_separator` to `true` so that if we're done highlighting the string, the closing quote is considered a separator.
@@ -183,13 +188,13 @@ We have also introduced a new concept here: The [dereferencing operator, `*`.](h
 
 {% include hecto/use-deref.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/use-deref)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/use-deref)</small>
 
 We should probably take escaped quotes into account when highlighting strings and characters. If the sequence `\"` occurs in a string, then the escaped quote doesn't close the string in the vast majority of languages.
 
 {% include hecto/allow-escaped-strings.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/allow-escaped-strings)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/allow-escaped-strings)</small>
 
 If we're in a string and the current character is a `\`, _and_ there is at least one more character in that line that comes after the backslash, then we highligh the character that comes after the backslash with `HighlightingType::String` and consume it. We increment `index` by `2` to consume both characters at once.
 
@@ -199,7 +204,7 @@ Now that strings work, let's focus on characters next. We start with the basics 
 
 {% include hecto/add-character-options.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/add-character-options)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/add-character-options)</small>
 
 You might want to do character highlighting the same way as we highlight strings. That would create two problems, though: First, we would over-eagerly highlight nonsense like `'this is definitely no character'`. Second, it would not work with  [Lifetimes](https://doc.rust-lang.org/1.9.0/book/lifetimes.html): A lifetime can be indicated with a single `'`. Our highlighting would not take this into account and highlight everything after the opening `'` as a character.
 
@@ -209,7 +214,7 @@ Let's see how we can implement character highlighting:
 
 {% include hecto/highlight-characters.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/highlight-characters)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/highlight-characters)</small>
 
 We are handling character highlighting before string highlighting, but only if we are not currently within a string. That way, we can make sure that on the one hand side, string opening quotes are not handled within a character, and on the other hand side, character opening quotes are not handled within a string.
 
@@ -232,14 +237,14 @@ Next, let's highlight single-line comments. (We'll leave multi-line comments unt
 
 {% include hecto/add-comment-options.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/add-comment-options)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/add-comment-options)</small>
 
 Single line comments are easy to detect: If we encounter a `/` outside of a string, all we need to do is check if it is followed by another `/`. If so, treat the whole rest of the line as a comment.
 
 
 {% include hecto/highlight-comments.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/highlight-comments)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/highlight-comments)</small>
 
 You should now be able to confirm that highlighting single line comments works. Before we move to other things, however, we need to improve our code.
 
@@ -250,9 +255,9 @@ Our strategy will be to split our big `highlight` function into separate indepen
 
 {% include hecto/refactor-highlighting.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/refactor-highlighting)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/refactor-highlighting)</small>
 
-If you have trouble following this diff alone, don't forget that [the direct link below the diff lets you see the full file after the change.](https://github.com/pflenker/hecto-tutorial/releases/tag/refactor-highlighting)
+If you have trouble following this diff alone, don't forget that [the direct link below the diff lets you see the full file after the change.](https://github.com/pflenker/hecto-tutorial/tree/refactor-highlighting)
 
 Let's go through this change by looking at `highlight` first. That is the function we wanted to simplify, and it has gotten so much smaller. We have removed any highlighting logic except for the highlighting of `None`, in case no other highlighting has matched. By the way, if-statements are evaluated from left to right, so, for instance, if `highlight_comment` returns `true`, none of the other highlight functions is being called.
 
@@ -292,7 +297,7 @@ Let's add two `Vector`s to the `HighlightingOptions`, one for primary, one for s
 
 {% include hecto/add-keyword-options.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/add-keyword-options)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/add-keyword-options)</small>
 
 We had to jump through a surprisingly large number of loops to get this to work. So what happened?
 
@@ -302,7 +307,7 @@ Now that we have the keywords available, let's highlight them. We start with the
 
 {% include hecto/highlight-primary-keywords.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/highlight-primary-keywords)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/highlight-primary-keywords)</small>
 
 
 To make keyword highlighting work, we are building a new function called `highlight_str`, which is responsible for highlighting a substring with a given type. It does this by comparing every character after the current character with the given string. If the whole string is matched, `self.highlighting` is updated with the right highlighting type. If one character is off, the whole highlighting for this string is aborted.
@@ -313,13 +318,13 @@ If you start `hecto` now, you will see that primary keywords are highlighted. Ho
 
 {% include hecto/fix-keyword-highlighting.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/fix-keyword-highlighting)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/fix-keyword-highlighting)</small>
 
 Now, let's try and highlight secondary keywords as well.
 
 {% include hecto/highlight-secondary-keywords.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/highlight-secondary-keywords)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/highlight-secondary-keywords)</small>
 
 We have now extracted the core of `highlight_primary_keywords_ into a more generic function which highlights a given word with a given type if it's surrounded by separators.
 
@@ -330,13 +335,13 @@ Okay, we have one last feature to implement: multi-line comment highlighting. Le
 
 {% include hecto/add-ml-comment-options.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/add-ml-comment-options)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/add-ml-comment-options)</small>
 
 We'll highlight multi-line comments to be the same color as single-line comments. Now let's do the highlighting. We won't worry about multiple lines just yet.
 
 {% include hecto/single-ml-comments.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/single-ml-comments)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/single-ml-comments)</small>
 
 This is essentially a combination of highlighting strings and highlighting single-line comments. If we are on a `/*`, we use `find` to get the index of the closing `*/` . Since theoretically we could have multiple comments in the same line, we only search from the current index position forward in the string.
 
@@ -346,7 +351,7 @@ Now, how do we highlight multiple rows? The strategy we will be using is that we
 
 {% include hecto/multiline-comments.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/multiline-comments)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/multiline-comments)</small>
 
 We have now changed the signature of `highlight`: It receives a new boolean, and it returns a boolean. The boolean it receives is `true` when the highlighting should start within a multiline comment. If that is the case, we look for the closing index before we enter the highlighting loop and highlight everything until then as a mutli line comment. Similar to what we are doing in `highlight_multiline_comment`, we go up until the end of the line if we can't find the closing `*/`.
 
@@ -356,7 +361,7 @@ You can try saving a file with multi line comments now, or you can enter a multi
 
 {% include hecto/full-multiline-highlighting.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/full-multiline-highlighting)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/full-multiline-highlighting)</small>
 
 We have now restructured the code a bit so that the whole document is re-highlighted on any update or delete operation. If you check it now, you should notice two things: First, it works! Very satisfying! Second, the performance is abysmal. Not satisfying!
 
@@ -364,7 +369,7 @@ The reason is, of course, that we are re-highlighting the whole document all the
 
 {% include hecto/better-ml-highlighting.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/better-ml-highlighting)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/better-ml-highlighting)</small>
 
 We have now removed all highlighting directly within `Row`, as we are now doing the highlighting controlled by the `editor`. To do that, we have added a new paramter to `highlight` in `row`: `until`, which denotes the index of the last line for which the highlighting should be calculated. We know that the highlighting of everything on screen always depends on the earlier rows in the document, but not the rows below.
 
@@ -378,7 +383,7 @@ Let's make sure that only the line which has been edited is being highlighted, a
 
 {% include hecto/final-tweaks.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/final-tweaks)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/final-tweaks)</small>
 
 We solve this by storing on a row whether or not it is currently properly highlighted. If `highlight` is called on a row which is already highlighted, we only check if this row ends with an unclosed multiline comment, to determine the return value of `highlight`. If it's not highlighted, we do the highlighting as usual and then set `is_highlighted` to `true`.
 
@@ -391,4 +396,4 @@ In combination with the previous change, this means that all rows after the curr
 To make sure our search results are still displayed, we re-highlight a row even if it has been highlighted previously in case a word is provided to `highlight`.
 
 ## You're done!
-That’s it! Our text editor is finished. In the appendices, you’ll find some ideas for features you might want to extend the editor with on your own.
+That’s it! Our text editor is finished. In the [appendices]({% post_url 2019-11-08-rust-text-editor-appendix%}), you’ll find some ideas for features you might want to extend the editor with on your own.

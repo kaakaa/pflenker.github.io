@@ -1,8 +1,13 @@
 ---
 layout: postwithdiff
 title: "Hecto, Chapter 1: Setup"
-categories: [Rust, hecto]
+categories: [Rust, hecto, Tutorial]
+permalink: /hecto-chapter-1/
+image: /assets/2019-11-08-hecto-chapter-1.png
+date: 2019-11-08 00:00:02
 ---
+[Overview]({% post_url 2019-11-08-rust-text-editor%}) - [Appendices]({% post_url 2019-11-08-rust-text-editor-appendix%}) - [Next Chapter]({% post_url 2019-11-08-rust-text-editor-chapter-2%}) 
+{: style="text-align: center"}
 Ahh, step 1. Don't you love a fresh start on a blank slate? And then selecting that singular brick onto which you will build your entire palatial estate?
 
 Unfortunately, when you're building a *computer program*, step 1 can get... complicated. And frustrating. You have to make sure your environment is set up for the programming language you're using, and you have to figure out how to
@@ -55,7 +60,7 @@ Let's take a look of what else has happened:
 
 {% include hecto/initialization.html %}
 
-<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/initialization)</small>
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/tree/initialization)</small>
 
 Before we go into the details, let's first figure out what we are looking at. This is a `diff`, and it shows you the changes between one code change and the next. Below each step, you will find a link to this current step on Github, where you can also browse the contents of other files at that point of the tutorial. This is very useful in case you are lost.
 
@@ -109,4 +114,4 @@ Try changing the return value in `main.rs` to a string other than `Hello, World`
 
 After most steps in this tutorial, you will want to recompile the code, see if it finds any errors in your code, and then run `hecto` by calling `cargo run`.
 
-In the next chapter, we'll work on reading individual keypresses from the user.
+In the [next chapter]({% post_url 2019-11-08-rust-text-editor-chapter-2%}), we'll work on reading individual keypresses from the user.
