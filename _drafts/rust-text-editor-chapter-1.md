@@ -12,7 +12,6 @@ Fortunately, it's very fairly to set up a development environment with Rust, and
 
 If you are using Linux, or any Unix-System including MacOS, just follow the instructions below. If you are on Windows, you'll need access to a Linux system. The easiest way is to use the Windows Subsystem for Linux (WSL), which [is available for Windows 10](https://docs.microsoft.com/en-us/windows/wsl/install-win10). You can run and install Rust on Windows, too, but you will soon run into issues while you are following along this tutorial.
 
-
 ## How to install rust with `rustup`
 If you visit the [rustup web site](https://rustup.rs/), it tries to auto-detect your operating system and displays the best way to get rustup installed. Usually, you download and execute a script, `rustup-init`, which does the installation for you.
 

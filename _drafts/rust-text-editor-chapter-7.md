@@ -83,7 +83,7 @@ First, we collect all the matches of the word we have in the current row. That i
 
 We are using two new concepts while doing so. One is `while..let`, which is similar to `if..let`, but it loops as long as the condition is satisifed. We use that to loop through our current row, advancing the starting point for our search directly behind the last match on every turn.
 
-We are also using a new method to add `1`: `checked_add`. This function returns an `Option` with the result if no overflow occured, or `None` otherwise. Why can't we use `saturating_add` here? 
+We are also using a new method to add `1`: `checked_add`. This function returns an `Option` with the result if no overflow occured, or `None` otherwise. Why can't we use `saturating_add` here?
 Well, let's assume our match happens to be the very last part of the row, and we are also at the end of `usize`. Then we can't advance `next_index` any further with `saturading_add`, it would return the same result over and over, the `while` condition would never be false and we would loop indefinitely.
 
 Speaking of loops, we also changed our loop for processing characters. This allows us to consume multiple characters at a time. We use this to push multiple highlighting types at once while we are at the index of a match which we want to highlight.
@@ -119,1115 +119,276 @@ Before we go on to highlight other things, we're going to add filetype detection
 
 Let's create a struct `FileType` which will hold our Filetype information for now.
 
-```rust
-#[derive(Default)]
-struct HighlightingOptions {
-    numbers: bool
-}
+{% include hecto/introduce-filetype.html %}
 
-struct FileType {
-    name: String,
-    hl_opts: HighlightingOptions
-}
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/introduce-filetype)</small>
 
-impl Default for FileType {
-    fn default() -> Self {
-        Self{
-            name: String::from("No filetype"),
-            hl_opts: HighlightingOptions::default()
-        }
-    }
-}
+`HighlightingOptions` will hold a couple of booleans which determine whether or not a certain type should be highlighted. Since it's closely related to the file type, we keep both in the same file. For now, we only add `numbers` to determine whether or not numbers should be highlighted. We use `#[derive(Default)]`  for this struct so that `HighlightOptions::default` returns `HighlightOptions` initialized with default values. Since `HighlightOptions` will only contain `bool`s, and the default for bools is `false`, this suits us well and means that when we add a highlighting option, we only need to change it where we need it, for everything else it will just be unused.
 
-pub struct Document {
-    rows: Vec<Row>,
-    pub file_name: Option<String>,
-    dirty: bool,
-    file_type: FileType
-}
+We implement `default` for `FileType`, this time, we set the string to `"No filetype"` and a default `HighlightingOptions` object. For now, we only use the default file type, even when opening files. Let's get the filetype displayed in the editor.
 
+{% include hecto/show-filetype.html %}
 
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/show-filetype)</small>
 
-impl Document {
-    pub fn new() -> Document{
-        Document{
-            rows: Vec::new(),
-            file_name: None,
-            dirty: false,
-            file_type: FileType::default()
-        }
-    }
-    pub fn is_dirty(&self) -> bool {
-        self.dirty
-    }
-    pub fn open(file_name: &String ) -> Result<Document, Error> {
-        let contents = fs::read_to_string(file_name)?;
-        let mut rows = Vec::new();
-        for value in contents.lines() {
-            rows.push(Row::from(value));
-        }
-        Ok(Document{
-            rows,
-            file_name: Some(file_name.clone()),
-            dirty: false,
-            file_type: FileType::default()
-        })
-    }
-}
+We have decided against making the name property of `FileType` directly editable by `Document`, and we have further decided to hide away the fact that `FileType` is a `struct` from `Editor`. As far as the editor is concerned, `FileType` is simply a string.
 
-```
-
-`HighlightingOptions` will hold a couple of booleans which determine whether or not a certain type should be highlighted. For now, we only add `numbers` to determine whether or not numbers should be highlighted. We use `#[derive(Default)]`  for this struct so that `HighlightOptions::default` returns `HighlightOptions` initialized with default values. Since `HighlightOptions` will only contain `bool`s, and the default for bools is `false`, this suits us well and means that when we add a highlighting option, we only need to change it where we need it, for everything else it will just be unused.
-
-We implement the same trait for `FileType`, this time, we set the string to `"No filetype"` and a default `HighlightingOptions` object. For now, we only use the default file type, even when opening files. Let's get the filetype displayed in the editor.
-
-```rust
-    fn draw_status_bar(&self) {
-        let mut status;
-        let width = self.terminal.size().width as usize;
-        let mut modified_indicator = "";
-        if self.document.is_dirty()  == true {
-            modified_indicator = " (modified)";
-        }
-        if let Some(name) = &self.document.file_name {
-            let mut filename_len = name.len();
-            if filename_len > 20 {
-                filename_len = 20;
-            }
-            status = format!("{} - {} lines{}", &name[..filename_len], self.document.len(), modified_indicator);
-        } else {
-            status = format!("[No Name]{}", modified_indicator);
-        }
-        let line_indicator = format!("{} | {}/{}",self.document.file_type.name, self.cursor_position.y+1, self.document.len());
-        let mut num_spaces = 0;
-        let len = status.len() + line_indicator.len();
-        if width > len {
-            num_spaces = width - len;
-        }
-        for _i in 0..num_spaces {
-            status.push_str(" ");
-        }
-        status = format!("{}{}", status, line_indicator);
-        status.truncate(width);
-        Terminal::set_bg_color(STATUS_BG_COLOR);
-        Terminal::set_fg_color(STATUS_FG_COLOR);
-        print!("{}\r\n",status);
-        Terminal::reset_fg_color();
-        Terminal::reset_bg_color();
-    }
-```
 Now we need a way to detect the file type and set the correct `Highlighting_Options`.
 
-```rust
-impl FileType {
-    fn from(file_name: &String) -> Self {
-        if file_name.ends_with(".rs") {
-            return Self{
-                name: String::from("Rust"),
-                hl_opts: HighlightingOptions{
-                    numbers: true
-                }
-            }
-        }
-        Self::default()
-    }
-}
-  pub fn open(file_name: &String ) -> Result<Document, Error> {
-        let contents = fs::read_to_string(file_name)?;
-        let mut rows = Vec::new();
-        for value in contents.lines() {
-            rows.push(Row::from(value));
-        }
-        Ok(Document{
-            rows,
-            file_name: Some(file_name.clone()),
-            dirty: false,
-            file_type: FileType::from(file_name)
-        })
-    }
-    pub fn save(&mut self) -> Result<(), Error> {
-        if let Some(file_name) = &self.file_name {
-            let mut file = fs::File::create(file_name)?;
-            for row in self.rows.iter() {
-                file.write_all(row.to_string().as_bytes())?;
-                file.write_all(b"\n")?;
-            }
-            self.dirty = false;
-            self.file_type = FileType::from(file_name);
-        } else {
-            return Err(Error::new(ErrorKind::Other, "Can't save file!"))
-        }
-        Ok(())
-    }
-```
-We add a method to determine the file type from its name. If we can't, we simply return the `default` value. We set the file type on `open` and on `save`. You are now able to open a file, verify it displays the correct file type, and confirm that the file type changes when you change the file ending on save. Very satisfying!
+{% include hecto/detect-filetype.html %}
 
-Now, let's actually highlight the files. For that, our rows need to know the highlighting type, which needs to be changed if the user saves, to account for the updated highlighting.
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/detect-filetype)</small>
 
-```rust
-use crate::editor::document::HighlightingOptions;
+We add `from` to `FileType` to determine the file type from its name. If we don't know the type, we simply return the `default` value. We set the file type on `open` and on `save`. You are now able to open a file, verify it displays the correct file type, and confirm that the file type changes when you change the file ending on save. Very satisfying!
 
-pub struct Row {
-    string: String,
-    highlighting: Vec<HighlightingType>,
-    len: usize,
-    hl_opts: Option<HighlightingOptions>
-}
+Now, let's actually highlight the files. For that, we need to actually do something with the `HighlightingOptions`.
 
-impl Row {
-    pub fn new() -> Row {
-        Row {
-            string: String::new(),
-            highlighting: Vec::new(),
-            len: 0,
-            hl_opts: None
-        }
-    }
-    pub fn from(slice: &str) -> Row{
-        let string = String::from(slice);
-        let mut row = Row {
-            len: string.chars().count(),
-            highlighting: Vec::new(),
-            string,
-            hl_opts: None
-        };
-        row.highlight();
-        row
-    }
-    pub fn set_highlight(&mut self, hl_opts: HighlightingOptions) {
-        self.hl_opts = Some(hl_opts);
-        self.highlight();
-    }
-}
-```
-We set and update the highlighting whenever the filetype changes in `document`.
+{% include hecto/highlight-with-filetype.html %}
 
-```rust
-pub fn open(file_name: &String ) -> Result<Document, Error> {
-        let contents = fs::read_to_string(file_name)?;
-        let file_type = FileType::from(file_name);
-        let mut rows = Vec::new();
-        for value in contents.lines() {
-            let mut row = Row::from(value);
-            row.set_highlight(file_type.hl_opts);
-            rows.push(row);
-        }
-        Ok(Document{
-            rows,
-            file_name: Some(file_name.clone()),
-            dirty: false,
-            file_type
-        })
-    }
-    pub fn save(&mut self) -> Result<(), Error> {
-        if let Some(file_name) = &self.file_name {
-            let mut file = fs::File::create(file_name)?;
-            self.file_type = FileType::from(file_name);
-            for row in self.rows.iter_mut() {
-                row.set_highlight(self.file_type.hl_opts);
-                file.write_all(row.to_string().as_bytes())?;
-                file.write_all(b"\n")?;
-            }
-            self.dirty = false;
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/highlight-with-filetype)</small>
 
-        } else {
-            return Err(Error::new(ErrorKind::Other, "Can't save file!"))
-        }
-        Ok(())
-    }
-    fn insert_newline(&mut self, at: &Position) {
-        if at.y > self.len() {
-            return;
-        }
-        let mut new_row = Row::new();
-        new_row.set_highlight(self.file_type.hl_opts);
-        if at.y < self.len() {
-            let current_row = self.rows.get_mut(at.y).unwrap();
-            new_row.append(&current_row.to_string_range(at.x, current_row.len()));
-            current_row.truncate(at.x);
-        }
+The bulk of this change deals with passing around the highlighting options, so that `Row` has it available when its being highlighted. Then, within `highlight`, we simply wrap the highlighting for numbers in another `if` statement which checks whether or not `numbers` is enabled.
 
-        if  at.y == self.len() ||  at.y + 1 == self.len() {
-            self.rows.push(new_row);
-        } else if at.y < self.len()-1 {
-            self.rows.insert(at.y+1, new_row)
-        }
-    }
-```
+You can now see that Rust files are highlighted correctly, and non-rust files are not highlighted. But what is that? When you save a new file as a rust file, the highlighting starts acting all weird. Very unsatisfying!
 
-Now, let's use the highlighting options to finally highlight numbers in Rust files:
+While we're at it, let's also fix another minor nit-pick: We have taken great effort to ensure no one can write the file type and the highlighting options, but we keep the members of `HighlightingOptions` open for anyone to edit.
 
-```rust
- fn highlight(&mut self) {
-        let mut highlighting = Vec::new();
-        let chars: Vec<char> = self.string.chars().collect();
-        let mut index = 0;
-        let mut prev_is_separator = true;
-        loop {
-            if index == self.len() {
-                break;
-            }
-            let opts = self. hl_opts.unwrap_or_default();
-            let previous_highlight;
-            if index > 0 {
-                previous_highlight = highlighting.get(index-1).unwrap_or(&HighlightingType::None);
-            } else {
-                previous_highlight = &HighlightingType::None;
-            }
+{% include hecto/fix-filetype.html %}
 
-            let c = chars[index];
-            if opts.numbers {
-                if (c.is_ascii_digit() && (prev_is_separator || previous_highlight == &HighlightingType::Number)) ||
-                    (c == '.' && previous_highlight == &HighlightingType::Number) {
-                        highlighting.push(HighlightingType::Number);
-                } else {
-                        highlighting.push(HighlightingType::None);
-                }
-            } else {
-                highlighting.push(HighlightingType::None);
-            }
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/fix-filetype)</small>
 
-            prev_is_separator = c.is_ascii_punctuation() || c.is_ascii_whitespace();
-            index +=1;
-        }
-        self.highlighting = highlighting;
-    }
+We are now re-highlighting each row as we save the file, and our `number` property is now finally read-only.
 
-```
+A quick side note: If you're eagle-eyed, you will have noticed that the function `numbers`  accepts `self` instead of `&self` (Notice the missing `&`). The distinction is not important in the scope of this tutorial, and as our struct grows, we will be reverting back to `&` soon. In a nutshell, for small structs, it's more efficient to work directly with the value (without the `&`) than with the reference. Try adding the `&` and check the clippy output in case you're interested.
 
-## Colorful strings and characters
-With all that out of the way, we can finally get to highlighting more things! Let's start with strings and characters. We do both at the same time, as they are very similar.
+## Colorful strings
+With all that out of the way, we can finally get to highlighting more things! Let's start with highlighting strings.
 
-```rust
-#[derive(PartialEq)]
-enum HighlightingType {
-    None,
-    Number,
-    Match,
-    String,
-    Character
-}
+{% include hecto/add-string-options.html %}
 
-impl HighlightingType {
-    fn to_color(&self) -> impl color::Color {
-        match self {
-            HighlightingType::Number => color::Rgb(220,163,163),
-            HighlightingType::Match => color::Rgb(38,139,210),
-            HighlightingType::String => color::Rgb(211,54,130),
-            HighlightingType::Character => color::Rgb(108,113,196),
-            _ => color::Rgb(255,255,255),
-        }
-    }
-}
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/add-string-options)</small>
 
-```
-and in Document:
+Now for the actual highlighting code. We will use an `in_string` variable to keep track of whether we are currently inside a string. If we are, then we'll keep highlighting the current character as a string until we hit the closing quote.
 
-```rust
+{% include hecto/highlight-strings.html %}
 
-#[derive(Default, Clone, Copy)]
-pub struct HighlightingOptions {
-    numbers: bool,
-    strings: bool,
-    characters: bool
-}
-impl FileType {
-    fn from(file_name: &String) -> Self {
-        if file_name.ends_with(".rs") {
-            return Self{
-                name: String::from("Rust"),
-                hl_opts: HighlightingOptions{
-                    numbers: true,
-                    strings: true,
-                    characters: true
-                }
-            }
-        }
-        Self::default()
-    }
-}
-```
-Now for the actual highlighting code. We will use an `in_string` and `in_character` variable to keep track of whether we are currently inside a string or character. If we are, then we'll keep highlighting the current character as a string until we hit the closing quote.
-
-```rust
- fn highlight(&mut self) {
-        let mut highlighting = Vec::new();
-        let chars: Vec<char> = self.string.chars().collect();
-        let mut index = 0;
-        let mut prev_is_separator = true;
-        let mut in_string = false;
-        let mut in_character = false;
-        loop {
-            if index == self.len() {
-                break;
-            }
-            let opts = self. hl_opts.unwrap_or_default();
-            let previous_highlight;
-            if index > 0 {
-                previous_highlight = highlighting.get(index-1).unwrap_or(&HighlightingType::None);
-            } else {
-                previous_highlight = &HighlightingType::None;
-            }
-
-            let c = chars[index];
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/highlight-strings)</small>
 
 
-            if opts.strings {
-                if in_string {
-                    highlighting.push(HighlightingType::String);
-                    if c == '"' {
-                        in_string = false;
-                        prev_is_separator = true;
-                    } else {
-                        prev_is_separator = false;
-                    }
-                    index +=1;
-                    continue;
-                } else if prev_is_separator && c == '"' {
-                    highlighting.push(HighlightingType::String);
-                    in_string = true;
-                    prev_is_separator = true;
-                    index +=1;
-                    continue;
-                }
-
-            }
-            if opts.characters {
-                if in_character {
-                    highlighting.push(HighlightingType::Character);
-                    if c == '\'' {
-                        in_character = false;
-                        prev_is_separator = true;
-                    } else {
-                        prev_is_separator = false;
-                    }
-                    index +=1;
-                    continue;
-                } else if prev_is_separator && c == '\'' {
-                    highlighting.push(HighlightingType::Character);
-                    in_character = true;
-                    prev_is_separator = true;
-                    index +=1;
-                    continue;
-                }
-
-            }
-
-            if opts.numbers {
-                if (c.is_ascii_digit() && (prev_is_separator || previous_highlight == &HighlightingType::Number)) ||
-                    (c == '.' && previous_highlight == &HighlightingType::Number && !prev_is_separator) {
-                        highlighting.push(HighlightingType::Number);
-                        prev_is_separator = true;
-                        index +=1;
-                        continue;
-                }
-            }
-
-
-
-            highlighting.push(HighlightingType::None);
-
-
-            prev_is_separator = c.is_ascii_punctuation() || c.is_ascii_whitespace();
-            index +=1;
-        }
-        self.highlighting = highlighting;
-    }
-
-```
-
-The code for both cases is nearly identical (we will add an exception soon). Going through it from top to bottom: If `in_string` is set, then we know that the current character can be highlighted as a string. Then we check if the current character is the closing quote, and if so, we reset `in_string` to `0`. Then, since we highlighted the current character, we have to consume it by incrementing `index` and `continue`ing out of the current loop iteration. We also set `prev_is_separator` to `true` so that if we're done highlighting the string, the closing quote is considered a separator.
+Let'sa go through this change from top to bottom: If `in_string` is set, then we know that the current character can be highlighted as a string. Then we check if the current character is the closing quote, and if so, we reset `in_string` to `false`. Then, since we highlighted the current character, we have to consume it by incrementing `index` and `continue`ing out of the current loop iteration. We also set `prev_is_separator` to `true` so that if we're done highlighting the string, the closing quote is considered a separator.
 
 IF we're not currently in a string, then we have to check if we're at the beginning of one by checking for the starting quote. If we are, we set `in_string` to `true`, highlight the quote and consume it.
 
-Except for the difference in variable names and the quotes, we do the same for characters.
+We have also introduced a new concept here: The [dereferencing operator, `*`.](https://doc.rust-lang.org/book/ch04-02-references-and-borrowing.html). The point is that `c` in this code is a reference to a character, and we check if it is the desired character by comparing it with a reference to another character, like `c == &'"'`. Alternatively, we can _dereference_ c and directly compare it to the desired character. This makes the code a bit easier to read. Let's apply this in other parts as well.
+
+{% include hecto/use-deref.html %}
+
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/use-deref)</small>
 
 We should probably take escaped quotes into account when highlighting strings and characters. If the sequence `\"` occurs in a string, then the escaped quote doesn't close the string in the vast majority of languages.
 
-```rust
-   fn highlight(&mut self) {
-        let mut highlighting = Vec::new();
-        let chars: Vec<char> = self.string.chars().collect();
-        let mut index = 0;
-        let mut prev_is_separator = true;
-        let mut in_string = false;
-        let mut in_character = false;
-        loop {
-            if index >= chars.len() {
-                break;
-            }
-            let opts = self. hl_opts.unwrap_or_default();
-            let previous_highlight;
-            if index > 0 {
-                previous_highlight = highlighting.get(index-1).unwrap_or(&HighlightingType::None);
-            } else {
-                previous_highlight = &HighlightingType::None;
-            }
+{% include hecto/allow-escaped-strings.html %}
 
-            let c = chars[index];
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/allow-escaped-strings)</small>
 
-
-            if opts.strings {
-                if in_string {
-                    highlighting.push(HighlightingType::String);
-                    if c == '\\' && index + 1 < self.len() {
-                        highlighting.push(HighlightingType::String);
-                        index +=2;
-                        continue;
-                    }
-                    if c == '"' {
-                        in_string = false;
-                        prev_is_separator = true;
-                    } else {
-                        prev_is_separator = false;
-                    }
-                    index +=1;
-                    continue;
-                } else if prev_is_separator && c == '"' {
-                    highlighting.push(HighlightingType::String);
-                    in_string = true;
-                    prev_is_separator = true;
-                    index +=1;
-                    continue;
-                }
-
-            }
-            if opts.characters {
-                if in_character {
-                    highlighting.push(HighlightingType::Character);
-                    if c == '\\' && index + 1 < chars.len() {
-                        highlighting.push(HighlightingType::Character);
-                        index +=2;
-                        continue;
-                    }
-                    if c == '\'' {
-                        in_character = false;
-                        prev_is_separator = true;
-                    } else {
-                        prev_is_separator = false;
-                    }
-                    index +=1;
-                    continue;
-                } else if prev_is_separator && c == '\'' {
-                    highlighting.push(HighlightingType::Character);
-                    in_character = true;
-                    prev_is_separator = true;
-                    index +=1;
-                    continue;
-                }
-
-            }
-
-            if opts.numbers {
-                if (c.is_ascii_digit() && (prev_is_separator || previous_highlight == &HighlightingType::Number)) ||
-                    (c == '.' && previous_highlight == &HighlightingType::Number && !prev_is_separator) {
-                        highlighting.push(HighlightingType::Number);
-                        prev_is_separator = true;
-                        index +=1;
-                        continue;
-                }
-            }
-
-
-
-            highlighting.push(HighlightingType::None);
-
-
-            prev_is_separator = c.is_ascii_punctuation() || c.is_ascii_whitespace();
-            index +=1;
-        }
-        self.highlighting = highlighting;
-    }
-```
 If we're in a string and the current character is a `\`, _and_ there is at least one more character in that line that comes after the backslash, then we highligh the character that comes after the backslash with `HighlightingType::String` and consume it. We increment `index` by `2` to consume both characters at once.
 
-In Rust, our character highlighting still has a bug. Rust has a concept called [Lifetimes](https://doc.rust-lang.org/1.9.0/book/lifetimes.html), and a lifetime can be indicated with a single `'`. Our highlighting does not account for this. Our highlighting is a bit overeager for characters anyways, since it allows the same content between two single quotes as strings. Let's make character detection a bit more sophisticated.
+## Colorful characters
 
-```rust
-        if opts.characters {
-                if c == '\'' &&  index + 2 < chars.len()  {
-                    let mut last_index = index + 2;
-                    let next_char = chars[index+1];
-                    if next_char == '\\' && index + 3 < chars.len() {
-                        last_index +=1;
-                    }
-                    let last_char = chars[last_index];
-                    if last_char == '\'' {
-                        for _ in index..last_index + 1 {
-                            highlighting.push(HighlightingType::Character);
-                            index +=1;
-                            prev_is_separator = true;
+Now that strings work, let's focus on characters next. We start with the basics first.
 
-                        }
-                        continue;
-                    }
+{% include hecto/add-character-options.html %}
 
-                }
-            }
-```
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/add-character-options)</small>
 
-We got rid of `in_character` again. If we encounter a `'`, we now look at the next two characters as well. Then we check if the next character is a `\`. If it is, we also look at another character. Then we check the last character. If it is a closing `'`, we highlight and consume all the characters in between and end the current iteration of the loop. This means that in our syntax highlighting, we only allow one character between two single quotes, unless there is an escaped character.
+You might want to do character highlighting the same way as we highlight strings. That would create two problems, though: First, we would over-eagerly highlight nonsense like `'this is definitely no character'`. Second, it would not work with  [Lifetimes](https://doc.rust-lang.org/1.9.0/book/lifetimes.html): A lifetime can be indicated with a single `'`. Our highlighting would not take this into account and highlight everything after the opening `'` as a character.
+
+When we highlight strings, we are also not looking for a closing character and simply end the highlighting of a string when the line ends. That's fine, since an unclosed string is probably a typo anyways, and that typo is easier to spot if string-highlighting goes from the opening quotes to the end than with no highlighting at all.
+
+Let's see how we can implement character highlighting:
+
+{% include hecto/highlight-characters.html %}
+
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/highlight-characters)</small>
+
+We are handling character highlighting before string highlighting, but only if we are not currently within a string. That way, we can make sure that on the one hand side, string opening quotes are not handled within a character, and on the other hand side, character opening quotes are not handled within a string.
+
+If we are on a character opening quote, our plan is to handle three different cases:
+
+- We are on a `'` and the next character is anything other than `\`. Then we look at the character after the next. If it's a `'`, we highlight all three characters. In other words, we are handling `'*'` here.
+- We are on a `'` and the next character is a `\`. If it is, we look one character further. If it's a `'`, we highlight all four characters. In other words, we are handling escaped characters, `\*'`, here.
+- In all other cases, we are not highlighting the current `'` as a character and advance the index by one, consuming the `'`.
+
+Looking at the code, we start by setting `prev_is_separator` to `true`: In all three cases, when we are done, we want the last consumed character to be treated as a separator, as it will always be a `'`.
+
+Next, we are looking at the next character to determine where we expect the `'` to match the opening quote. If we are looking at a `\` as the next character, we expect the closing character being the 3rd character after the current character. Otherwise, we expect it to be the 2nd.
+
+We are then looking at the character we expect to be the closing quote. If it is the closing quote, we are consuming all characters up and including the closing quote. (The `=` in the `for..in` loop means that we are going to include the last index of the provided range)
+
+If we did not find the closing quote where we expect it to be, we are simply highlighting the current `'` as `None` and consume it.
 
 ## Colorful single-line comments
 Next, let's highlight single-line comments. (We'll leave multi-line comments until the end, because they're complicated).
 
-```rust
+{% include hecto/add-comment-options.html %}
 
-#[derive(Default, Clone, Copy)]
-pub struct HighlightingOptions {
-    numbers: bool,
-    strings: bool,
-    characters: bool,
-    comments: bool
-}
-impl FileType {
-    fn from(file_name: &String) -> Self {
-        if file_name.ends_with(".rs") {
-            return Self{
-                name: String::from("Rust"),
-                hl_opts: HighlightingOptions{
-                    numbers: true,
-                    strings: true,
-                    characters: true,
-                    comments: true
-                }
-            }
-        }
-        Self::default()
-    }
-}
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/add-comment-options)</small>
 
-```
-
-```rust
-#[derive(PartialEq)]
-enum HighlightingType {
-    None,
-    Number,
-    Match,
-    String,
-    Character,
-    Comments
-}
-
-impl HighlightingType {
-    fn to_color(&self) -> impl color::Color {
-        match self {
-            HighlightingType::Number => color::Rgb(220,163,163),
-            HighlightingType::Match => color::Rgb(38,139,210),
-            HighlightingType::String => color::Rgb(211,54,130),
-            HighlightingType::Character => color::Rgb(108,113,196),
-            HighlightingType::Comments => color::Rgb(133,153,0),
-            _ => color::Rgb(255,255,255),
-        }
-    }
-}
-    fn highlight(&mut self) {
-        let mut highlighting = Vec::new();
-        let chars: Vec<char> = self.string.chars().collect();
-        let mut index = 0;
-        let mut prev_is_separator = true;
-        let mut in_string = false;
-        loop {
-            if index >= chars.len() {
-                break;
-            }
-            let opts = self. hl_opts.unwrap_or_default();
-            let previous_highlight;
-            if index > 0 {
-                previous_highlight = highlighting.get(index-1).unwrap_or(&HighlightingType::None);
-            } else {
-                previous_highlight = &HighlightingType::None;
-            }
-
-            let c = chars[index];
+Single line comments are easy to detect: If we encounter a `/` outside of a string, all we need to do is check if it is followed by another `/`. If so, treat the whole rest of the line as a comment.
 
 
-            if opts.strings {
-                if in_string {
-                    highlighting.push(HighlightingType::String);
-                    if c == '\\' && index + 1 < chars.len() {
-                        highlighting.push(HighlightingType::String);
-                        index +=2;
-                        continue;
-                    }
-                    if c == '"' {
-                        in_string = false;
-                        prev_is_separator = true;
-                    }
+{% include hecto/highlight-comments.html %}
 
-                    index +=1;
-                    continue;
-                } else if prev_is_separator && c == '"' {
-                    highlighting.push(HighlightingType::String);
-                    in_string = true;
-                    index +=1;
-                    continue;
-                }
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/highlight-comments)</small>
 
-            }
-            if opts.characters {
-                if c == '\'' &&  index + 2 < chars.len()  {
-                    let mut last_index = index + 2;
-                    let next_char = chars[index+1];
-                    if next_char == '\\' && index + 3 < chars.len() {
-                        last_index +=1;
-                    }
-                    let last_char = chars[last_index];
-                    if last_char == '\'' {
-                        for _ in index..last_index + 1 {
-                            highlighting.push(HighlightingType::Character);
-                            index +=1;
-                            prev_is_separator = true;
+You should now be able to confirm that highlighting single line comments works. Before we move to other things, however, we need to improve our code.
 
-                        }
-                        continue;
-                    }
+## Improve code quality
+If you are following along using Clippy, you might have noticed that Clippy now highlights the entirety of our highlight function. The grievance that it wants to point out is that our function is getting too long. Adding to this function is easy as we go along, but if you take a step back and try to take the whole thing in, then you will realize just how difficult it is to follow along. In one of the early chapters of the tutorial, this was the precise reason why we started taking stuff out of `main`: To maintain readability. We are going to do the same thing now.
 
-                }
-            }
-            if opts.comments {
-                if c == '/' && self.find(&"//".to_string(), index, SearchDirection::Forward).unwrap_or(index+1) == index {
-                    for _ in index..chars.len() {
-                        highlighting.push(HighlightingType::Comments);
+Our strategy will be to split our big `highlight` function into separate independent functions. Each function can either return `false`, meaning that they did not highlight the current character, or `true`, indicating that they handled the character. We are also going to allow these functions to modify the pointer to the current character, to allow each function to consume more than one character at a time.
 
-                    }
-                    break;
-                }
-            }
+{% include hecto/refactor-highlighting.html %}
 
-            if opts.numbers {
-                if (c.is_ascii_digit() && (prev_is_separator || previous_highlight == &HighlightingType::Number)) ||
-                    (c == '.' && previous_highlight == &HighlightingType::Number && !prev_is_separator) {
-                        highlighting.push(HighlightingType::Number);
-                        prev_is_separator = true;
-                        index +=1;
-                        continue;
-                }
-            }
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/refactor-highlighting)</small>
+
+If you have trouble following this diff alone, don't forget that [the direct link below the diff lets you see the full file after the change.](https://github.com/pflenker/hecto-tutorial/releases/tag/refactor-highlighting)
+
+Let's go through this change by looking at `highlight` first. That is the function we wanted to simplify, and it has gotten so much smaller. We have removed any highlighting logic except for the highlighting of `None`, in case no other highlighting has matched. By the way, if-statements are evaluated from left to right, so, for instance, if `highlight_comment` returns `true`, none of the other highlight functions is being called.
+
+We will now investigate all the changes to all five highlighters we have written so far.
+
+`highlight_char` and `highlight_comment` are largely unchanged, they have been moved to separate functions and changed to return `true` in case they do some highlighting, and `false` otherwise.
+
+`highlight_string` has changed quite a lot. Instead of having a variable which keeps track of whether or not we are in a string, we are now checking if we are at an opening quote. If so, we consume the remainder of the row until we meed the end of it or a closing quote and highlight it as a string.
+
+`highlight_number`, with which we started the whole highlighting process, has also changed slightly. If invoked, it checks if the previous character was a separator (instead of having a variable keeping track of it). If so, the highlighting is done now the same as in other functions: We consume the whole number, including the dot, in one go before returning from this function.
+
+We have now placed `highlight_match` below the loop and have changed the logic a bit. Previously, we were storing the indices of the matches to be used later during highlighting. Now, we are updating `self.highlighting` directly from within `highlight_match`. We need to handle this case separately as we want our match not to interfere with other highlights. For instance, if we search for `con`, we want the first three letters of `const` to be highlighted as a search result, and the remaining two letters as a keyword.
 
 
+### Side note on refactoring
+We have now done quite a big refactoring, and I want to say a word or two about the refacotring process itself. Many tutorials present you with a polished final solution which you can happily implement. But that is not how code evolves in practice. How we did it in this tutorial is much more realistic: You start with a simple problem, in this case, highlighting a single digit, and then you expand it over time. As the features grow, your code grows, too, and the assumptions you made at the beginning on what the code should look like will soon be outdated or plain wrong.
 
-            highlighting.push(HighlightingType::None);
+Being able to judge when to refactor is a skill that needs training, it doesn't come by itself. Luckily, there are tools to help you build that skill. One is clippy. We could have ignored or silenced this warning, but ultimately, clippy was right in pointing out that our code was getting too complex! A refactoring was in order, if not overdue.
 
+Is the code now perfect? Definitely not. There are at least the following two things wrong with it:
+- The loop in `highlight` implicitly relies on the highlight functions to advance `index`. If any of these functions returns `true`, but does not modify `index`, we run into an infinite loop. This is not obvious in the code and therefore not ideal.
+- The highlighting will not work around the borders of `usize`. We are pushing things into the `highlighting` array without checking if it is safe, and we are advancing `index` in many cases without any kind of check. It is not easy to see and understand how our code will behave in this case. Will it crash? Will it enter an infinite loop?
 
-            prev_is_separator = c.is_ascii_punctuation() || c.is_ascii_whitespace();
-            index +=1;
-        }
-        self.highlighting = highlighting;
-    }
+We are not going to solve these issues in this tutorial, but I invite you to take a stab at them, they are not terribly hard to solve.
 
-```
-If we are encountering an `/`, we are checking if we can find `//` at our current position. If yes, we highlight the rest of the row as a comment and end the highlihgting of the current row. We are doing comment highlihgting after checking for strings, so that comment starts within strings are not highlighted.
+If you are now disappointed that even after our refactoring our code still has flaws, then consider this: These flaws have been in the code before, but now they are much, much easier to see. Also, we wouldn't have detected them if we hadn't done the refactoring in the first place.
+
+In a real world scenario, I would consider the weakness around large files as not relevant - we saw earlier why we would run in to all kinds of other problems first before these flaws would really become important, at least on modern systems.
+
+I would also either refactor or at least document the other issue, to make sure that everyone who extends the highlighting in the future (could be my own future me) knows what to do.
+
 
 ## Colorful keywords
-Now let's turn to highlighting keywords. We're going to allow languages to specify two types of keywords that will be highlighted in different colors. (IN Rust, we'll highlight actual keywords in one color and common type names in the other color).
+Now let's turn to highlighting keywords. We're going to allow languages to specify two types of keywords that will be highlighted in different colors. (In Rust, we'll highlight actual keywords in one color and common type names in the other color).
 
-```rust
-#[derive(PartialEq)]
-enum HighlightingType {
-    None,
-    Number,
-    Match,
-    String,
-    Character,
-    Comments,
-    PrimaryKeywords,
-    SecondaryKeywords
-}
-
-impl HighlightingType {
-    fn to_color(&self) -> impl color::Color {
-        match self {
-            HighlightingType::Number => color::Rgb(220,163,163),
-            HighlightingType::Match => color::Rgb(38,139,210),
-            HighlightingType::String => color::Rgb(211,54,130),
-            HighlightingType::Character => color::Rgb(108,113,196),
-            HighlightingType::Comments => color::Rgb(133,153,0),
-            HighlightingType::PrimaryKeywords => color::Rgb(181,137,0),
-            HighlightingType::SecondaryKeywords => color::Rgb(42,161,152),
-            _ => color::Rgb(255,255,255),
-        }
-    }
-}
-
-```
 Let's add two `Vector`s to the `HighlightingOptions`, one for primary, one for secondary keywords.
 
-```rust
-use crate::editor::{Position, SearchDirection};
-use std::fs;
-mod row;
-pub use row::Row;
-use std::io::{Error,Write, ErrorKind};
+{% include hecto/add-keyword-options.html %}
 
-#[derive(Default, Clone)]
-pub struct HighlightingOptions {
-    numbers: bool,
-    strings: bool,
-    characters: bool,
-    comments: bool,
-    primary_keywords: Vec<String>,
-    secondary_keywords: Vec<String>,
-}
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/add-keyword-options)</small>
 
+We had to jump through a surprisingly large number of loops to get this to work. So what happened?
 
-pub struct FileType {
-    pub name: String,
-    hl_opts: HighlightingOptions
-}
+When we added a more complex data structure like `Vec<String>` to `HighlightingOptions`, it's no longer sensible to copy `HighlightingOptions` around all the time, which was the case before. Also, we can no longer let the compiler derive the `Copy` trait for us, so we needed to change a few things in our code to make sure that from now on, only a reference to `HighlightingOptions` is being passed around.
 
-impl Default for FileType {
-    fn default() -> Self {
-        Self{
-            name: String::from("No filetype"),
-            hl_opts: HighlightingOptions::default()
-        }
-    }
-}
-
-impl FileType {
-    fn from(file_name: &String) -> Self {
-        if file_name.ends_with(".rs") {
-            Self{
-                name: String::from("Rust"),
-                hl_opts: HighlightingOptions{
-                    numbers: true,
-                    strings: true,
-                    characters: true,
-                    comments: true,
-                    primary_keywords: vec![
-                        "as".to_string(),
-                        "break".to_string(),
-                        "const".to_string(),
-                        "continue".to_string(),
-                        "crate".to_string(),
-                        "else".to_string(),
-                        "enum".to_string(),
-                        "extern".to_string(),
-                        "false".to_string(),
-                        "fn".to_string(),
-                        "for".to_string(),
-                        "if".to_string(),
-                        "impl".to_string(),
-                        "in".to_string(),
-                        "let".to_string(),
-                        "loop".to_string(),
-                        "match".to_string(),
-                        "mod".to_string(),
-                        "move".to_string(),
-                        "mut".to_string(),
-                        "pub".to_string(),
-                        "ref".to_string(),
-                        "return".to_string(),
-                        "self".to_string(),
-                        "Self".to_string(),
-                        "static".to_string(),
-                        "struct".to_string(),
-                        "super".to_string(),
-                        "trait".to_string(),
-                        "true".to_string(),
-                        "type".to_string(),
-                        "unsafe".to_string(),
-                        "use".to_string(),
-                        "where".to_string(),
-                        "while".to_string(),
-                        "dyn".to_string(),
-                        "abstract".to_string(),
-                        "become".to_string(),
-                        "box".to_string(),
-                        "do".to_string(),
-                        "final".to_string(),
-                        "macro".to_string(),
-                        "override".to_string(),
-                        "priv".to_string(),
-                        "typeof".to_string(),
-                        "unsized".to_string(),
-                        "virtual".to_string(),
-                        "yield".to_string(),
-                        "async".to_string(),
-                        "await".to_string(),
-                        "try".to_string(),
-                        ],
-                    secondary_keywords: vec![
-                        "bool".to_string(),
-                        "char".to_string(),
-                        "i8".to_string(),
-                        "i16".to_string(),
-                        "i32".to_string(),
-                        "i64".to_string(),
-                        "isize".to_string(),
-                        "u8".to_string(),
-                        "u16".to_string(),
-                        "u32".to_string(),
-                        "u64".to_string(),
-                        "usize".to_string(),
-                        "f32".to_string(),
-                        "f64".to_string(),
-                        ],
-                }
-            }
-        } else {
-            Self::default()
-        }
-
-    }
-}
-```
-
-We can't automatically derive the `Copy` trait any more, so we need to adjust the rest of our code a bit:
-
-```rust
-  pub fn open(file_name: &String ) -> Result<Document, Error> {
-        let contents = fs::read_to_string(file_name)?;
-        let file_type = FileType::from(file_name);
-        let mut rows = Vec::new();
-        for value in contents.lines() {
-            let mut row = Row::from(value);
-            row.set_highlight(file_type.hl_opts.clone());
-            rows.push(row);
-        }
-        Ok(Document{
-            rows,
-            file_name: Some(file_name.clone()),
-            dirty: false,
-            file_type
-        })
-    }
-    pub fn save(&mut self) -> Result<(), Error> {
-        if let Some(file_name) = &self.file_name {
-            let mut file = fs::File::create(file_name)?;
-            self.file_type = FileType::from(file_name);
-            for row in self.rows.iter_mut() {
-                row.set_highlight(self.file_type.hl_opts.clone());
-                file.write_all(row.to_string().as_bytes())?;
-                file.write_all(b"\n")?;
-            }
-            self.dirty = false;
-
-        } else {
-            return Err(Error::new(ErrorKind::Other, "Can't save file!"))
-        }
-        Ok(())
-    }
-     fn insert_newline(&mut self, at: &Position) {
-        if at.y > self.len() {
-            return;
-        }
-        let mut new_row = Row::new();
-        new_row.set_highlight(self.file_type.hl_opts.clone());
-        if at.y < self.len() {
-            let current_row = self.rows.get_mut(at.y).unwrap();
-            new_row.append(&current_row.to_string_range(at.x, current_row.len()));
-            current_row.truncate(at.x);
-        }
-
-        if  at.y == self.len() ||  at.y + 1 == self.len() {
-            self.rows.push(new_row);
-        } else if at.y < self.len()-1 {
-            self.rows.insert(at.y+1, new_row)
-        }
-    }
-```
 Now that we have the keywords available, let's highlight them. We start with the primary keywords first.
 
-```rust
- fn highlight(&mut self) {
-        let mut highlighting = Vec::new();
-        let chars: Vec<char> = self.string.chars().collect();
-        let mut index = 0;
-        let mut prev_is_separator = true;
-        let mut in_string = false;
-        'outer: loop {
-            if index >= chars.len() {
-                break;
-            }
-            let mut opts = &HighlightingOptions::default();
-            if !self.hl_opts.is_none() {
-               opts = self.hl_opts.as_ref().unwrap()
-            }
-            let previous_highlight;
-            if index > 0 {
-                previous_highlight = highlighting.get(index-1).unwrap_or(&HighlightingType::None);
-            } else {
-                previous_highlight = &HighlightingType::None;
-            }
+{% include hecto/highlight-primary-keywords.html %}
 
-            let c = chars[index];
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/highlight-primary-keywords)</small>
 
 
-            if opts.strings {
-                if in_string {
-                    highlighting.push(HighlightingType::String);
-                    if c == '\\' && index + 1 < chars.len() {
-                        highlighting.push(HighlightingType::String);
-                        index +=2;
-                        continue;
-                    }
-                    if c == '"' {
-                        in_string = false;
-                        prev_is_separator = true;
-                    }
+To make keyword highlighting work, we are building a new function called `highlight_str`, which is responsible for highlighting a substring with a given type. It does this by comparing every character after the current character with the given string. If the whole string is matched, `self.highlighting` is updated with the right highlighting type. If one character is off, the whole highlighting for this string is aborted.
 
-                    index +=1;
-                    continue;
-                } else if prev_is_separator && c == '"' {
-                    highlighting.push(HighlightingType::String);
-                    in_string = true;
-                    index +=1;
-                    continue;
-                }
+This means that we need to pass around `highlighting::Type`, but instead of worrying about references and borrowing, wee are simply deriving `Copy` and `Clone` for that type and simply copy it around. Since we have no plans for `Type` to grow, this is a sensible decision for now.
 
-            }
-            if opts.characters {
-                if c == '\'' &&  index + 2 < chars.len()  {
-                    let mut last_index = index + 2;
-                    let next_char = chars[index+1];
-                    if next_char == '\\' && index + 3 < chars.len() {
-                        last_index +=1;
-                    }
-                    let last_char = chars[last_index];
-                    if last_char == '\'' {
-                        for _ in index..last_index + 1 {
-                            highlighting.push(HighlightingType::Character);
-                            index +=1;
-                            prev_is_separator = true;
+If you start `hecto` now, you will see that primary keywords are highlighted. However, there is still a bug: We don't want the `in` of `String` to be highlighted, keywords need to be preceded and followed by a separator. Let's fix that
 
-                        }
-                        continue;
-                    }
+{% include hecto/fix-keyword-highlighting.html %}
 
-                }
-            }
-            if opts.comments {
-                if c == '/' && self.find(&"//".to_string(), index, SearchDirection::Forward).unwrap_or(index+1) == index {
-                    for _ in index..chars.len() {
-                        highlighting.push(HighlightingType::Comments);
-
-                    }
-                    break;
-                }
-            }
-
-          if  prev_is_separator {
-                for keyword in opts.primary_keywords.iter() {
-                    let length = keyword.chars().count();
-                    if index + length >= self.len() {
-                        continue;
-                    }
-                    if self.string[index..index+keyword.len()].find(keyword).is_none() {
-                        continue;
-                    }
-                    for _ in index..index+length {
-                         highlighting.push(HighlightingType::PrimaryKeywords);
-                    }
-                    index += length;
-                    continue 'outer;
-
-
-              }
-
-            }
-
-
-            if opts.numbers {
-                if (c.is_ascii_digit() && (prev_is_separator || previous_highlight == &HighlightingType::Number)) ||
-                    (c == '.' && previous_highlight == &HighlightingType::Number && !prev_is_separator) {
-                        highlighting.push(HighlightingType::Number);
-                        prev_is_separator = true;
-                        index +=1;
-                        continue;
-                }
-            }
-
-
-
-            highlighting.push(HighlightingType::None);
-
-
-            prev_is_separator = c.is_ascii_punctuation() || c.is_ascii_whitespace();
-            index +=1;
-        }
-
-        self.highlighting = highlighting;
-    }
-```
-Let's go through this change step by step. We have positioned our highlighting after the highlighting of comments and strings, to make sure that keywords within a comment or a string are not highlighted. Then, we require that the character before a keyword is a separator, to make sure we do not highlight the `as` in `whereas`. Then we go through all the keywords and check for each keyword if it would fit into the remainder of the current row. If not, we contiunue with the next keyword. Then, we do a few things at once: we slice the row starting with the current index and ending with the length of the keyword, before we check if that remaining slice contains the keyword itself. If not, we continue. If so, we have found the keyword we where looking for, so we highlight the keyword and consume it before continuing.
-
-We are using nested loops here: We are within a `for` loop and want to continue with the outermost loop. In order to do that, we have [labelled](https://doc.rust-lang.org/rust-by-example/flow_control/loop/nested.html) the outer loop to be able to cleanly continue with it from within the inner `for` loop.
-
-Now let's fix a quick bug: We require a keyword to be followed by a separator, so that we do not highlight the `do` in `document`. And we need to make sure that our keyword is not treated as a separator for the following characters.
-
-```rust
-
-      if  prev_is_separator {
-                for keyword in opts.primary_keywords.iter() {
-                    let length = keyword.chars().count();
-                    if index + length >= chars.len() {
-                        continue;
-                    }
-                    if self.string[index..index+keyword.len()].find(keyword).is_none() {
-                        continue;
-                    }
-                    if index + length < chars.len() {
-                        let next_char =  chars[index+length];
-                        if !next_char.is_ascii_punctuation() && !next_char.is_ascii_whitespace() {
-                            continue;
-                        }
-                    }
-
-                    for _ in index..index+length {
-                         highlighting.push(HighlightingType::PrimaryKeywords);
-                         index +=1;
-                    }
-                    prev_is_separator = false;
-                    continue 'outer;
-
-
-              }
-
-            }
-```
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/fix-keyword-highlighting)</small>
 
 Now, let's try and highlight secondary keywords as well.
 
+{% include hecto/highlight-secondary-keywords.html %}
 
-```rust
-        if  prev_is_separator {
-              for (keywords, highlighting_type) in [(opts.primary_keywords.iter(), HighlightingType::PrimaryKeywords), (opts.secondary_keywords.iter(), HighlightingType::SecondaryKeywords)].iter_mut(){
-                for keyword in keywords {
-                                let length = keyword.chars().count();
-                                if index + length >= chars.len() {
-                                    continue;
-                                }
-                                if self.string[index..index+keyword.len()].find(keyword).is_none() {
-                                    continue;
-                                }
-                                if index + length < chars.len() {
-                                    let next_char =  chars[index+length];
-                                    if !next_char.is_ascii_punctuation() && !next_char.is_ascii_whitespace() {
-                                        continue;
-                                    }
-                                }
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/highlight-secondary-keywords)</small>
 
-                                for _ in index..index+length {
-                                    highlighting.push(*highlighting_type);
-                                    index +=1;
-                                }
-                                prev_is_separator = false;
-                                continue 'outer;
+We have now extracted the core of `highlight_primary_keywords_ into a more generic function which highlights a given word with a given type if it's surrounded by separators.
 
-
-                 }
-              }
-
-
-            }
-```
-
-We have now added another loop around the inner loop, which loops over an array with two tuples. Tuples are collection of different types, and constructed with `()`. Our tuple contains both the iterator and the highlighting type for said iterator. More on tuples [can be found in the documentation.](https://doc.rust-lang.org/rust-by-example/primitives/tuples.html)
-
-WHen you open your editor now, you should be able to see primary and secondary keywords highlighted.
+When you open your editor now, you should be able to see primary and secondary keywords highlighted.
 
 ## Colorful multi-line comments
-Okay, we have one last feature to implement: multi-line comment highlighting.
+Okay, we have one last feature to implement: multi-line comment highlighting. Let's start by adding the appropriate entry to `HighlightingOptions` and `Type`.
+
+{% include hecto/add-ml-comment-options.html %}
+
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/add-ml-comment-options)</small>
+
+We'll highlight multi-line comments to be the same color as single-line comments. Now let's do the highlighting. We won't worry about multiple lines just yet.
+
+{% include hecto/single-ml-comments.html %}
+
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/single-ml-comments)</small>
+
+This is essentially a combination of highlighting strings and highlighting single-line comments. If we are on a `/*`, we use `find` to get the index of the closing `*/` . Since theoretically we could have multiple comments in the same line, we only search from the current index position forward in the string.
+
+We highlight the whole comment, plus the 4 characters needed by the opening and closing characters of the comment.
+
+Now, how do we highlight multiple rows? The strategy we will be using is that we pass the information if we ended on an unclosed comment back to `document`, so that `document` can highlight the next `row` differently, if needed.
+
+{% include hecto/multiline-comments.html %}
+
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/multiline-comments)</small>
+
+We have now changed the signature of `highlight`: It receives a new boolean, and it returns a boolean. The boolean it receives is `true` when the highlighting should start within a multiline comment. If that is the case, we look for the closing index before we enter the highlighting loop and highlight everything until then as a mutli line comment. Similar to what we are doing in `highlight_multiline_comment`, we go up until the end of the line if we can't find the closing `*/`.
+
+During highlighting, we are now keeping track if the last thing we highlighted was a multiline comment. If we end the loop on a multiline comment, we check if the last thing we saw was the ending of a multiline comment, as we want to return `false` if we are out of a multi line comment, and `true` if the multi line comment we are in has not been closed yet.
+
+You can try saving a file with multi line comments now, or you can enter a multi line comment and then trigger a search to see the correct highlighting. Let's now make sure that the highlighting is also correct in all other cases.
+
+{% include hecto/full-multiline-highlighting.html %}
+
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/full-multiline-highlighting)</small>
+
+We have now restructured the code a bit so that the whole document is re-highlighted on any update or delete operation. If you check it now, you should notice two things: First, it works! Very satisfying! Second, the performance is abysmal. Not satisfying!
+
+The reason is, of course, that we are re-highlighting the whole document all the time, on every change, to make sure the highlighting is correct everywhere and in every case. Let's try to improve the performance by highlighting the document less often.
+
+{% include hecto/better-ml-highlighting.html %}
+
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/better-ml-highlighting)</small>
+
+We have now removed all highlighting directly within `Row`, as we are now doing the highlighting controlled by the `editor`. To do that, we have added a new paramter to `highlight` in `row`: `until`, which denotes the index of the last line for which the highlighting should be calculated. We know that the highlighting of everything on screen always depends on the earlier rows in the document, but not the rows below.
+
+We are setting the highlighting in the editor's `refresh_screen` method. This also means that we have to change how search results are being displayed, as `refresh_screen` is always called when we conduct a search, which means that we would overwrite the highlighting of a word during `refresh_screen`, rendering our highlighting of the match useless. We solve this by storing the currently highlighted word as part of the `editor` struct, setting and resetting this during the search.
+
+You should now be able to verify that the performance is now much, much better. The higher up the user is in the file, the better the performance will be, as we will be only highlighting rows up until the end of the current screen. But if the user is at the bottom of the file, we are still doing a lot of highlighting of all the rows above.
+
+It's true that we need to take the rows above into account when highlighting to understand whether or not we are in a multi-line comment or not. However, there is no need to actually re-do the highlighting for all these lines.
+
+Let's make sure that only the line which has been edited is being highlighted, as well as all following lines (to make sure multi line comments still work). Together with the recent change, this means that we are highlighting only the lines between the current line and the last line on screen.
+
+{% include hecto/final-tweaks.html %}
+
+<small>[See this step on github](https://github.com/pflenker/hecto-tutorial/releases/tag/final-tweaks)</small>
+
+We solve this by storing on a row whether or not it is currently properly highlighted. If `highlight` is called on a row which is already highlighted, we only check if this row ends with an unclosed multiline comment, to determine the return value of `highlight`. If it's not highlighted, we do the highlighting as usual and then set `is_highlighted` to `true`.
+
+We also make sure that `is_highlighted` is `false` whenever a row is modified or created.
+
+In our `document`, we are then setting `is_highlighted` to `false` for every row after and including the row which has been currently edited.
+
+In combination with the previous change, this means that all rows after the current row are marked for re-highlighting whenever we change something, but re-highlighting is only done up until the last row on screen. In combination, this means that when you are typing, at most all the rows currently on the screen are being re-highlighted, which can be done at a much better performance.
+
+To make sure our search results are still displayed, we re-highlight a row even if it has been highlighted previously in case a word is provided to `highlight`.
+
+## You're done!
+That’s it! Our text editor is finished. In the appendices, you’ll find some ideas for features you might want to extend the editor with on your own.
