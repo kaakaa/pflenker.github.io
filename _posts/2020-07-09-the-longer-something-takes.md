@@ -4,7 +4,7 @@ title: ""
 categories: [Estimates, Agility]
 ---
 
-[The longer something has taken, the longer it will take.](https://www.johndcook.com/blog/2015/12/21/power-law-projects/). 
+[The longer something has taken, the longer it will take.](https://www.johndcook.com/blog/2015/12/21/power-law-projects/)
 This effect has a significant impact on any estimate on when an overdue project 
 will finally be done - intuition and hope says it will be done soon, the math and experience says it won't.
 
