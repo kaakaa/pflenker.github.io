@@ -1,0 +1,20 @@
+<aside class="quote{% if include.left%} left{%endif%}">
+<blockquote>
+    {{include.quote}}
+    {% if include.author %}
+    <footer>
+        
+        {% if include.link%}
+        <a href="{{include.link}}">
+            {%endif %}
+        {{include.author}}
+        {% if include.link%}
+        </a>
+            {%endif %}
+              
+    </footer>
+    {%endif %}
+</blockquote>
+</aside>
+
+
