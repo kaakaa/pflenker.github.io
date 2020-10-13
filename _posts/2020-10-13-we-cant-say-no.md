@@ -2,7 +2,6 @@
 layout: post
 title: "Agile doesn't work, because we can't say No!"
 categories: ["Scope Creep", "Predictability", "Sustainable Pace"]
-excerpt: "Without being able to protect the development work from disturbances - in other words: Without saying no, the quality of the software suffers as much as the happiness of the developers."
 ---
 *This post originally appeared on agiledoesntwork.com and has now been re-published here.*
 
