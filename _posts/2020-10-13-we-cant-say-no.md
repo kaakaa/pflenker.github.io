@@ -3,8 +3,6 @@ layout: post
 title: "Agile doesn't work, because we can't say No!"
 categories: ["Scope Creep", "Predictability", "Sustainable Pace"]
 ---
-*This post originally appeared on agiledoesntwork.com and has now been re-published here.*
-
 **"We can't say no!" is a fundamental problem** many people are facing in the context of Agile. While this is an issue that can occur on specific occasions or in specific scenarios, it's usually something that occurs on multiple organizational levels at once. Here are a few examples: 
 
 - **At a company level**, we can't say no to a customer, even if their request does not fit into our portfolio or strategy.
@@ -160,5 +158,4 @@ The idea of Validated Learning, which is not exclusive to Agility, tells us that
 
 The key challenge is to overcome this by effectively saying No, which is a skill that can be learned and grown as any other skill. Mastering it will greatly enhance your way of working, with or without Agile.
 
-# Join the discussion
-Join the discussion on [LinkedIn](https://www.linkedin.com/pulse/agile-doesnt-work-because-we-cant-say-philipp-flenker/?trackingId=ttlqPdUUQWW7uRZ67ofOjg%3D%3D) or [Medium](https://medium.com/agile-doesnt-work/agile-doesnt-work-because-we-can-t-say-no-1d64291a12d2)!
+_This post originally appeared on agiledoesntwork.com and has now been re-published here._
