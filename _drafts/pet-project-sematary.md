@@ -4,43 +4,48 @@ title: "Pet Project Sematary"
 categories: ["Pet Project Sematary"]
 image: /assets/pet-project-sematary.png
 ---
-Let's start with a confession: I am Philipp, and I am hoarding pet projects.
+I have to confess something: I am somewhat of a pet project hoarder.
 Throughout my whole life, well before my formal education as a computer scientist,
-I used pet projects to create new things, often by remixing or extending other 
-existing things. Depending on how far things got, I started telling my family and
+I have been creating new things on the computer, usually by remixing or duplicating 
+already existing things. Depending on how far things got, I started telling my family and
 friends about it, hyping my own idea, before eventually getting bored of it and deleting 
 it.
 
-But my pet projects are more than random stuff that I do besides work - looking
-back at my projects is a bit as flipping through an old photo album: You can see 
+I used to feel bad about all those pet projects I started and never finished, but
+over the years I have come to realize that I learn and grow with each and every one
+of them. In a way, looking back at my projects is a bit as flipping through an old photo album: You can see 
 what has been en vogue that year and how it affected me, and you can see my personal
 development and growth as a thread throughout all these projects.
 
 So I have decided to put up a Pet Project Cemetary - a collection of projects that 
 were fun doing, that brought me some extensive learning, or both. And sometimes, 
 as the pets in Stephen King's "Pet Sematary", some of the projects, though thought dead,
-rise back up an
-d come haunting you.
+rise back up and come haunting you.
 
-Before diving in, we should probably clarify one thing: Pet projects never indended
-to reflect my own working expertise, so this collection is far from a polished, shiny portfolio.
-Quite the contrary, this is what I was doing when I thought no one was looking.
+## My most notable pet projects
 
-* Circa 1994: MAD Magazine (Magazine Listing)
-* Circa 1999: Köpkes Adventure I & II (Game)
-* Bunter Haufen Goettingen (Mailing List)
-* 2000: Europe Times (School Project)
-* Various Home Pages
-* #risa-bar & rpg-irc.net (IRC Server, Channel & Community)
-* rampenlicht.net (Local Community Website)
-* Local Images (iOS App)
-* Marauder / 2nd Left  (iOS App) 
-* Thingsmap / Heartbeat (Website & iOS App)
-* zeitungsbote.cc (Progressive Web App)
-* Spielerunde.org (Website for local community)
-* 90s Rewind (Podcast)
-* hungry (iOS App)
-* eatsmart.cc (Shared Economy Service Website)
-* hilfszwerg (Shared Economy Chat Bot)
-* raenkespiel / illuminati
-* zimmer / raum / groupchat / kreis
+* **What, me worry?**, Computer generated image (*BASIC listing, circa 1994*)
+* **Köpkes Adventure I & II**, Adventure Games (*HTML, Java, RPGM2K, circa 1999*)
+* **Europe Times**, Newspaper from the future (*School Project in HTML, 2000*)
+* **#risa-bar & rpg-irc.net**, Roleplay-centric community (*phpBB, IRC, 2001*)
+* **Bunter Haufen Goettingen**, coordinating mailing list for a local movement (*Mailman, HTML, 2004*)
+* **rampenlicht.net**, local community network (*HTML, PHP, 2005*)
+* **Various Home Pages**, static content pages (*HTML, Java, PHP, Flash, JavaScript, all over the '00s*)
+* **Local Images**, beautiful images from around you (*Objective-C, 2012*)
+* **Thingsmap / Heartbeat**, get real time updates from around you (*Website & iOS App, 2013*)
+* **90srewind**, 90s podcast (*Podcast, 2014*)
+* **Marauder / 2nd Left**, Location Based Social Service  (*Objective-C, 2014*) 
+* **hungry**, find a place to eat near you (*Swift,  2015*) 
+* **eatsmart.cc**, open your own small restaurant, or visit one (*HTML, 2015*)
+* **hilfszwerg**, find or offer help for small tasks around you (*Facebook Chat Bot, 2016*) 
+* **Spielerunde.org**, community for offline gamers (*HTML, JavaScript, Parse, 2017*)
+* **Paperboy & zeitungsbote**, get quickly up to date with relevant news (*Facebook Bot, React Page, Firestore, 2018*)
+* **hecto**, a command line text editor (*Rust, 2019*)
+* **zeitungsbote.cc**, news-based social network (*React, PWA, Firestore, 2020*)
+* **zimmer / raum / groupchat / kreis**, better group chat experience (*ongoing*)
+
+## Pet projects are not a portfolio
+I feel sufficiently embarassed by my own previous work so that I have to add the
+following disclaimer: This is not intended to be a portfolio of my greatest work.
+If anything, this is the opposite: Stuff that I create when no one is looking and 
+when nothing I do really matters.
