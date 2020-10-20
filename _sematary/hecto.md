@@ -1,8 +1,7 @@
 ---
 layout: post
 title: "hecto"
-categories: ["Pet Project Sematary"]
-image: /assets/2019-11-08-hecto-chapter-7.png
+image: /assets/sematary/hecto.png
 ---
 hecto is actually one of my better side projects. It's still around, you can 
 find it [here]({% post_url 2019-11-08-rust-text-editor%}), and from what I can see
@@ -18,3 +17,5 @@ I stumbled across a tutorial on how to build a simple text editor in C, which se
 A lot. You won't learn the piano by watching someone else play the piano, and you won't learn the guitar by reading about someone who successfully played it. You have to pick up the instrument and play. The work on hecto was a very deep and rewarding learning experience. Writing a tutorial in parallel while developing the code helped a lot to keep me focussed on the task, so that I could worry more about learning Rust than about which features to add and which ones to leave out.
 
 Additionally, I learned a lot about how terminals work, since the author of the original tutorial went to great lenghts explaining the teeny tiny details along the way.
+
+*This post is part of my Pet Project Sematary, [click here to get to the first post in this series.](/sematary/start)*

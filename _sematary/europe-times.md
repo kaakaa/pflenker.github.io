@@ -1,7 +1,6 @@
 ---
 layout: post
 title: "Europe Times"
-categories: ["Pet Project Sematary"]
 ---
 Europe Times is not a pet project in the strictest sense, since it was acutally 
 part of an assignment back in school. However, many fond memories are attached 
@@ -31,3 +30,5 @@ We lost. I don't know if there was a second or third place, and how we were rank
 What they did is that they (cleverly) copied the design of the local newspaper and pasted their articles into that design. It looked great, very much like the real thing, but what really bothered me back then is that it didn't look futuristic _at all_. Ultimately, this seems to have struck a chord with the jury - maybe the idea that whatever the future will bring, the good ol' newspaper will still look the same was appealing to them.
 
 It's ironic that our own vision was much closer to the reality that we see now, in the actual year 2020. Print newspapers are losing subscriptions everywhere, and smaller newspapers like the one providing the assignment are slowly dying throughout Germany. The irony here is that it's precisely the kind of thinking that lead to the other group winning - that there will always be a market for the good ol'print newspaper - is what caused (and still is fueling) the downfall of that industry.
+
+*This post is part of my Pet Project Sematary, [click here to get to the first post in this series.](/sematary/start)*

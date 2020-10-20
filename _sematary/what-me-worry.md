@@ -1,8 +1,7 @@
 ---
 layout: post
 title: "What, me worry?"
-categories: ["Pet Project Sematary"]
-image: /assets/what-me-worry.png
+image: /assets/sematary/what-me-worry.png
 ---
 This first entry in my Pet Project Sematary is already somewhat of an exception: It is not something that I created on my own.
 It's a listing that I found in an old issue of the German version of Mad Magazine - which was published in the latter half of the 80s.
@@ -46,3 +45,5 @@ I ended up crying my eyes out on the lap of my mother (did I mention that I was 
 It was more than two decades later when I learned that this listing was indeed buggy, and corrected in the follow up issue of MAD, which I never read.
 
 Needless to say, I never saw Alfred E. Neuman on my Commodore.
+
+*This post is part of my Pet Project Sematary, [click here to get to the first post in this series.](/sematary/start)*
