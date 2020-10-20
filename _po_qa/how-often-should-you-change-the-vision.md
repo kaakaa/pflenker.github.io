@@ -1,8 +1,6 @@
 ---
 layout: post
 title: "When or how often should you change your product vision?"
-categories: ["Product Owner Q&A"]
-date: 2020-10-14 12:02
 ---
 In order to understand the answer to that question, let's take a look at what 
 makes a product vision a _great_ product vision:
@@ -17,4 +15,4 @@ However, we should not wait for either of these two aspects to happen before upd
 
 In practice, this usually means that our product vision changes gradually over time, as we learn more and more about the product and market we are moving in.
 
-_This post is part of the [Product Owner Q&A]({% post_url 2020-10-14-product-owner-qa%}) series._
+_This post is part of the [Product Owner Q&A](/po_qa/start) series._

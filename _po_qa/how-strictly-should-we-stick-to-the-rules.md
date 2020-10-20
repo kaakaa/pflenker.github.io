@@ -1,8 +1,6 @@
 ---
 layout: post
 title: "How strictly should we stick to the rules of Scrum and Kanban?"
-categories: ["Product Owner Q&A"]
-date: 2020-10-14 12:03
 ---
 There are generally two schools of thought on that matter, and I, personally, lean a bit more towards one over the other. The question is a good one, because very often, agile transformations fail because some of the rules are neglected - it's like trying to buy a sports car with the engine of a Fiat Punto, and then blaming the car (and not your own decision making) for being slow.
 
@@ -20,4 +18,4 @@ On the flip side, the typical argument against strict observation of the rules i
 I generally lean towards a results-focussed environment. Does your team deliver satisfying software at a satisfying pace with satisfying quality? Then your process most likely doesn't need any fixing. Break the rules all you want!
 If, however, you are unhappy with the outcome of your team, investigate the parts where you are not following the rules first. Check if the problem you are seeing might be solved by what is already in the respective toolboxes of Scrum or Kanban before trying anything else - it's very likely that there is something in there which helps you making sense of your current situation. Only after you have exhausted all your options there you should try something else.
 
-_This post is part of the [Product Owner Q&A]({% post_url 2020-10-14-product-owner-qa%}) series._
+_This post is part of the [Product Owner Q&A](/po_qa/start) series._
