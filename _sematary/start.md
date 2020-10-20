@@ -21,7 +21,7 @@ back to life.
 
 I have selected these projects based on how funny or interesting I find them.
 Please do not mistake this for a portfolio or something - this is what I do in the
-dark, when no one looks :)
+dark, when no one looks.
 
 ## Interesting & Fun (Mostly Fun) Pet Projects
 
@@ -34,7 +34,7 @@ dark, when no one looks :)
 * **Various Home Pages**, static content pages (*HTML, Java, PHP, Flash, JavaScript, all over the '00s*)
 * **Local Images**, beautiful images from around you (*Objective-C, 2012*)
 * **Thingsmap / Heartbeat**, get real time updates from around you (*Website & iOS App, 2013*)
-* **90srewind**, 90s podcast (*Podcast, 2014*)
+* [**90srewind**, 90s podcast (*Podcast, 2014*)](/sematary/90srewind)
 * **Marauder / 2nd Left**, Location Based Social Service  (*Objective-C, 2014*) 
 * [**hungry**, find a place to eat near you (*Swift,  2015*)](/sematary/hungry)
 * **eatsmart.cc**, open your own small restaurant, or visit one (*HTML, 2015*)
@@ -45,3 +45,4 @@ dark, when no one looks :)
 * **zeitungsbote.cc**, news-based social network (*React, PWA, Firestore, 2020*)
 * **zimmer / raum / groupchat / kreis**, better group chat experience (*ongoing*)
 
+The entries in this list are updated occasionally.
