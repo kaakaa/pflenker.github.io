@@ -15,3 +15,6 @@ I wanted to learn a new programming language, beyond my usual stack of Mongo, Ex
 I stumbled across a tutorial on how to build a simple text editor in C, which seemed as an ideal candidate. So, true to how I usually approach pet projects, I remixed the original tutorial plus code into a Rust tutorial plus code - not by translating every function into its C equivalent, but by trying to do things "the Rust way".
 
 ## What I learned
+A lot. You won't learn the piano by watching someone else play the piano, and you won't learn the guitar by reading about someone who successfully played it. You have to pick up the instrument and play. The work on hecto was a very deep and rewarding learning experience. Writing a tutorial in parallel while developing the code helped a lot to keep me focussed on the task, so that I could worry more about learning Rust than about which features to add and which ones to leave out.
+
+Additionally, I learned a lot about how terminals work, since the author of the original tutorial went to great lenghts explaining the teeny tiny details along the way.
