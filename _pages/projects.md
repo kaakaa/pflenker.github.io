@@ -2,6 +2,7 @@
 layout: page
 title: Projects
 permalink: /projects/
+image: /assets/thoughts.png
 ---
 
 I am happy that you are interested in what this page has to offer. Here's a list:

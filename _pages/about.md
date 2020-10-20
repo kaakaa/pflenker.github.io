@@ -2,22 +2,17 @@
 layout: page
 title: About
 permalink: /about/
+image: /images/avatar_full.jpg
 ---
+Hallo und Hi There, thanks for stopping by! I'm Philipp, a Software Engineering Manager residing in Luedinghausen, North-Rhine Westphalia, Germany, with a focus on building happy and productive teams.
 
-![Philipp Flenker standing in front of a tree.]({{ site.baseurl }}/images/avatar_full.jpg "Philipp Flenker")
+I obtained my Master's Degree in Computer Science from the [Westfaelische Wilhelms-Universität Münster](https://www.uni-muenster.de) in 2011. Since then, I have mainly worked as a Product Owner, Product Manager, Team Lead, Agile Coach or a combination.
 
+I love technology, and one of my ealier childhood memories is feeding long rows of `DATA` from a computer magazine into my Commodore 64 - only to be rewarded with `?SYNTAX ERROR IN LINE 82` (If you are interested, [you can read the full story here](/sematary/what-me-worry)!). However, during my first job as a graduate, I started to discover that while a talented developer can save more than just the project, a focussed team of engineers is nigh unstoppable - which is why I decided that focussing on the technology alone would not be enough. 
 
-Hallo und Hi There, thanks for stopping by! I'm Philipp, a Software Engineering Manager residing in Luedinghausen, North-Rhine Westphalia, Germany, with a focus on optimizing for productivity and happiness.
+So I have dedicated most of my professional career to figuring out how to bring people together, focus them as teams toward a common goal and remove all unnecessary hindrances along the way. I believe that a good manager or leader's job is to bring people together as a team, keep them focussed on the goal, protect them from distractions and trust them to get the job done.
 
-I obtained my Master's Degree in Computer Science from the [Westfaelische Wilhelms-Universität Münster](https://www.uni-muenster.de) in 2011. Since then, I have mainly worked as a Product Owner, Product Manager, Dev Lead, Agile Coach or a combination.
-
-I love technology, and one of my ealier childhood memories is feeding long rows of `DATA` from a computer magazine into my Commodore 64 - only to be rewarded with `?SYNTAX ERROR IN LINE 82`. However, during my first job as a graduate, I started to discover that while a talented developer can save more than just the project, a focussed team of engineers is nigh unstoppable - which is why I decided that focussing on the technology alone would not be enough.
-
-So I have dedicated most of my professional career to figuring out how to bring people together, focus them as teams toward a common goal and remove all unnecessary hindrances along the way.
-
-In that regard, I am usually favoring agile approaches, but I am not opinionated in that regard - the client or customer will praise you for a product well done, and not for a process well executed.
-
-If you are interested, you can find my CV on [LinkedIn (English)](https://www.linkedin.com/in/pflenker/) or [Xing (German)](https://www.xing.com/profile/Philipp_Flenker/).
+If you are interested in my professional background, you can find my CV on [LinkedIn (English)](https://www.linkedin.com/in/pflenker/) or [Xing (German)](https://www.xing.com/profile/Philipp_Flenker/).
 
 In my spare time, I code stuff to make sure I stay up to date with current tech trends. These days, I dabble with React, React Native, NodeJS and TypeScript. 
 

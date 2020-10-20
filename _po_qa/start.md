@@ -2,6 +2,7 @@
 layout: post
 title: "Product Owner Q&A"
 excluded: true
+image: /assets/teaching.png
 ---
 One part of my job is coaching Product Owners, Product Managers and people 
 in other roles who are interested in Product Owner related topics. I am currently offering a weekly Lean Coffee, where everyone can bring questions and challenges, 

@@ -2,6 +2,7 @@
 layout: page
 title: Legal Info & Data Protection
 permalink: /legal/
+image: /assets/terms.png
 ---
 
 (*German Law demands this*)
