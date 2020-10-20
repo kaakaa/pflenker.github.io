@@ -35,3 +35,5 @@ Podcasting is a very time consuming commitment, especially if more than one host
 That having said, I did experiment with a podcast on my own back then, but it
 just felt weird talking to no one in particular without a co-host, so I have let that
 side project silently die.
+
+*This post is part of my Pet Project Sematary, [click here to get to the first post in this series.](/sematary/start)*
