@@ -13,6 +13,7 @@ description: Engineering Productivity Manager
 
 # URL of your avatar or profile pic (you could use your GitHub profile pic)
 avatar: /images/avatar.jpg
+ogimage: /images/avatar_full.jpg
 
 #
 # Flags below are optional
