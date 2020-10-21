@@ -6,10 +6,18 @@
 name: Philipp Flenker
 
 # Name of the author
-author: Philipp Flenker
+author: 
+    twitter: philippflenker
+    picture: /images/avatar_full.jpg
 
 # Short bio or description (displayed in the header)
-description: Engineering Productivity Manager
+tagline: Engineering Productivity Manager
+description: Articles, write-ups and random stuff from Philipp Flenker.
+
+twitter:
+    username: philippflenker
+    creator: philippflenker
+    card: summary
 
 # URL of your avatar or profile pic (you could use your GitHub profile pic)
 avatar: /images/avatar.jpg
@@ -30,7 +38,7 @@ footer-links:
   linkedin: pflenker
   pinterest:
   rss: rss
-  twitter:
+  twitter: philippflenker
   stackoverflow: story/flenker
   youtube: # channel/<your_long_string> or user/<user-name>
   googleplus: # anything in your profile username that comes after plus.google.com/
