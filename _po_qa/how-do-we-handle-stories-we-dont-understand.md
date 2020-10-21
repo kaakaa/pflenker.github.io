@@ -1,6 +1,7 @@
 ---
 layout: post
 title: "How do we handle stories that we don't understand?"
+image: /assets/in_thought.png
 ---
 The premise of this question is as follows: As a Product Owner, you are not always writing all the stories yourself. In fact, it's neither uncommon nor a bad idea to have others writing the story for you.
 But how do you handle these items, especially if you don't understand them? A classic scenario is one where the developers start writing stories for some technical change they would like to see in the system.

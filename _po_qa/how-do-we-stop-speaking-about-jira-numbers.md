@@ -1,6 +1,7 @@
 ---
 layout: post
 title: "How do we stop talking about issue numbers and start talking about what matters?"
+image: /assets/scrum_board.png
 ---
 This question revolves around the Daily Standup and the too-common situation
 where people talk a bit like this:

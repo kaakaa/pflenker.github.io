@@ -1,6 +1,7 @@
 ---
 layout: post
 title: "When or how often should you change your product vision?"
+image: /assets/navigator.png
 ---
 In order to understand the answer to that question, let's take a look at what 
 makes a product vision a _great_ product vision:
