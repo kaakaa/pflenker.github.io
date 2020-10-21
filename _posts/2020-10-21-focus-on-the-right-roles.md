@@ -3,6 +3,7 @@ layout: post
 title: "We should stop focussing on the wrong roles, and start focussing on the right ones"
 categories: ["Leadership"]
 image: /assets/team.png
+excerpt: "When building teams, we mostly think along the lines of the formal roles of each team member. We should be looking at the informal roles instead - and even on hidden roles that influence the team."
 ---
 Every company, business line, department or team is composed of certain roles. In the context of IT, these could be Engineers with different specialties, testers, technical writers and more. In other context, we would be looking at presales, sales, marketing, HR and so on. Thinking along these roles comes quite natural to us after some getting used-to.
 

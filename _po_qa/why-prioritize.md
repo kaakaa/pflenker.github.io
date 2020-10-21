@@ -2,6 +2,7 @@
 layout: post
 title: "Why prioritize?"
 image: /assets/tasks.png
+excerpt: "If everything is important due to customer commitments, promises, escalations or other reasons, why should we even bother prioritizing?"
 ---
 When this question popped up during the [Product Owner Q&A](/po_qa/start), I 
 needed a bit of time to actually understand it, because at first glance, it's 
