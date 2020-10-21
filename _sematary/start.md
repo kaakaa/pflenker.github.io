@@ -29,7 +29,7 @@ dark, when no one looks.
 * **Köpkes Adventure I & II**, Adventure Games (*HTML, Java, RPGM2K, circa 1999*)
 * [**Europe Times**, Newspaper from the future (*School Project in HTML, 2000*)](/sematary/europe-times)
 * **#risa-bar & rpg-irc.net**, Roleplay-centric community (*phpBB, IRC, 2001*)
-* **Bunter Haufen Goettingen**, coordinating mailing list for a local movement (*Mailman, HTML, 2004*)
+* [**Bunter Haufen Goettingen**, coordinating mailing list for a local movement (*Mailman, HTML, 2004*)](/sematary/bunter-haufen)
 * **rampenlicht.net**, local community network (*HTML, PHP, 2005*)
 * **Various Home Pages**, static content pages (*HTML, Java, PHP, Flash, JavaScript, all over the '00s*)
 * **Local Images**, beautiful images from around you (*Objective-C, 2012*)
