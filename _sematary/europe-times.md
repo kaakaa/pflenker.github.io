@@ -1,6 +1,7 @@
 ---
 layout: post
 title: "Europe Times"
+image: /assets/newspaper.png
 ---
 Europe Times is not a pet project in the strictest sense, since it was acutally 
 part of an assignment back in school. However, many fond memories are attached 
