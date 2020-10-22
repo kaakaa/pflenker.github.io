@@ -6,6 +6,9 @@ books
 past websites were shitty, too - popups, flashintro, optimized-for and so on
 
 toniebox
-
 - beste stackoverflow fragen - bei javascript ggf. was erklaeren
-- besserer footer mit social stuff
+
+- code reviews should be the exception, not the rule. automate quality gates, such as linting and code coverage, do
+the code review during pairing and only do code review on request
+
+- economics of pairing

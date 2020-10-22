@@ -26,7 +26,7 @@ dark, when no one looks.
 ## Interesting & Fun (Mostly Fun) Pet Projects
 
 * [**What, me worry?**, Computer generated image (*BASIC listing, circa 1994*)](/sematary/what-me-worry) 
-* **Köpkes Adventure I & II**, Adventure Games (*HTML, Java, RPGM2K, circa 1999*)
+* [**Köpkes Adventure I & II**, Adventure Games (*HTML, Java, RPGM2K,  1999*)](/sematary/koepkes-adventures)
 * [**Europe Times**, Newspaper from the future (*School Project in HTML, 2000*)](/sematary/europe-times)
 * **#risa-bar & rpg-irc.net**, Roleplay-centric community (*phpBB, IRC, 2001*)
 * [**Bunter Haufen Goettingen**, coordinating mailing list for a local movement (*Mailman, HTML, 2004*)](/sematary/bunter-haufen)
