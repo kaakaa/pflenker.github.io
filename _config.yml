@@ -10,6 +10,15 @@ author:
     twitter: philippflenker
     picture: /images/avatar_full.jpg
 
+social:
+  name: Philipp Flenker
+  links: 
+    - https://twitter.com/philippflenker
+    - https://www.linkedin.com/in/pflenker/
+    - https://www.xing.com/profile/Philipp_Flenker/cv
+    - https://www.instagram.com/philippflenker/?hl=en
+    - https://stackoverflow.com/story/flenker
+
 # Short bio or description (displayed in the header)
 tagline: Engineering Productivity Manager
 description: Articles, write-ups and random stuff from Philipp Flenker.

@@ -14,5 +14,6 @@ I am happy that you are interested in what this page has to offer. Here's a list
 
 Not what you are looking for? Well, check out this list:
 - My professional profiles on [LinkedIn](https://www.linkedin.com/in/pflenker/), on [Xing](https://www.xing.com/profile/Philipp_Flenker/cv) and on [StackOverflow](https://stackoverflow.com/story/flenker)
+- My social profiles on [Twitter](https://twitter.com/philippflenker) and [Instagram](https://www.instagram.com/philippflenker/?hl=en)
 - [How to contact me](/legal)
 - My profile on [the more geeky side of the StackExchange network](https://scifi.stackexchange.com/users/38110/philipp)

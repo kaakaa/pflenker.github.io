@@ -12,7 +12,7 @@ I love technology, and one of my ealier childhood memories is feeding long rows 
 
 So I have dedicated most of my professional career to figuring out how to bring people together, focus them as teams toward a common goal and remove all unnecessary hindrances along the way. I believe that a good manager or leader's job is to bring people together as a team, keep them focussed on the goal, protect them from distractions and trust them to get the job done. I am humbled and proud to say that this people-first approach has been rewarded by my peers at OpusCapita, [who made me the only person to receive the internal Value Ambassador award two times.](https://www.opuscapita.com/blog/2020/meet-philipp-flenker)
 
-If you are interested in my professional background, you can find my CV on [LinkedIn (English)](https://www.linkedin.com/in/pflenker/) or [Xing (German)](https://www.xing.com/profile/Philipp_Flenker/).
+If you are interested in my professional background, you can find my CV on [LinkedIn (English)](https://www.linkedin.com/in/pflenker/) or [Xing (German)](https://www.xing.com/profile/Philipp_Flenker/).You can also follow me on [Twitter](https://twitter.com/philippflenker) or [Instagram](https://www.instagram.com/philippflenker/?hl=en).
 
 In my spare time, I code stuff to make sure I stay up to date with current tech trends. These days, I dabble with React, React Native, Rust and TypeScript. 
 
