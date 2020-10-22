@@ -2,6 +2,7 @@
 layout: post
 title: "Pet Project Sematary"
 image: /assets/sematary/pet-project-sematary.png
+excerpt: "This is where I lie my pet projects to rest, lest they come back to life and haunt me."
 ---
 I have to confess something: I am somewhat of a pet project hoarder.
 Throughout my whole life, well before my formal education as a computer scientist,

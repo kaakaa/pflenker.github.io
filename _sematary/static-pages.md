@@ -2,6 +2,7 @@
 layout: post
 title: "Various Home Pages"
 image: /assets/sematary/static-pages.png
+excerpt: "Same as many people my age back then, I have written my fair share of websites, most of them useless, few of them even usable."
 ---
 Back in the early '00s, there was a joke that has been part of countless standup comedy acts. In it, the protagonist, a person somewhere in their late 30s, has a computer problem or needs a website - and finally turns to a 15 year old kid for help.
 

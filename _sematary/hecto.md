@@ -2,6 +2,7 @@
 layout: post
 title: "hecto"
 image: /assets/sematary/hecto.png
+excerpt: "To learn rust, I have written my own command line text editor. How I did it is part of a tutorial I created along the way."
 ---
 hecto is actually one of my better side projects. It's still around, you can 
 find it [here]({% post_url 2019-11-08-rust-text-editor%}), and from what I can see

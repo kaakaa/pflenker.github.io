@@ -2,6 +2,7 @@
 layout: post
 title: "Europe Times"
 image: /assets/newspaper.png
+excerpt: "Being asked in 2000 how we envisioned a newspaper from 2020, we created Europe Times, a fully digital newspaper which is eerily close to today's newspaper reality."
 ---
 Europe Times is not a pet project in the strictest sense, since it was acutally 
 part of an assignment back in school. However, many fond memories are attached 

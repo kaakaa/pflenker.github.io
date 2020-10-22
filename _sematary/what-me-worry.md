@@ -2,6 +2,7 @@
 layout: post
 title: "What, me worry?"
 image: /assets/sematary/what-me-worry.png
+excerpt: "My very first programming experience involves a bug from the mid-80s and an issue of MAD magazine."
 ---
 This first entry in my Pet Project Sematary is already somewhat of an exception: It is not something that I created on my own.
 It's a listing that I found in an old issue of the German version of Mad Magazine - which was published in the latter half of the 80s.

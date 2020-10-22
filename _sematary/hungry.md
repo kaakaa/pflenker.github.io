@@ -2,6 +2,7 @@
 layout: post
 title: "Hungry - find a place to eat"
 image: /assets/sematary/hungry.png
+excerpt: "Hungry was an app that solved a specific problem: Where do we want to eat today?"
 ---
 On my personal ranking, hungry definitely ranks on a solid Rank 2 (behind [hecto](/sematary/hecto) of my personal pet project favorites).
 It had a clear learning objective, which I was able to combine with an app that actually solved a problem that I was having at this time.

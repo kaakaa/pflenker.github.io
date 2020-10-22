@@ -2,6 +2,7 @@
 layout: post
 title: "Bunter Haufen Göttingen"
 image: /assets/sematary/bunter-haufen.png
+excerpt: "The Bunte Haufen was a social project to save the Junges Theater in Göttingen. Additionally, it was the first of my projects ever to be used by other people."
 ---
 The Bunter Haufen project was the first of my side project to be actually used 
 by others.

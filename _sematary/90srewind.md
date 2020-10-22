@@ -2,6 +2,7 @@
 layout: post
 title: "90s rewind"
 image: /assets/sematary/90srewind.png
+excerpt: "90srewind was a 90s-themed podcast, which I recorded together with a co-host. It offered great insight into how podcasting works, and we ended before the hype really took off."
 ---
 Having two people casually talking about their childhood experiences in one of 
 the most exciting and beloved centuries - what a great idea! Too bad it wasn't mine,

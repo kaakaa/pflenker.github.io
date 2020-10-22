@@ -2,6 +2,7 @@
 layout: post
 title: "Köpkes Adentures I & II"
 image: /assets/sematary/koepkes-adventures.png
+excerpt: "No one knew how or why it began: I had plans to create a full, playable game for a classmate. From scratch."
 ---
 Köpkes Adventures was probably the first time I was confronted with a problem I wanted to turn into code. Before that, all I did was either copying existing code, or do it the other way round: Having learned something new, I looked for ways to apply this new knowledge, so I was looking for a problem to match my solution and not, as in this case, looking for a technical solution to an actual problem.
 
