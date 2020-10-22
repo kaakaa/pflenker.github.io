@@ -3,12 +3,11 @@ layout: post
 title: "Product Owner Q&A"
 excluded: true
 image: /assets/teaching.png
+excerpt: "Questions around day to day Product Owner work, asked and answered by Product Owners and me."
 ---
-One part of my job is coaching Product Owners, Product Managers and people 
-in other roles who are interested in Product Owner related topics. I am currently offering a weekly Lean Coffee, where everyone can bring questions and challenges, 
-and we as a group discuss them.
+As part of a long-running Product Owner training I hosted, I was offering a Lean Coffee where every participant could ask questions and bring challenges, which would then be discussed and answered by the full group.
 
-Here, I will collect some interesting questions that have arisen on these occurences, as well as the answers we found:
+Here, I will collect some interesting questions that have arisen, as well as the answers we found:
 
 {% for po_qa in site.po_qa %}
 {% if po_qa.excluded != true %}

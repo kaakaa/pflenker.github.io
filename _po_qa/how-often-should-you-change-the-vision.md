@@ -2,6 +2,7 @@
 layout: post
 title: "When or how often should you change your product vision?"
 image: /assets/navigator.png
+excerpt: "The product vision is a living thing, that needs to be updated when our assumptions about the market change, or if our ability to get there is changing."
 ---
 In order to understand the answer to that question, let's take a look at what 
 makes a product vision a _great_ product vision:

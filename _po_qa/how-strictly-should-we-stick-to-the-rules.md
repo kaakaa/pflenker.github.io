@@ -2,6 +2,7 @@
 layout: post
 title: "How strictly should we stick to the rules of Scrum and Kanban?"
 image: /assets/software_engineer.png
+excerpt: "When it comes to Scrum and Kanban, can we pick-and-choose from the rules, or should we follow all the rules to the letter?"
 ---
 There are generally two schools of thought on that matter, and I, personally, lean a bit more towards one over the other. The question is a good one, because very often, agile transformations fail because some of the rules are neglected - it's like trying to buy a sports car with the engine of a Fiat Punto, and then blaming the car (and not your own decision making) for being slow.
 
