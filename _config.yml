@@ -8,7 +8,7 @@ name: Philipp Flenker
 # Name of the author
 author: 
     twitter: philippflenker
-    picture: /images/avatar_full.jpg
+    picture: /images/avatar_full.png
 
 social:
   name: Philipp Flenker
@@ -29,8 +29,8 @@ twitter:
     card: summary
 
 # URL of your avatar or profile pic (you could use your GitHub profile pic)
-avatar: /images/avatar.jpg
-ogimage: /images/avatar_full.jpg
+avatar: /images/avatar.png
+ogimage: /images/avatar_full.png
 
 #
 # Flags below are optional

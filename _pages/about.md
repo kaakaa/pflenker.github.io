@@ -2,7 +2,7 @@
 layout: page
 title: About
 permalink: /about/
-image: /images/avatar_full.jpg
+image: /images/avatar_full.png
 ---
 Hallo und Hi There, thanks for stopping by! I'm Philipp, a Software Engineering Manager residing in Luedinghausen, North-Rhine Westphalia, Germany, with a focus on building happy and productive teams.
 
