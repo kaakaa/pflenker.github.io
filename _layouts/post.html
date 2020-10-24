@@ -10,17 +10,17 @@ layout: default
     <img src="{{site.baseurl}}{{page.image}}" alt="{{page.title}}" />
     {% endif %}
     <p class="post_info">
-      <span class="author_title">{{ page.date | date: "%B %e, %Y" }}
+      <span class="post_date">{{ page.date | date: "%B %e, %Y" }}
       </span>
       {% if page.last_modified_at %}
-        <span class="author_title" datetime="{{ page.last_modified_at | date_to_xmlschema }}">
+        <span class="post_date" datetime="{{ page.last_modified_at | date_to_xmlschema }}">
           &middot;
           Updated: {{ page.last_modified_at | date: "%b %-d, %Y" }}
         </span>
-    {% endif %}
-    <span class="reading_time">
-      &middot {% include reading_time.html %}
-    </span>
+      {% endif %}
+      <span class="reading_time">
+       &middot {% include reading_time.html content=content%}
+      </span>
     </p>
 
     <div class="post-tags">

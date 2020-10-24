@@ -13,8 +13,27 @@ layout: default
             {% if post.image %}
               <img src="{{site.baseurl}}{{post.image}}" alt="{{post.title}}"/>          
             {% endif %}  
-              <p class="post_date">{{ post.date | date: "%B %e, %Y" }}</p>
         
+            <p class="post_info">
+              <span class="post_date">{{ post.date | date: "%B %e, %Y" }}
+              </span>
+              {% if post.last_modified_at %}
+              
+              <span class="post_date" datetime="{{ post.last_modified_at | date_to_xmlschema }}">
+                  &middot;
+                  Updated: {{ post.last_modified_at | date: "%b %-d, %Y" }}
+                </span>
+              {% endif %}
+              {%  if post.title != "" %}       
+              <span class="reading_time">
+               &middot {% include reading_time.html content=post.content %}
+              </span>
+              {% endif %}
+         
+            </p>
+
+
+
           </div>
         </a>
       
