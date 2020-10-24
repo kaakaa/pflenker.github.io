@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: page
 title: "Product Owner Q&A"
 excluded: true
 image: /assets/teaching.png

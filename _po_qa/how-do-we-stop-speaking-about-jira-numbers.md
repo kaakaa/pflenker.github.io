@@ -2,7 +2,7 @@
 layout: post
 title: "How do we stop talking about issue numbers and start talking about what matters?"
 image: /assets/scrum_board.png
-excerpt: "I worked on FOO-2342 today... Issue numbers during the standup do not provide any value at all, so we should get rid of them during the discussion."
+excerpt: "\"I worked on FOO-2342 today...\" Issue numbers during the standup do not provide any value at all, so we should get rid of them during the discussion."
 ---
 This question revolves around the Daily Standup and the too-common situation
 where people talk a bit like this:
