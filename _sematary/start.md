@@ -33,7 +33,7 @@ dark, when no one looks.
 * [**Bunter Haufen Goettingen**, coordinating mailing list for a local movement (*Mailman, HTML, 2004*)](/sematary/bunter-haufen)
 * **rampenlicht.net**, local community network (*HTML, PHP, 2005*)
 * [**Various Home Pages**, static content pages (*HTML, Java, PHP, Flash, JavaScript, all over the '00s*)](/sematary/static-pages)
-* **Local Images**, beautiful images from around you (*Objective-C, 2012*)
+* [**Local Images**, beautiful images from around you (*Objective-C, 2012*)](/sematary/local-images)
 * **Thingsmap / Heartbeat**, get real time updates from around you (*Website & iOS App, 2013*)
 * [**90srewind**, 90s podcast (*Podcast, 2014*)](/sematary/90srewind)
 * **Marauder / 2nd Left**, Location Based Social Service  (*Objective-C, 2014*) 
