@@ -7,10 +7,12 @@ excerpt: "Questions around day to day Product Owner work, asked and answered by 
 ---
 As part of a long-running Product Owner training I hosted, I was offering a Lean Coffee where every participant could ask questions and bring challenges, which would then be discussed and answered by the full group.
 
-Here, I will collect some interesting questions that have arisen, as well as the answers we found:
+Here, I will collect some interesting questions that have arisen, as well as the answers we found.
 
 {% for po_qa in site.po_qa %}
 {% if po_qa.excluded != true %}
-- [{{po_qa.title}}]({{po_qa.url}})
+### {{po_qa.title}}
+{{po_qa.excerpt}}  
+[&raquo;  Read more]({{po_qa.url}})
 {% endif %}
 {% endfor %}
