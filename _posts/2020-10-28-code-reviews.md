@@ -1,6 +1,6 @@
 ---
 layout: post 
-title: "Code Reviews should be the exception, not the rule"
+title: "Code Reviews Should Be the Exception, Not the Rule"
 categories: ["Quality", "Engineering" ] 
 image: /assets/code_review.png 
 excerpt: "Code Review is an important part of every software development process.

@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "We should stop focussing on the wrong roles, and start focussing on the right ones"
+title: "We Should Stop Focussing on the Wrong Roles, and Start Focussing on the Right Ones"
 categories: ["Leadership"]
 image: /assets/team.png
 excerpt: "When building teams, we mostly think along the lines of the formal roles of each team member. We should be looking at the informal roles instead - and even on hidden roles that influence the team."
