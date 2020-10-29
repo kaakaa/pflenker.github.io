@@ -2,6 +2,12 @@
   {% if words < 360 %}
     1 min
   {% else %}
-    {{ words | divided_by:180 }} mins
+  {% assign minutes = words | divided_by: 180 %}
+  {% assign hours = minutes | divided_by: 60 %}
+  {% if hours >= 1 %}
+  {{ hours }} h
+  {%endif%}
+  {% assign remainderminutes = minutes | modulo: 60%}
+    {{ remainderminutes }} mins
   {% endif %}
    read
