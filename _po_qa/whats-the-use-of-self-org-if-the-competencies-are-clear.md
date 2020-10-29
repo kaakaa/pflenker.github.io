@@ -36,7 +36,7 @@ them.
 # Working with a team is different from working with individuals
 The reality in many teams is different: A team, by definition, tackles their
 problems together. Like a soccer team, they can pass the ball back and forth
-between individuals within the team, amplifying each other's strenghts and
+between individuals within the team, amplifying each other's strengths and
 compensating the weaknesses.
 
 Here are some examples that happen every day in teams across the globe, even if

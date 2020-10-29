@@ -4,25 +4,25 @@ title: "Pet Project Sematary"
 image: /assets/sematary/pet-project-sematary.png
 excerpt: "This is where I lie my pet projects to rest, lest they come back to life and haunt me."
 ---
-I have to confess something: I am somewhat of a pet project hoarder.
-Throughout my whole life, well before my formal education as a computer scientist,
-I have been creating new things on the computer, usually by remixing or duplicating 
-already existing things. Depending on how far things got, I started telling my family and
-friends about it, hyping my own idea, before eventually getting bored of it and deleting 
-it.
+I have to confess something: I am somewhat of a pet project hoarder. Throughout
+my whole life, well before my formal education as a computer scientist, I have
+been creating new things on the computer, usually by remixing or duplicating
+already existing things. Depending on how far things got, I started telling my
+family and friends about it, hyping my own idea, before eventually getting bored
+of it and deleting it.
 
-Looking through my pet projects is a bit like flipping through a photo album: 
-In every image, you can see a noticable growth and change in relation to the previous one.
-But mostly it's fun looking at how I did things in the past.
+Looking through my pet projects is a bit like flipping through a photo album: In
+every image, you can see a noticeable growth and change in relation to the
+previous one. But mostly it's fun looking at how I did things in the past.
 
-So I have decided to pick a few of these side projects and compile them into something
-which I call a Pet Project Sematary - because very much like the animals in the book
-of the same name, my long-dead pet projects have the tendency to unexpectedly come 
-back to life.
+So I have decided to pick a few of these side projects and compile them into
+something which I call a Pet Project Sematary - because very much like the
+animals in the book of the same name, my long-dead pet projects have the
+tendency to unexpectedly come back to life.
 
 I have selected these projects based on how funny or interesting I find them.
-Please do not mistake this for a portfolio or something - this is what I do in the
-dark, when no one looks.
+Please do not mistake this for a portfolio or something - this is what I do in
+the dark, when no one looks.
 
 ## Interesting & Fun (Mostly Fun) Pet Projects
 
