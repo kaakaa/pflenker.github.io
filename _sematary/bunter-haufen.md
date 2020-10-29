@@ -9,7 +9,7 @@ by others.
 
 At the time, I was working and acting at a local theater in Göttingen. and that
 theater was cut off federal funding. Various organization have popped up to
-raise awareness of the issue and trz to save the theater, and the Bunter Haufen
+raise awareness of the issue and try to save the theater, and the Bunter Haufen
 ("colorful bunch") was one of those. 
 
 ## What it was
