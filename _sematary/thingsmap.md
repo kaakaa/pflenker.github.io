@@ -29,7 +29,7 @@ updates without a map, but as a feed, and not for a specific city, but for the
 user's current location.
 
 ## What I learned
-Well, what I *told* me I learned was that this kind of app generates one of the following two extremes for a user:
+Well, what I *told* myself I learned was that this kind of app generates one of the following two extremes for a user:
 
 - Either you see nothing at all because you are somewhere in the hinterlands
 - Or your map or phone blows up because of the sheer amount of real time updates
