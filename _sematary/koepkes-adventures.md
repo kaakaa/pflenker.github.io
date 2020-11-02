@@ -49,3 +49,5 @@ logo of the game. You could say I built my very own vaporware!
 
 
 *This post is part of my Pet Project Sematary, [click here to get to the first post in this series.](/sematary/start)*
+
+<small>Image credit: Promo picture for [RPGMaker 2000 on Steam](https://store.steampowered.com/app/383730/RPG_Maker_2000/). </small>

@@ -86,7 +86,7 @@ interested in growing and diving deeper in that area. We say that we *don't have
 enough learners* if not enough people are interested in learning to generate
 enough experts.
 
-|                       | **Enough Learners**   | **Not Enough Learners** 
-| **Enough experts**        |   Green Zone      | Green Zone          
-| **Not Enough Experts**    |   Yellow Zone     | Red Zone
-| **No Experts**            |   Orange Zone     | Red Zone 
+|                           | **Enough Learners**   | **Not Enough Learners** 
+| **Enough experts**        |   Green Zone          | Green Zone          
+| **Not Enough Experts**    |   Yellow Zone         | Red Zone
+| **No Experts**            |   Orange Zone         | Red Zone 

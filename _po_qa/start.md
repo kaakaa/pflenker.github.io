@@ -14,7 +14,7 @@ answers we found.
 
 {% for po_qa in site.po_qa %}
 {% if po_qa.excluded != true %}
-### {{po_qa.title}}
+### [{{po_qa.title}}]({{po_qa.url}})
 {{po_qa.excerpt}}  
 [&raquo;  Read more]({{po_qa.url}})
 {% endif %}

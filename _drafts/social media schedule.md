@@ -13,15 +13,30 @@
 - bunter haufen
 - roles
 
-# To schedule:
-- Sematary-stuff
+## Scheduled:
 - stories we dont understand
 - use of self org
 - Code Reviews
+- what me worry (twitter only)
+- Why Prioritize
+- europe times(twitter only)
+- static pages(twitter only)
+- thingsmap(twitter only)
+- Stop talking about issue numbers
+- hungry(twitter only)
+- 90srewind(twitter only)
+- hecto(twitter only)
+- Stick to the rules of scrum and kanban
+- Vision
+
+# Schedule
+
+# To schedule:
+
 
 ## Twitter Only: 
-- Why Prioritize
-- Stop talking about issue numbers
-- Stick to the rules of scrum and kanban
-- Vision?!?
 - agile doesn't work 1 
+
+
+
+

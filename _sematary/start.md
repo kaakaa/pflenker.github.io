@@ -46,3 +46,5 @@ the dark, when no one looks.
 * **zeitungsbote.cc**, news-based social network (*React, PWA, Firestore, 2020*)
 
 The entries in this list are updated occasionally.
+
+<small>Image Credit: Paramount Pictures, from "Pet Sematary", 2019 </small>
