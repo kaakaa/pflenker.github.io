@@ -10,24 +10,27 @@ layout: default
     <img src="{{site.baseurl}}{{page.image}}" alt="{{page.title}}" />
     {% endif %}
     <p class="post_info">
+      {% if page.date %}
       <span class="post_date">{{ page.date | date: "%B %e, %Y" }}
+        &middot;
       </span>
+      {% endif %}
       {% if page.last_modified_at %}
         <span class="post_date" datetime="{{ page.last_modified_at | date_to_xmlschema }}">
-          &middot;
           Updated: {{ page.last_modified_at | date: "%b %-d, %Y" }}
+          &middot;    
         </span>
       {% endif %}
       <span class="reading_time">
-       &middot {% include reading_time.html content=content%}
+       {% include reading_time.html content=content%}
       </span>
     </p>
 
     <div class="post-tags">
       {% if post %}
-      {% assign categories = post.categories %}
+        {% assign categories = post.categories %}
       {% else %}
-      {% assign categories = page.categories %}
+        {% assign categories = page.categories %}
       {% endif %}
       {% for category in categories %}
       <a href="{{site.baseurl}}/categories/#{{category|slugize}}">{{category}}</a>
