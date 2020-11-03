@@ -43,7 +43,7 @@ the dark, when no one looks.
 * **spielerunde.org**, community for offline gamers (*HTML, JavaScript, Parse, 2017*)
 * **paperboy**, get quickly up to date with relevant news (*Facebook Bot, Firestore, 2018*)
 * [**hecto**, a command line text editor (*Rust, 2019*)](/sematary/hecto)
-* **zeitungsbote.cc**, news-based social network (*React, PWA, Firestore, 2020*)
+* [**zeitungsbote.cc**, news-based social network (*React, PWA, Firestore, 2020*)](/sematary/zeitungsbote)
 
 The entries in this list are updated occasionally.
 

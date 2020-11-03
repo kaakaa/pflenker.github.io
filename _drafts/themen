@@ -8,20 +8,14 @@ past websites were shitty, too - popups, flashintro, optimized-for and so on
 toniebox
 - beste stackoverflow fragen - bei javascript ggf. was erklaeren
 
-- code reviews should be the exception, not the rule. automate quality gates, such as linting and code coverage, do
-the code review during pairing and only do code review on request
 
 - economics of pairing
-
-- collection hübsch mit shcöner automatischer introseite
 - collection mit automatischem footer oder header
-- excerpts auch für längere postings
 - hecto als collection
 
 sachen auf deutsch
 
 - how to split stories/epics? (foundations)
-- How do we sync between teams?
 - How to document the outcome of discussions aronud stories?
 - How do we ensure the teams are not working in silos?
 - set high expectations (testing)
