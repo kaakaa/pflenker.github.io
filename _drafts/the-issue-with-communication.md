@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "The issue with communication"
-categories: ["Leadership", "Communication"]
+categories: ["Leadership", "Communication", "Write-Up"]
 excerpt: "Communication is all about transmitting information from one person to the next, right? No, it's both less and more than that."
 image: /assets/work_chat.png
 ---

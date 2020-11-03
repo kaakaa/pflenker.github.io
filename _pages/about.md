@@ -3,6 +3,7 @@ layout: page
 title: About
 permalink: /about/
 image: /images/avatar_full.png
+excerpt: "Meet Philipp Flenker - a Software Engineering expert from Germany."
 ---
 Hallo und Hi There, thanks for stopping by! I'm Philipp, a Software Engineering
 Manager residing in Luedinghausen, North-Rhine Westphalia, Germany, with a focus

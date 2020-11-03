@@ -1,9 +1,10 @@
 ---
 layout: post
 title: "Agile doesn't work, because we can't say No!"
-categories: ["Scope Creep", "Predictability", "Sustainable Pace"]
+categories: ["Scope Creep", "Predictability", "Sustainable Pace", "Write-Up"]
 last_modified_at: 2020-10-28
 image: /assets/team_spirit.png
+excerpt: "Not being able to say no is a key dysfunction of any team - be it agile or not. Read more about the problems this causes, and how to fix it."
 ---
 **"We can't say no!" is a fundamental problem** many people are facing in the
 context of Agile. While this is an issue that can occur on specific occasions or

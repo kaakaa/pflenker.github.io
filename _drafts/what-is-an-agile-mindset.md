@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "What is an Agile Mindset?"
-categories: ["Mindset", "Agile"]
+categories: ["Mindset", "Agile", "Write-Up"]
 excerpt: "Others in the company just don't have the right mindset to do Agile, so our efforts to work along the agile values are doomed. Or so some say - but what is an Agile Mindset?"
 image: /assets/solution_mindset.png
 ---

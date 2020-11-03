@@ -1,10 +1,20 @@
 ---
-layout: default
+layout: page
+title: Write-Ups
+permalink: /write-ups/
+image: /assets/typewriter.png
+excerpt: "Write-ups around software engineering, leadership and more."
 ---
+<p>
+This is a collection of write-ups that I have published on <a href="/">the blog</a>. Usually, they revolve around how
+to guide or lead Engineering Teams in an uncertain environment.  I also wrote a few bits about Product Management and Product Ownership, which <a href="/po_qa/start"> you can find here.</a>
+</p>
 
 <div class="posts">
-  {% for post in paginator.posts %}
-    <article class="post">
+  
+   {% assign entries =  site.posts | where_exp: "item", "item.categories contains 'Write-Up'" %}
+    {% for post in entries %}
+      <article class="post">
         <a href="{{ site.baseurl }}{{ post.url }}">
           {%  if post.title != "" %}
             <h1>{{ post.title }}</h1>
@@ -56,30 +66,5 @@ layout: default
     </article>
   {% endfor %}
 
-  <!-- pagination -->
-  {% if paginator.total_pages > 1 %}
-  <div class="pagination">
-    {% if paginator.previous_page %}
-      <a href="{{ paginator.previous_page_path | prepend: site.baseurl | replace: '//', '/' }}">&laquo; Prev</a>
-    {% else %}
-      <span>&laquo; Prev</span>
-    {% endif %}
-
-    {% for page in (1..paginator.total_pages) %}
-      {% if page == paginator.page %}
-        <span class="webjeda">{{ page }}</span>
-      {% elsif page == 1 %}
-        <a href="{{ '/' | prepend: site.baseurl | replace: '//', '/' }}">{{ page }}</a>
-      {% else %}
-        <a href="{{ site.paginate_path | prepend: site.baseurl | replace: '//', '/' | replace: ':num', page }}">{{ page }}</a>
-      {% endif %}
-    {% endfor %}
-
-    {% if paginator.next_page %}
-      <a href="{{ paginator.next_page_path | prepend: site.baseurl | replace: '//', '/' }}">Next &raquo;</a>
-    {% else %}
-      <span>Next &raquo;</span>
-    {% endif %}
-  </div>
-  {% endif %}
+ 
 </div>

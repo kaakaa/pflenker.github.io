@@ -1,7 +1,7 @@
 ---
 layout: post 
 title: "Code Reviews Should Be the Exception, Not the Rule"
-categories: ["Quality", "Engineering" ] 
+categories: ["Quality", "Engineering", "Write-Up" ] 
 image: /assets/code_review.png 
 excerpt: "Code Review is an important part of every software development process.
 However, it catches mistakes and errors too late and its place as a default step
