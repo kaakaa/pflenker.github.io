@@ -73,3 +73,5 @@ When thinking about assigning work, you are no longer feeding the team a backlog
 of items that you want to see turned into software - you are essentially
 controlling and managing them, contributing to an environment where self
 organization, and all the benefits that come with it, will not flourish.
+
+_This post is part of the [Product Owner Q&A](/po_qa/start) series._

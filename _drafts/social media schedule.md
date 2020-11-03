@@ -32,7 +32,7 @@
 # Schedule
 
 # To schedule:
-
+- how to sync
 
 ## Twitter Only: 
 - agile doesn't work 1 
