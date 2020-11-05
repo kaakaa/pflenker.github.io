@@ -36,6 +36,7 @@
 
 ## Twitter Only: 
 - agile doesn't work 1 
+- zeitungsbote
 
 
 

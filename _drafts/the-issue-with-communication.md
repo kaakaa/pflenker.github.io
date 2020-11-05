@@ -75,4 +75,9 @@ work on their version of Christmas. As you can imagine, this doesn't end well.
 This demonstrates nicely how even under the best possible circumstances -
 everybody is listening attentively, and actively trying to understand what you
 are saying - communication still can fail. The willingness to communicate and
-understand is simply not enough for effective communication.
+understand is simply not enough for effective communication. 
+
+This means that in any complex discussion, where we are leaving the realm of
+social consensus, we have to be patient and actively work on creating a common
+understanding of what the other might be trying to say, and offer what we think 
+we have understood back to the discussion for validation.

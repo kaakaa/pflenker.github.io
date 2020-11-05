@@ -90,3 +90,60 @@ enough experts.
 | **Enough experts**        |   Green Zone          | Green Zone          
 | **Not Enough Experts**    |   Yellow Zone         | Red Zone
 | **No Experts**            |   Orange Zone         | Red Zone 
+
+
+## The Green Zone: Nothing to do Here!
+Areas in which we have at least three experts are considered the Green Zone. The
+risk for bottlenecks is low, so is the so-called truck factor, which indicates
+how messed up your project is, should a key person be run over by a truck (You
+can also call it the Lottery Factor, in which case it would indicate the risk if
+a key person wins the lottery and leaves the company).
+
+## Yellow and Orange Zones: Build Up Those Experts!
+The Yellow Zone has less than three experts, the Orange Zone has no expert at
+all. On the other hand, there are enough people interested in becoming experts
+to fill those gaps. All we have to do is make room for learning - depending on
+the zone, people will either learn from existing experts, or need to get some
+external training or learning to become an expert in the area. We will look into
+how to make room for learning below.
+
+Generally speaking, the Orange Zone should be tackled first, since having no
+experts for a certain area is generally worse than having not enough experts.
+
+## Red Zone: Houston, We Have a Problem
+The highest risk for any team is a red zone, where experts are needed, but not
+enough people are willing or able to fill in this role. For all practical
+reasons it doesn't matter whether or not we already have one or two experts for
+the area - the stress that lands on their shoulders by being the bottleneck all
+the time will soon drive them away.
+
+It's important to fill these gaps as quickly as possible, and if really no one
+in the team volunteers to step up and fill the gap, there is no other choice but
+to look for help from outside of the team.
+
+# How to Make it Happen
+The previous steps of this assessment has resulted in a prioritized list of
+areas that need improvement. Now, how do we best build up experts in the area
+that we need?
+
+Teams usually make the mistake of letting Seniors do the stuff they are experts
+in. After all, they are the ones who are most efficient in solving the issue!
+While this might be true, this also prevents the learning and knowledge sharing
+that needs to happen.
+
+So instead, by default, every aspiring expert should try to get their hands on
+an issue of their future area of expertise. They should work with it as best as
+they can, and rely on feedback from existing experts to learn.
+
+In the beginning, Pair Programming between experts and learners helps
+establishing a baseline of knowledge within the learner. Once both the learner
+and the expert are confident enough, the learner can start working on their own
+(depending, of course, on the team's way of working), and frequently pull in the
+expert for opinions.
+
+Another piece of advise is to see features as learning opportunities instead of
+some work that needs to be ticket off some To Do List. That way, items which are
+already done and shipped can still be passed to the expert for review. This
+doesn't block the release of said feature, and it's obviously not the goal to
+introduce late changes to the code, but it creates an opportunity for the expert
+to share more knowledge with the learner.
