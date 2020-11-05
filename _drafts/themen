@@ -95,8 +95,6 @@ daher erstmal definieren: müssen wir es behandeln oder kann man es ignorieren o
 probleme kann man sich nicht aussuchen.
 
 
-
-
 Dynamikrobust problemtransformation und kommunikation
 
 
@@ -119,3 +117,13 @@ outcome vs output - focus on outcome (Awesome, awful, meh)
 
 
 transparency, wohlland, vertraulichkeit, poker
+
+slicing is about creating independent options, it;s not the same as decomposing (into mulitple steps), neil killick at agile online suimmit
+
+
+wohlleben definition von kompliziert: stadtplan ist kompliziert f[r jemanden der es nicht kennt]. kann man durch lernen weggkriegen. komplizierte sachen werden durch prozesse gesteuert
+komplex ist ein system wenn aus dem was schon passiert ist sich nicht folgern l'sst was als naechstes kommt
+
+kultur ist ein schatten, nur indireklt änderbar. der schatten wird geworfen von der umgebung im unternehmen
+
+gute software kommt von guten entwicklern, nicht von guten methoden
