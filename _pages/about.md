@@ -11,8 +11,8 @@ on building happy and productive teams.
 
 I obtained my Master's Degree in Computer Science from the [Westfaelische
 Wilhelms-Universität Münster](https://www.uni-muenster.de) in 2011. Since then,
-I have mainly worked as a Product Owner, Product Manager, Team Lead, Agile Coach
-or a combination.
+I have worked in many diverse roles, such as Team or Engineering Lead, Agile
+Coach, Product Owner or a combination.
 
 I love technology, and one of my earlier childhood memories is feeding long rows
 of `DATA` from a computer magazine into my Commodore 64 - only to be rewarded
