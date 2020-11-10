@@ -87,7 +87,7 @@ difficult now...
 
 # The answers
 
-- Surface Temperature of the Sun: [Around 5,778 °K, 5,505 °C, 9,941 °F](https://en.wikipedia.org/wiki/Sun)
+- Surface Temperature of the Sun: [Around 5,778 K, 5,505 °C, 9,941 °F](https://en.wikipedia.org/wiki/Sun)
 - Latitude of Shanghai: [31°13′43″N](https://en.wikipedia.org/wiki/Shanghai)
 - Area of the Asian continent: [44,579,000 km², 17,212,000 sq mi](https://en.wikipedia.org/wiki/Asia)
 - The year of Alexander the Great's birth: [356 BC](https://en.wikipedia.org/wiki/Alexander_the_Great)

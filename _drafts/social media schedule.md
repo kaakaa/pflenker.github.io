@@ -13,6 +13,10 @@
 - bunter haufen
 - roles
 
+## Xing
+- rules of xing and kanban
+- Roles
+
 ## Scheduled:
 - stories we dont understand
 - use of self org
