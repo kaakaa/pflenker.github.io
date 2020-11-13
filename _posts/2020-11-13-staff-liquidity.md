@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Grow Your Team With Staff Liquidity"
+title: "Use Staff Liquidity for Team Growth"
 categories: ["Team Building", "Leadership", "Write-Up"]
 image: /assets/data_points.png
 excerpt: "Staff Liquidity provides an alternative or addition to adding more people to a team, by focussing on raising the level of experts for certain roles within the team."

@@ -16,6 +16,7 @@
 ## Xing
 - rules of xing and kanban
 - Roles
+- why prioritize
 
 ## Scheduled:
 - stories we dont understand
@@ -37,6 +38,8 @@
 
 # To schedule:
 - how to sync
+- staff liquidity
+- how good of an estimator are you
 
 ## Twitter Only: 
 - agile doesn't work 1 
