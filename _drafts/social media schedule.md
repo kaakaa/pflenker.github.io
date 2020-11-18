@@ -17,6 +17,7 @@
 - rules of xing and kanban
 - Roles
 - why prioritize
+- benefit of self org
 
 ## Scheduled:
 - stories we dont understand

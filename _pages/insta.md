@@ -8,7 +8,7 @@ excerpt: "Posts on Instagram and other social media"
 
 <div class="posts">
   
-   {% assign entries = site.insta %}
+   {% assign entries = site.insta | sort: "date" | reverse %}
     {% for post in entries %}
       <article class="post">
         <a href="{{ site.baseurl }}{{ post.url }}">

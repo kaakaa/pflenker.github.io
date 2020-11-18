@@ -81,7 +81,7 @@ estimates are too small, the customer has to reschedule. (Don't worry, though,
 Parkinson's Law makes sure that you usually won't deliver too early!)
 
 
-# Falsehood #4: If We Keep Failing Our Estimates, We Need to Get Better at Estimating
+# Falsehood #4: If We Keep Failing Our Estimates, We Need to Get Better at Estimating.
 For me, this is a classic one, as I have been approached countless times by
 Product Managers, asking me to train the team to make better estimates, since
 they are frequently failing to deliver on their own "promises". 
@@ -98,8 +98,71 @@ The best estimation process in the world - if it even existed - can not fix your
 chaotic process. Trying to fix the estimate then is like trying to combat the
 fever instead of curing the disease it accompanies.
 
+# Falsehood #5: Adding a Padding Will Fix Optimistic Estimates.
+This widespread myth leads you to believe that once you get an estimate, all you
+need to do is add some padding (Typically around 25%) to get a more "realistic" 
+estimate. However, this padding is usually based solely on emotion: People add
+a padding until they arrive at a number that "feels right".  
+In my experience,
+- Estimates below 4 hours are padded to 4 hours (which is half a day)
+- Estimates above 4 and below 8 are padded to 8 hours
+- Estimates above 8 hours are padded to 3 or 5 days (half a week to a week)
 
-# Adjustment Factors make for more objective estimates.
+While these estimates make you feel good, and maybe make you look good, they
+have nothing to do with reality. Uncertainty around estimates comes from hidden
+risk, and you can't predict this risk in advance (otherwise it wouldn't be
+hidden). 
+
+What makes this even worse is that some people add a padding to account for the
+fact that the estimate was made "off the cuff" - they acknowledge that the
+estimate is very inaccurate and try to make it accurate by adding some number to
+it.
+
+But here is the thing: If you are getting an off-the-cuff estimate, it probably
+includes an optimistic view on only a few of the involved activities (engineers
+tend to forget waiting times, for example), which could be uncovered potentially
+even by investing 15 minutes for the developer to look into a few details. The
+more off the cuff an estimate is, the more likely it is that something big has
+been overlooked, and no padding in the world can account for that.
+
+# Falsehood #6: Adjustment Factors Make for More Objective Estimates.
+Adjustment Factors are usually applied as multipliers to the estimate. For
+instance, to account for the seniority level of the developer, I have seen
+people apply a multiplier between 1 (Very Senior) and 2 (Very Junior) to an
+estimate. Various estimation frameworks, such as COCOMO II, come with a lot of
+these adjustment factors that an estimator simply has to adapt to their needs.
+
+This should make for an objective estimate, right? Yet, it fails, not despite,
+but *because* these factors are there. The seniority level, for example, is
+subjective - is someone with 10 years experience more senior than someone with 3
+years? If yes, how much? To apply these factors, the estimator has to make some
+subjective assumptions, defeating the idea of these adjustment factors.
+
+But it gets worse: More often than people are willing to admit, they are putting
+things on their head when using adjustment factors: They tweak the adjustment
+factors until a "reasonable" estimate is being produced - not the other way
+round.
+
+
+
+
+
+
+
+
+
+# Falsehood #7: The Work Needed to Provide an Estimate Is Part of the Development Work
+This is a classic response to the question why a company pays for estimates,
+even if they are not useful: The work invested in making an estimate is work
+saved during development!
+
+
+
+
+# Reducing the numbers will fix pessimistic estimates
+
+
+
 
 # Precise estimates are good estimates.
 
@@ -110,8 +173,7 @@ fever instead of curing the disease it accompanies.
 
 # Falsehood #3: It's Okay to Tweak an Estimate to Make It Fit into the Schedule
 
-# Adding a padding will fix optimistic estimates
-# Reducing the numbers will fix pessimistic estimates
+
 
 # Narrow range equals good estimate
 
@@ -122,7 +184,3 @@ fever instead of curing the disease it accompanies.
 # The Cone of Uncertainty shows that ranges get smaller the feature progresses.
 
 
-# Falsehood #3: The Work Needed to Provide an Estimate Is Part of the Development Work
-This is a classic response to the question why a company pays for estimates,
-even if they are not useful: The work invested in making an estimate is work
-saved during development!
