@@ -5,7 +5,7 @@ categories: ["Mindset", "Agile", "Write-Up"]
 excerpt: "Others in the company just don't have the right mindset to do Agile, so our efforts to work along the agile values are doomed. Or so some say - but what is an Agile Mindset?"
 image: /assets/solution_mindset.png
 ---
-Not having the right mindset is a core obstacle or impediment when it comes to
+**Not having the right mindset** is a core obstacle or impediment when it comes to
 introducing or sustaining agile in any work environment. To fully understand the
 issue at hand, it makes sense to investigate the innocent word "we" in "We don't
 have the right mindset" - because more often than not, this statement is meant
@@ -15,6 +15,8 @@ do have the right mindset. It's very uncommon to find a team or an individual
 that freely admits that, while others do possess the right mindset, their own
 mindset is just not right for Agile.
 
+{% include floatquote.html quote=" The right mindset is something that is lacking in others,
+not in me. "%}
 Or, in other words: The right mindset is something that is lacking in others,
 not in me.
 
@@ -22,7 +24,7 @@ The topic of a right mindset can be a sensitive one, acting as a red flag to
 certain people, mainly for the following two reasons:
 
 - People who are quick to point out that others are lacking an agile mindset
-  have a hard time providing a defini0tion of what the characteristics of the
+  have a hard time providing a definition of what the characteristics of the
   "right" mindset is. In essence, they claim they "know it when they see it",
   which makes it impossible to argue about.
 - The argument about having the right or wrong mindset often drifts into the
@@ -41,7 +43,7 @@ see it, but only if you already have it, but which you can't otherwise pin down,
 measure or test.
 
 # Building an Agile Mindset 
-If we want to talk about mindsets, we need to have a common understanding what a
+**If we want to talk about mindsets**, we need to have a common understanding what a
 mindset is - both in general terms and in the context of agility. An elusive
 definition that seems to change whenever we look at it just won't do. Therefore,
 the upcoming sections will deal with defining what a mindset is, and then build
@@ -50,7 +52,7 @@ belts, it will be easier for us to argue about its role in the context of
 Software Development.
 
 ## Results, Behavior, Assumptions and Values
-Let's start at the end, at the results any mindset produces, because that is
+**Let's start at the end**, at the results any mindset produces, because that is
 what we see in co-workers and what we believe is the result of their mindset:
 The _result_. On a high level, the result of any company is an exchange of
 payment for service.
@@ -75,6 +77,7 @@ principles of Lean Startup, a company might give away a valuable service for
 free, generating satisfied customers, while collecting a lot of data which is
 valuable for them, so both parties can win.
 
+{% include floatquote.html quote="We should define results as good only if the well-being within the team and the working relationships are good, on top of the customer being happy."%}
 Let's dive a bit deeper into the payment part. As stated above, the results are
 _good_ from the customer's perspective if the payment outweighs the expenses. It
 needs to be stated that the expenses by a company are more than simply the
@@ -83,6 +86,8 @@ software industry, but well-known in other industries: If you deliver a real,
 physical thing, the customer does not only pay the thing itself, but, for
 example, it's wrapping and the maintenance and care of the machine which does
 the wrapping, and even reserves to buy a new machine should this one break. 
+
+
 
 For the software industry, this means that we should define results as good not
 only if the customer is happy and the performance of the team is good, but also
@@ -93,8 +98,8 @@ same way as you can't argue that results are good if all your machines are
 overloaded and never maintained: Both scenarios make for individual happy
 customers, but are not sustainable for long.
 
-### Results are produced by behavior
-Going one step back, we can see that results are ultimately driven by behavior.
+### Results Are Produced by Behavior
+**Going one step back, we can see that results are ultimately driven by behavior.**
 In simplistic terms, we can say that doing or not doing something creates a
 result. This is true on any organizational level: A team can express a certain
 behavior, much like an individual can express a certain behavior - an insight
@@ -108,9 +113,9 @@ solution, but also behavior that impacts the well-being of the involved
 individuals. This is why team events or company parties also contribute to the
 positive results of that company.
 
-### Behavior is driven by assumptions
-What drives the behavior, both on the organizational and individual level, is a
-set of assumptions that we have. The most straightforward assumption to name is
+### Behavior Is Driven by Assumptions
+**What drives the behavior, both on the organizational and individual level, is a
+set of assumptions that we have**. The most straightforward assumption to name is
 that we work on a specific part of the product because we assume it's important.
 We test our software because we assume that we make mistakes which would be
 delivered to the customer without testing.  
@@ -123,8 +128,8 @@ out risks or flaws in the light of a high-stakes discussion, so people withdraw,
 because they (often rightfully) assume that they would have to face negative
 consequences otherwise.
 
-### Assumptions are influenced by values
-A big part of what actually shapes assumptions are values. For example, a lot of
+### Assumptions Are Influenced by Values
+**A big part of what actually shapes assumptions are values**. For example, a lot of
 people value acting rational in a professional context. This value can then
 shape the assumption that an emotional reaction is a sign of a lack of
 self-control, leading to a distant behavior towards colleagues who openly
@@ -133,18 +138,19 @@ better to win than to lose, which can shape the assumption that many, if not
 all, situations are actually about either winning or losing, and not about
 something else (like finding a common solution that works for everyone).
 
-## A mindset is the sum of values and assumptions
-Let's put everything we have discussed so far in the right order: _values_ that
+## A Mindset Is the Sum of Values and Assumptions
+**Let's put everything we have discussed so far** in the right order: _values_ that
 we hold dear influence and shape our _assumptions_. Both of these drive our
 _behavior_, which, in turn, produces our results. The sum of values and
 assumptions is what we define as a _mindset_. With this definition at hand, we
 can now proceed to define an agile mindset as certain values and assumptions,
 and a non-agile mindset as another set of values and assumptions.
 
+{% include floatquote.html quote="In the same way as there is collective intelligence, there is also a group mindset which drives the behavior of a group."%}
 Before we do that, however, let's circle back to the trivial insight we
 generated above: Results are produced by individuals, teams, business lines and
 companies, and these results are obviously driven by the behavior of
-individuals, teams, business lines and companies. It's important to node, in
+individuals, teams, business lines and companies. It's important to note, in
 addition, that the behavior of groups is driven by the mindset - values and
 assumptions - of that group, which are not necessarily the values and
 assumptions held by everyone in that group. In the same way as there is
@@ -152,35 +158,37 @@ collective intelligence in any group, there is also a group mindset which drives
 the behavior of the group.
 
 ## The Agile Mindset
-There is much to say about the agile mindset, many assumptions and values that
+**There is much to say about the agile mindset**, many assumptions and values that
 form it, but there is one pair of value and assumption that eclipses everything
 else. It's like this pair is the sun, and every other value or assumption is a
 planet circling that sun. Without that core part firmly in place, an
 organization, team or individual will struggle more with Agile than others,
 regardless of all the other qualities we will discuss later.
 
-Valuing **Learning** above everything else, and assuming that **we can always
-get better at how we do things** form the fundamental base of any agile mindset.
+Valuing *Learning* above everything else, and assuming that *we can always
+get better at how we do things* form the fundamental base of any agile mindset.
 Agile methodologies are firmly set on the concept of validated learning.
 Typically, we set a goal, set a metric which represents the goal, try something
 out, inspect the results and adapt our approach.  It's important to note that we
 need both the value and the assumption for an agile mindset:
 
+{% include floatquote.html quote="The assumption that we can always get better at how we do things absolves us from plateauing with our performance."%}
 The assumption that we can always get better at how we do things absolves us
 from plateauing with our performance. If we assume that we are never done, and
 that we haven't delivered our best work yet drives us forward. Without that
 assumption, Kanban teams will rarely find things to improve on, and Scrum retros
-will be over quickly, stating that there is "nothing to improve". If we combine
-this with Habit 1 of Stephen R. Covey's "7 Habits", "Be Proactive", we start
-actively looking for ways to get better, even if the environment in which we are
-moving is less than ideal. We stop looking for others to _make_ us better, and
-instead start looking for strategies to take matters into our own hands.
+will be over quickly, stating that there is "nothing to improve". We should
+start proactively looking for ways to get better, even if the environment in
+which we are moving is less than ideal. We stop looking for others to _make_ us
+better, and instead start looking for strategies to take matters into our own
+hands.
 
 The focus on learning gives our drive structure and purpose, and helps us to put
 first things first. Without valuing to learn, we might be afraid of trying out
 new things lest they fail, with this learning mindset, we expect failures and
 treat them as learning experiences to get better with the next try.
 
+{% include floatquote.html quote="The learning mindset automatically leads us to the fundamentals of Agility, so ultimately,  it's the mindset that came first."%}
 Working together as an agile team requires a great deal of learning. First, we
 need to learn to work together. We are all different from one another, with
 different strengths and weaknesses, some of which only come out in stressful
@@ -189,7 +197,7 @@ any team needs to learn. Once it has mastered that, they need to move on to
 learning how to create happy, satisfied customers. Here, the key assumption
 needs to be that we do not know already what they want, even if they outright
 tell us, but that there is always something to learn, and always a way to
-deliver better software faster. Ultimately, the learning mindset automatically
+deliver better software faster. The learning mindset automatically
 leads us to the fundamentals of Agility - so ultimately, it's the mindset that
 came first, not Agility.
 
@@ -206,12 +214,13 @@ rather than sticking to the plan until it catches up with the reality.
 This key ingredient to an Agile Mindset is what Carol Dweck calls a "Growth
 Mindset" in her [best selling book "Mindset"](https://www.amazon.com/Mindset-Psychology-Carol-S-Dweck-ebook/dp/B000FCKPHG).
 
-### Learning alone is not enough, it needs to be mutual
-A Growth Mindset with the focus on learning is valuable, but it makes only half
-of a truly agile mindset. The other half is similar, yet not the same, and is
+### Learning Alone Is Not Enough, It Needs to Be Mutual
+**A Growth Mindset with the focus on learning is valuable, but it makes only half
+of a truly agile mindset**. The other half is similar, yet not the same, and is
 best described in ["The Skilled Facilitator"](https://www.amazon.com/Skilled-Facilitator-Comprehensive-Consultants-Facilitators-ebook/dp/B01MG5LQH1/ref=sr_1_1?dchild=1&keywords=schwarz+the+skilled+facilitator&qid=1603985178&s=digital-text&sr=1-1)
 by Robert Schwarz, who calls it the "Mutual Learning Mindset".
 
+{% include floatquote.html quote="A person with an Agile Mindset sees any team discussion as a mutual learning experience."%}
 The key point is that a person with an Agile Mindset does not only seeks
 personal growth and learning, but sees any team discussion as a mutual learning
 experience. Meetings become learning groups where all participants learn as much
@@ -221,7 +230,7 @@ and how, where and when they can do something to prevent the same mistake in the
 future.
 
 In his book and [on his website](https://www.schwarzassociates.com/what-is-the-mutual-learning-approach/),
-Schwarz defines 5 values and 5 assumptions, which drive 8 behaviors . 
+Schwarz defines five values and five assumptions, which drive eight behaviors. 
 
 The list of assumptions reads like a guideline for successful meetings in any
 context:
@@ -235,8 +244,7 @@ context:
 <small>(List taken from [here](https://www.schwarzassociates.com/what-is-the-mutual-learning-approach/))</small>
 
 # Conclusion
-
-To fully answer the question about an agile mindset, we need to understand what
+**To fully answer the question about an agile mindset**, we need to understand what
 a mindset is and how it impacts us. A Mindset is the combination of assumptions
 and values which drive our behaviors, which in turn produce our results -
 individually, as a team and as a company.
@@ -247,3 +255,4 @@ provide us with data to do better in the future.
 
 This does not only apply to us and ourselves - an Agile Mindset is about mutual
 learning, which turns every team interaction into a common learning experience.
+
