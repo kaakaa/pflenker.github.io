@@ -3,19 +3,15 @@ layout: post
 title: "How to sync information between teams?"
 image: /assets/features_overview.png
 excerpt: "Syncing information between teams is hard - here is a simple idea on how to get started."
+last_modified_at: 2020-11-18
 ---
-The answer to this question will not address each and every communication issue
-that teams might be facing in the context of software development. Communication
-is a very large, complex topic, and therefore, it makes sense to break it down
-into smaller, more manageable pieces and answer them one by one.
-
-The premise of this specific question, which has been raised as part of my
-[Product Owner Q&A-Series](/po_qa/start), is the following situation: A company
-has a small number of teams, and the Product Owners find it increasingly
-difficult to understand what other Product Owners of the company are working on.
-Sure, they know about the big picture, but this picture is usually incomplete,
-as it focusses only on the product or portfolio dimension of what any team is
-working on.
+The premise of this question, which has been raised as part of my [Product Owner
+Q&A-Series](/po_qa/start), is the following situation: A company has a small
+number of teams, and the Product Owners find it increasingly difficult to
+understand what other Product Owners of the company are working on. Sure, they
+know about the big picture, but this picture is usually incomplete, as it
+focusses only on the product or portfolio dimension of what any team is working
+on.
 
 This produces two main problems: As soon as there is a topic that requires
 coordination between teams, things start to get messy. Product Owners of both
@@ -36,8 +32,8 @@ An alternative strategy that has been proposed was that there was some kind of
 information radiator, where people could just look at and understand what is
 going on. This idea comes with three drawbacks:
 
-- You have to remember reading it
-- You have to remember writing it
+- You have to remember to read it
+- You have to remember to update it
 - The responsibility for including everything that is relevant for any reader lies with the author
 
 That sounds like a lot of work!
@@ -70,6 +66,10 @@ focussed. Talk about what each PO and their team has worked on since the last
 meeting, and what is on the respective agendas (besides the backlogs) until the
 next meeting. Any need to discuss things in greater detail should result in
 follow up meetings if necessary.
+
+Alternatively, you can make this a [Lean
+Coffee](https://agilecoffee.com/leancoffee/): Everyone can add things to the
+agenda, the topics are voted on and every discussion is time boxed.
 
 This, in a nutshell, should be enough to create a baseline of communication and
 collaboration between Product Owners in a company.

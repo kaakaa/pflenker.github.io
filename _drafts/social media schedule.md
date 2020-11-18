@@ -19,7 +19,7 @@
 - why prioritize
 - benefit of self org
 
-## Scheduled:
+# Scheduled:
 - stories we dont understand
 - use of self org
 - Code Reviews
@@ -41,10 +41,14 @@
 - how to sync
 - staff liquidity
 - how good of an estimator are you
+- agile mindset
 
 ## Twitter Only: 
 - agile doesn't work 1 
 - zeitungsbote
+
+## hacker news:
+Code review
 
 
 
