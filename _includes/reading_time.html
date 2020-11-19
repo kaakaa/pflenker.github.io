@@ -1,8 +1,8 @@
-  {% assign words = include.content | number_of_words %}
+  {% assign words = include.content | smartify | strip_html | number_of_words %}
   {% if words < 360 %}
     1 min
   {% else %}
-  {% assign minutes = words | divided_by: 180 %}
+  {% assign minutes = words | divided_by: 250 %}
   {% assign hours = minutes | divided_by: 60 %}
   {% if hours >= 1 %}
   {{ hours }} h

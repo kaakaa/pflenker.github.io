@@ -18,6 +18,7 @@
 - Roles
 - why prioritize
 - benefit of self org
+- how good of an estimator are zou
 
 # Scheduled:
 - stories we dont understand
@@ -34,14 +35,15 @@
 - hecto(twitter only)
 - Stick to the rules of scrum and kanban
 - Vision
+- - how to sync
+- staff liquidity
+- how good of an estimator are you
+- agile mindset
 
 # Schedule
 
 # To schedule:
-- how to sync
-- staff liquidity
-- how good of an estimator are you
-- agile mindset
+
 
 ## Twitter Only: 
 - agile doesn't work 1 
@@ -49,7 +51,18 @@
 
 ## hacker news:
 Code review
+how good of an estimator
 
 
+https://www.newyorker.com/tech/annals-of-technology/the-rise-and-fall-of-getting-things-done
 
+	
+Glench 13 hours ago [–]
 
+For more context, Cal Newport discusses this article a little bit on his blog: https://www.calnewport.com/blog/2020/11/17/when-did-producti...
+> My latest article for The New Yorker, published on Tuesday, is titled “The Rise and Fall of Getting Things Done.” It’s not, however, really about David Allen’s productivity system, which longtime readers (and listeners) know I really admire. It’s instead about a deeper question that I hadn’t heard discussed much before: Why do we leave office workers to figure out on their own how to get things done?
+
+reply
+
+===============
+negotiation buch, you fall back to the highest level of preparation
