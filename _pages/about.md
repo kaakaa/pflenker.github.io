@@ -14,13 +14,11 @@ Wilhelms-Universität Münster](https://www.uni-muenster.de) in 2011. Since then
 I have worked in many diverse roles, such as Team or Engineering Lead, Agile
 Coach, Product Owner or a combination.
 
-I love technology, and one of my earlier childhood memories is feeding long rows
-of `DATA` from a computer magazine into my Commodore 64 - only to be rewarded
-with `?SYNTAX ERROR IN LINE 82` (If you are interested, [you can read the full
-story here](/sematary/what-me-worry)!). However, during my first job as a
-graduate, I started to discover that while a talented developer can save more
-than just the project, a focussed team of engineers is nigh unstoppable - which
-is why I decided that focussing on the technology alone would not be enough. 
+I love technology, and some of my earlier childhood memories revolve around my
+Commodore 64. However, during my first job as a graduate, I started to discover
+that while a talented developer can save more than just the project, a focussed
+team of engineers is nigh unstoppable - which is why I decided that focussing on
+the technology alone would not be enough. 
 
 So I have dedicated most of my professional career to figuring out how to bring
 people together, focus them as teams toward a common goal and remove all
