@@ -19,6 +19,7 @@
 - why prioritize
 - benefit of self org
 - how good of an estimator are zou
+ agile mindset
 
 # Scheduled:
 - stories we dont understand
