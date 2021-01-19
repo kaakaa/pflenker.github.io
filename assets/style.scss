@@ -202,7 +202,7 @@ ul ul, ol ul {
 }
 
 em, i {
-  font-family: 'LatoLightItalic';
+  font-family: 'LatoItalic';
   font-style: italic;
 }
 
@@ -440,8 +440,8 @@ footer {
 }
 
 @font-face {
-  font-family: LatoLightItalic;
-  src: url(fonts/LatoLatin-LightItalic.woff2);
+  font-family: LatoItalic;
+  src: url(fonts/LatoLatin-Italic.woff2);
 }
 @font-face {
   font-family: LatoBold;
