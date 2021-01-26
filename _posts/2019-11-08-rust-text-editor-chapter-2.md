@@ -5,7 +5,7 @@ categories: [Rust, hecto, Tutorial]
 permalink: /hecto-chapter-2/
 image: /assets/2019-11-08-hecto-chapter-2.png
 date: 2019-11-08 00:00:03
-last_modified_at: 2020-10-29
+last_modified_at: 2021-01-26
 ---
 [Previous chapter]({% post_url 2019-11-08-rust-text-editor-chapter-1%}) - [Overview]({% post_url 2019-11-08-rust-text-editor%}) - [Appendices]({% post_url 2019-11-08-rust-text-editor-appendix%}) - [Next Chapter]({% post_url 2019-11-08-rust-text-editor-chapter-3%}) 
 {: style="text-align: center"}
@@ -145,6 +145,10 @@ It now contains the exact names and versions of all packages and dependencies
 which have been installed. This is helpful to avoid "Works on my machine" - bugs
 if you are working on a team, where you are encountering a bug in, say, `termion
 v1.2.3`, while your co-worker is on `termion v1.2.4` and doesn't see it.
+
+> In case you missed it in the very first chapter, this tutorial can not be 
+> completed on Windows. Termion is a dependency that is not supported on that
+> platform - but you can run it using the Linux Subsystem.
 
 Now change the `main.rs` as follows:
 

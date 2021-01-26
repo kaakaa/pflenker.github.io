@@ -5,7 +5,7 @@ categories: [Rust, hecto, Tutorial]
 permalink: /hecto-chapter-4/
 image: /assets/2019-11-08-hecto-chapter-4.png
 date: 2019-11-08 00:00:05
-last_modified_at: 2020-10-29
+last_modified_at: 2021-01-26
 ---
 [Previous chapter]({% post_url 2019-11-08-rust-text-editor-chapter-3%}) - [Overview]({% post_url 2019-11-08-rust-text-editor%}) - [Appendices]({% post_url 2019-11-08-rust-text-editor-appendix%}) - [Next Chapter]({% post_url 2019-11-08-rust-text-editor-chapter-5%}) 
 {: style="text-align: center"}
@@ -467,6 +467,9 @@ We're going to use `termion`'s capability to provide RGB colors, which fall back
 to simpler colors in case they are not supported by the current terminal.
 
 {% include hecto/draw-status-bar.html %}
+
+> Note: On some terminals, such as on Mac, the termion colors won't be displayed
+> properly. For the sake of the tutorial, you could then use `termion::style::Invert`. [See this github issue for details.](https://github.com/pflenker/hecto-tutorial/issues/3)
 
 <small>[See this step on
 github](https://github.com/pflenker/hecto-tutorial/tree/draw-status-bar)</small>

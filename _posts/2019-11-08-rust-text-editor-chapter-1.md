@@ -5,7 +5,7 @@ categories: [Rust, hecto, Tutorial]
 permalink: /hecto-chapter-1/
 image: /assets/2019-11-08-hecto-chapter-1.png
 date: 2019-11-08 00:00:02
-last_modified_at: 2020-10-29
+last_modified_at: 2021-01-26
 ---
 [Overview]({% post_url 2019-11-08-rust-text-editor%}) - [Appendices]({% post_url 2019-11-08-rust-text-editor-appendix%}) - [Next Chapter]({% post_url 2019-11-08-rust-text-editor-chapter-2%}) 
 {: style="text-align: center"}
@@ -29,7 +29,7 @@ The easiest way is to use the Windows Subsystem for Linux (WSL), which [is
 available for Windows
 10](https://docs.microsoft.com/en-us/windows/wsl/install-win10). You can run and
 install Rust on Windows, too, but you will soon run into issues while you are
-following along this tutorial.
+following along this tutorial and won't be able to complete it.
 
 ## How to install rust with `rustup`
 If you visit the [rustup web site](https://rustup.rs/), it tries to auto-detect
