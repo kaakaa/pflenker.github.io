@@ -2,7 +2,7 @@
 layout: post
 title: "Agile doesn't work, because we can't say No!"
 categories: ["Scope Creep", "Predictability", "Sustainable Pace", "Write-Up"]
-last_modified_at: 2020-10-28
+last_modified_at: 2021-02-01
 image: /assets/team_spirit.png
 excerpt: "Not being able to say no is a key dysfunction of any team - be it agile or not. Read more about the problems this causes, and how to fix it."
 ---
@@ -59,7 +59,9 @@ requirements while saying No to technical debt at the same time. It's not always
 ## Finding your Yes 
 **In order to say No**, we need to work on our Yes. This is often surprisingly
 difficult: If you ask a team what they do want to achieve beside developing
-features, differences start to surface. {% include floatquote.html quote="Saying
+features, differences start to surface. 
+
+{% include floatquote.html quote="Saying
 No is easy, if you have a bigger Yes burning inside." author='Stephen R. Covey,
 "The Seven Habits of Highly Effective People"'
 link="https://www.amazon.com/Habits-Highly-Effective-People-Anniversary/dp/1511317299"%}
@@ -148,7 +150,9 @@ out of the situation where people disrespect our boundaries. It might also bring
 more money and different responsibilities, at the cost of work (to get the new
 job) and uncertainty.
 
-Thinking about the value of this option raises further issues and questions: {%
+Thinking about the value of this option raises further issues and questions: 
+
+{%
 include floatquote.html quote="Before we dismiss an option, we need to reflect
 on its value and costs."%}
 
@@ -248,7 +252,9 @@ fighting for and _why_, we won't get emotional, we have drawn the line in the
 sand and we stand by it. We don't attack, but we don't yield either. Sustaining
 the respect for the other person is vital at this stage: you disagree
 professionally, but not personally, so you have to show to the other that you
-are merely rejecting their position and not them as a person. {% include
+are merely rejecting their position and not them as a person. 
+
+{% include
 floatquote.html quote="Don't attack, don't yield. Sustain your respect and
 empathy."%}
 

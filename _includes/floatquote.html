@@ -1,6 +1,6 @@
 <aside class="quote{% if include.left%} left{%endif%}">
 <blockquote>
-    {{include.quote}}
+    {{include.quote | strip_html}}
     {% if include.author %}
     <footer>
         
