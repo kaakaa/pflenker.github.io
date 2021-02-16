@@ -24,11 +24,7 @@ So I have dedicated most of my professional career to figuring out how to bring
 people together, focus them as teams toward a common goal and remove all
 unnecessary hindrances along the way. I believe that a good manager or leader's
 job is to bring people together as a team, keep them focussed on the goal,
-protect them from distractions and trust them to get the job done. I am humbled
-and proud to say that this people-first approach has been rewarded by my peers
-at OpusCapita, [who made me the only person to receive the internal Value
-Ambassador award two
-times.](https://www.opuscapita.com/blog/2020/meet-philipp-flenker)
+protect them from distractions and trust them to get the job done. Currently, I work as an Engineering Manager for Zalando SE.
 
 If you are interested in my professional background, you can find my CV on
 [LinkedIn (English)](https://www.linkedin.com/in/pflenker/) or [Xing
