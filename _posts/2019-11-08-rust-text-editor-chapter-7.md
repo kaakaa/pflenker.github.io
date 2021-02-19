@@ -320,7 +320,7 @@ by incrementing `index` and `continue`ing out of the current loop iteration. We
 also set `prev_is_separator` to `true` so that if we're done highlighting the
 string, the closing quote is considered a separator.
 
-IF we're not currently in a string, then we have to check if we're at the
+If we're not currently in a string, then we have to check if we're at the
 beginning of one by checking for the starting quote. If we are, we set
 `in_string` to `true`, highlight the quote and consume it.
 
@@ -479,7 +479,7 @@ highlighting, and `false` otherwise.
 
 `highlight_string` has changed quite a lot. Instead of having a variable which
 keeps track of whether or not we are in a string, we are now checking if we are
-at an opening quote. If so, we consume the remainder of the row until we meed
+at an opening quote. If so, we consume the remainder of the row until we meet
 the end of it or a closing quote and highlight it as a string.
 
 `highlight_number`, with which we started the whole highlighting process, has
@@ -584,7 +584,7 @@ with the right highlighting type. If one character is off, the whole
 highlighting for this string is aborted.
 
 This means that we need to pass around `highlighting::Type`, but instead of
-worrying about references and borrowing, wee are simply deriving `Copy` and
+worrying about references and borrowing, we are simply deriving `Copy` and
 `Clone` for that type and simply copy it around. Since we have no plans for
 `Type` to grow, this is a sensible decision for now.
 

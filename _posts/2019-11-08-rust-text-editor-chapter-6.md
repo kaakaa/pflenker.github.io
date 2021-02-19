@@ -137,7 +137,7 @@ all values of the `Position` struct by calling `clone`.
 
 ## Search forward and backward
 
-The last feature we'd like to add is to allow th euser to advance to the next or
+The last feature we'd like to add is to allow the user to advance to the next or
 previous match in the file using the arrow keys. The <kbd>&uarr;</kbd> and
 <kbd>&larr;</kbd> keys will go to the previous match, and the <kbd>&darr;</kbd>
 and <kbd>&rarr;</kbd> keys will go to the next match.

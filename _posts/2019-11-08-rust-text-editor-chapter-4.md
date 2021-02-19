@@ -32,9 +32,10 @@ The other new concept is this line:
 ```rust
 #[derive(Default)]
 ```
+
 It means that the rust compiler is supposed to derive an implementation for
 `default`. `default` is supposed to return a struct with its contents
-initialized to a default value - which is something that the compiler cna do for
+initialized to a default value - which is something that the compiler can do for
 us. With that directive, we do not need to implement `default` ourselves. Let's
 see if we can simplify our existing code with it:
 
@@ -83,7 +84,7 @@ Let's unravel this change starting with `Row`. We have added a method called
 `render`. We call it `render`, because eventually it will be responsible for a
 few more things than just returning a substring. Our `render` method is very
 user friendly as it normalizes bogus input - essentially, it returns the biggest
-possible sub string it can generate. We're also routinely using
+possible substring it can generate. We're also routinely using
 `unwrap_or_default`, even though it's not necessary here, as we sanitized the
 start and end parameters beforehand. What happens in the last line is that we
 try to create a substring from the string and either convert it or the default
@@ -252,7 +253,7 @@ other improvements. Can you spot it?
 
 Now `cursor_position` refers to the cursor's position within the file, not its
 position on the screen. So our goal with the next few steps is to limit the
-values of `cursor_position` ` to only ever point to valid positions in the file,
+values of `cursor_position` to only ever point to valid positions in the file,
 with the exception that we allow the cursor to point one character past the end
 of a line or past the end of the file, so that the user can add new characters
 at the end of a line, and new lines at the end of the file can be added easily.

@@ -78,7 +78,7 @@ We are still mainly interested in characters and in <kbd>Ctrl-Q</kbd>.
 
 Note the subtle difference in the inner match: `Key::Char(c)` matches _any_
 Character and binds it to the variable `c`, whereas `Key::Ctrl('q')` matches
-specifically <kbd>Ctrl-q</kbd> p.
+specifically <kbd>Ctrl-q</kbd>.
 
 Before the change, we were working with bytes which we converted to characters
 in order to print them out. Now, Termion hands us the characters, so in order to
@@ -138,7 +138,7 @@ Let's focus on what's new: The `impl` block contains function definition which
 can be called on the struct (We see how this works in a second). The function
 gets the `pub` keyword, so we can call it from the outside. And the `run`
 function accepts a parameter called `&self`, which will contain a reference to
-the struct it was called upon (The `&` before `self`indicates that we are
+the struct it was called upon (The `&` before `self` indicates that we are
 dealing with a reference). This is equivalent to having a function outside of
 the `impl` block which accepts a `&Editor` as the first parameter.
 

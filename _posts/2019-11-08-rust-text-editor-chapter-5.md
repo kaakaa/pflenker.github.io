@@ -33,7 +33,7 @@ by character.
 
 We use the iterator's `take` and `skip` functions to create new iterators, one
 that goes from `0` to `at` (including `at`), and another one that goes from the
-element after`at` to the end. We use `collect` to combine these iterators into
+element after `at` to the end. We use `collect` to combine these iterators into
 strings. [`collect` is very powerful and can collect into different
 collections](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.collect).
 Since there are multiple collections `collect` can create, we have to provide
